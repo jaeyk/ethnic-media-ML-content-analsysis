@@ -1,0 +1,197 @@
+---
+title: "Content analysis"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+## 0. Setup 
+
+I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8, 
+                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
+```
+
+```{r}
+
+# Clean up the environment
+
+# rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        irr, # for calculating inter-coder reliability score
+        ggthemes # for fancy ggplot themes
+)
+
+```
+
+## 1. Importing files 
+
+
+```{r}
+
+# Training data for classifying articles from Asian American newspapers (dropping article identifiers)
+training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")[, -1]
+
+# Training data for classifying articles from African American newspapers (dropping article identifiers)
+training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")[, -1]
+
+# Dimensions 
+dim(training_asian)
+dim(training_black)
+
+# Variable names
+names(training_asian) == names(training_black)
+
+```
+
+## 2. Descriptive statisics 
+
+### 2.1. Data cleaning 
+
+```{r}
+
+# Checking NAs
+
+mean(is.na(training_asian))
+mean(is.na(training_black))
+
+# Replacing NAs with 0s
+
+training_asian[is.na(training_asian)] <- 0
+
+```
+
+### 2.2. Data visualization 
+
+```{r}
+
+summary_statistics <- bind_rows(
+  mutate(training_asian, Group = "Asian Americans"),
+  mutate(training_black, Group = "African Americans ")
+) %>%
+  mutate(linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
+         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0),
+         topic = ifelse(Topics_A == Topics_B, Topics_A, NA))
+
+summary_statistics %>%
+  gather(type, value, linked_progress, linked_hurt) %>%
+  group_by(Group, type) %>%
+  summarise(mean = mean(value), # summarize mean, standard deviation, and n 
+            sd = sd(value),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+  ggplot(aes(x = reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = Group)) +
+    geom_pointrange(size = 0.7) + # point estimates plus confidence intervals 
+    theme_fivethirtyeight() +
+    coord_flip() +
+    labs(y= "Percentages of Agreement", x = "Measure Type",
+         title = "Percentages of Agreement",
+         subtitle = "1: Perfect agreement, 0: Zero agreement",
+         caption = "Ethnic NewsWatch") +
+    theme(text = element_text(size = 15)) # large font size 
+
+```
+
+### 2,3, Checking the data balance 
+
+```{r}
+summary_statistics %>%
+  group_by(Group, linked_progress) %>%
+  summarize(n = n()) %>%
+  mutate(freq = n / sum(n)) 
+
+summary_statistics %>%
+  group_by(Group, linked_hurt) %>%
+  summarize(n = n()) %>%
+  mutate(freq = n / sum(n)) 
+```
+
+
+## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
+
+### 3.1. Creating fuctions 
+
+aggreement = accuracy 
+
+precision = kappa 
+
+http://web2.cs.columbia.edu/~julia/courses/CS6998/Interrater_agreement.Kappa_statistic.pdf
+
+https://stats.stackexchange.com/questions/82162/cohens-kappa-in-plain-english
+
+```{r}
+
+extract_kappa <- function(data){
+  
+ kappa_progress  <- data %>%
+      dplyr::select(contains("gains")) %>%
+      kappa2("squared")
+ 
+ kappa_hurt <- data %>%
+      dplyr::select(contains("losses")) %>%
+      kappa2("squared")
+ 
+ data.frame("kappa_progress" = kappa_progress$value, 
+            "kappa_hurt" = kappa_hurt$value)
+}
+
+extract_agreement <- function(data){
+  
+ agreement_progress  <- data %>%
+      dplyr::select(contains("gains")) %>%
+      agree()
+ 
+ agreement_hurt <- data %>%
+      dplyr::select(contains("losses")) %>%
+      agree()
+ 
+ data.frame("agreement_progress" = agreement_progress$value/100, 
+            "agreement_hurt" = agreement_hurt$value/100)
+}
+
+```
+
+### 3.2. Applying the functions to each group 
+
+```{r}
+
+irr_summary <- bind_rows(
+mutate(bind_cols(training_asian %>%
+  extract_kappa(),
+          training_asian %>%
+  extract_agreement()), Group = "Asian Americans"),
+mutate(bind_cols(training_black %>%
+  extract_kappa(),
+          training_black %>%
+  extract_agreement()), Group = "African Americans"))
+
+```
+
+### 3.3 Visualizing agreement and Kappa  
+
+```{r}
+
+irr_summary %>%
+  gather(type, value, kappa_progress:agreement_hurt) %>% 
+  ggplot(aes(x = reorder(as.factor(type), value), y = value, fill = Group)) +
+    geom_col(position = "dodge") +
+    coord_flip() +
+    labs(y= "Intercorder Reliability Scores", x = "Linked Fate Type",
+         title = "Content Analysis Results",
+         subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
+         caption = "Ethnic NewsWatch") +
+    theme_fivethirtyeight() + # five thirty eight theme 
+    theme(text = element_text(size = 15)) # large font size 
+
+```
