@@ -120,7 +120,7 @@ df %>%
   ggplot(aes(x = as.factor(linked_progress), y = freq, fill = Group)) +
     geom_col(position = "dodge") +
     labs(x = "Values", y = "Freq",
-         title = "Linked progress",
+         title = "Linked Progress",
          subtitle = "Yes = 1, No = 0") +
     theme_fivethirtyeight(),
 
@@ -131,7 +131,7 @@ df %>%
   ggplot(aes(x = as.factor(linked_hurt), y = freq, fill = Group)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
-         title = "Linked hurt",
+         title = "Linked Hurt",
          subtitle = "Yes = 1, No = 0") +
     theme_fivethirtyeight(), common.legend = TRUE)
 
@@ -232,7 +232,7 @@ df %>%
   ggplot(aes(x = reorder(as.factor(topic), freq), y = freq, fill = type)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
-         title = "The frequency of agreed topics") +
+         title = "The Frequency of Agreed Topics") +
     theme_fivethirtyeight() +
     coord_flip() +
     facet_wrap(~Group)
@@ -268,34 +268,5 @@ df %>%
            title = "African Americans")
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_corr_black.png")
-```
-## 5. Re-labeling data
-
-```{r}
-
-sample_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.csv") 
-sample_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.csv")
-
-labeled_asian <- sample_asian %>%
-  mutate(mixed = ifelse(linked_progress == linked_hurt, 1, 0),
-         progress = ifelse(mixed == 0, linked_progress, 0),
-         hurt = ifelse(mixed == 0, linked_hurt, 0)) %>%
-  dplyr::select(!contains("linked"))
-
-labeled_black <- sample_black %>%
-  mutate(mixed = ifelse(linked_progress == linked_hurt, 1, 0),
-         progress = ifelse(mixed == 0, linked_progress, 0),
-         hurt = ifelse(mixed == 0, linked_hurt, 0)) %>%
-  dplyr::select(!contains("linked"))
 
 ```
-
-### 5.3. Exporting for classification 
-
-```{r}
-
-write.csv(labeled_asian, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/labeled_asian.csv")
-write.csv(labeled_black, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/labeled_black.csv")
-
-```
-
