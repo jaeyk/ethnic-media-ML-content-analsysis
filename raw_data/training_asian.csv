@@ -1,0 +1,1009 @@
+Article_number,Topics_A,Promoting_collective_gains_A,Preventing_collective_losses_A,Topics_B,Promoting_collective_gains_B,Preventing_collective_losses_B
+1,Community events,1,0,Others,1,0
+2,Community events,0,0,Others,0,0
+3,Arts,0,0,Arts,0,0
+4,Housing,0,0,Housing,0,0
+5,Housing,1,0,Housing,1,0
+6,Political representation,0,1,Political representation,1,0
+7,Political representation,0,0,Political representation,1,0
+8,Political representation,0,1,Political representation,1,0
+9,Community events,1,1,Asian stereotype,1,1
+10,Arts,0,0,Arts,0,0
+11,Others,0,0,Others,0,0
+12,Employment,1,0,Labor union,0,0
+13,Housing,0,1,Housing,0,1
+14,Housing,0,0,Housing,0,1
+15,Housing,0,0,Community events,0,0
+16,International business,0,0,Others,0,0
+17,Political representation,0,0,Community events,0,0
+18,Housing,0,0,Housing,0,0
+19,The Redress Movement,1,1,Community events,0,0
+20,Healthcare,1,0,Healthcare,1,0
+21,Healthcare,1,0,Community events,0,0
+22,Community events,0,0,Others,0,0
+23,Community events,1,0,Others,0,0
+24,Political representation,0,1,Anti-U.S. foreign policy,0,0
+25,Healthcare,1,0,Healthcare,1,0
+26,Arts,0,0,Arts,0,0
+27,Employment,0,0,Others,0,0
+28,Hate crimes,0,1,Others,0,0
+29,Community events,0,0,Community events,0,0
+30,Labor union,1,1,Labor union,1,0
+31,Housing,0,0,Community events,0,0
+32,Housing,0,0,Others,0,0
+33,Housing,0,0,Others,0,0
+34,Employment,0,1,Employment,1,1
+35,Community events,0,0,Employment,0,0
+36,Employment,0,1,Affirmative action,0,1
+37,Arts,1,1,Community events,0,0
+38,Housing,0,1,Housing,0,0
+39,Labor union,0,1,Labor Union,1,0
+40,Others,0,1,Employment,0,1
+41,Community events,0,0,Others,0,0
+42,Employment,0,0,Others,0,0
+43,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+44,Employment,0,0,Labor Union,1,0
+45,Housing,0,0,Others,0,0
+46,Others,0,0,Others,0,1
+47,Housing,0,0,Housing,0,0
+48,Arts,0,0,Others,0,0
+49,Community events,0,0,Community events,0,0
+50,Arts,0,0,Others,0,0
+51,Healthcare,0,0,Employment,0,0
+52,Employment,0,1,Labor Union,0,1
+53,Labor union,0,1,Employment,0,1
+54,Arts,0,0,Others,0,0
+55,Housing,1,0,Others,0,0
+56,Community events,0,0,Community events,0,0
+57,Labor union,0,1,Labor Union,0,1
+58,Housing,0,0,Housing,1,0
+59,Housing,0,0,Others,0,0
+60,Community events,0,0,Others,0,0
+61,Community events,1,0,Community events,0,0
+62,Affirmative action,1,0,Others,,0
+63,Community events,0,0,Others,0,0
+64,The Redress Movement,1,0,Community events,0,0
+65,Arts,0,0,Others,0,0
+66,Housing,0,0,Housing,0,0
+67,Healthcare,1,0,Others,0,0
+68,Others,0,0,Others,0,0
+69,Community events,0,0,Community events,0,0
+70,Labor union,1,0,Others,0,0
+71,Community events,0,0,Others,0,0
+72,Community events,1,0,Others,0,0
+73,Employment,1,0,Others,1,0
+74,Housing,0,0,Others,0,0
+75,The Redress Movement,0,0,The Redress Movement,0,0
+76,Arts,1,0,Arts,0,0
+77,Political representation,1,1,Political representation,1,0
+78,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,0
+79,Arts,1,0,Arts,0,0
+80,Healthcare,1,0,Healthcare,1,0
+81,Arts,0,0,Others,0,0
+82,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,0
+83,Arts,0,0,Arts,0,0
+84,Community events,1,0,Others,0,0
+85,Employment,0,1,Others,0,0
+86,Arts,1,0,Arts,0,0
+87,Community events,0,0,Community events,0,0
+88,Arts,0,0,Employment,0,0
+89,Others,1,0,Others,1,0
+90,Arts,0,0,Arts,0,0
+91,Others,1,0,Others,0,0
+92,Others,0,0,Others,0,0
+93,Healthcare,0,0,Healthcare,0,0
+94,Employment,0,1,Employment,0,0
+95,Employment,0,0,Others,0,0
+96,Others,0,0,Others,0,0
+97,International business,0,0,Others,0,0
+98,Housing,0,0,Housing,1,0
+99,Healthcare,1,0,Healthcare,1,0
+100,Others,0,1,Anti-U.S. foreign policy,0,0
+101,Arts,0,0,Arts,0,0
+102,Affirmative action,0,1,Others,0,0
+103,Housing,0,1,Others,0,0
+104,The Redress Movement,0,0,The Redress Movement,0,0
+105,Healthcare,0,0,Healthcare,0,0
+106,Arts,0,1,The Redress Movement,0,0
+107,Political representation,0,0,Employment,0,0
+108,Healthcare,1,0,Healthcare,1,0
+109,Others,1,0,Others,0,0
+110,Community events,1,0,Others,0,0
+111,Community events,0,0,Others,0,0
+112,Arts,1,0,Others,0,0
+113,Community events,0,0,Others,0,0
+114,Arts,0,0,Others,0,0
+115,Arts,1,0,The Redress Movement,0,0
+116,Arts,0,0,Arts,0,0
+117,Employment,1,0,Affirmative action,0,0
+118,Labor union,1,1,Employment,0,0
+119,Arts,0,0,Others,0,0
+120,Asian stereotype,1,1,Asian stereotype,0,1
+121,Affirmative action,0,0,Community events,1,0
+122,Community events,1,0,Others,0,0
+123,Others,1,1,Others,0,0
+124,Arts,0,0,Arts,0,0
+125,Community events,1,0,Others,0,0
+126,Others,0,0,Anti-U.S. foreign policy,0,0
+127,Political representation,0,0,Others,0,0
+128,Housing,1,1,Housing,0,0
+129,Arts,0,0,Others,0,0
+130,Labor union,1,0,Others,0,0
+131,Others,0,0,Employment,0,0
+132,Housing,0,0,Housing,0,0
+133,Housing,0,0,Housing,0,0
+134,Housing,0,0,Housing,1,0
+135,Arts,0,0,Arts,0,0
+136,Others,0,0,Others,0,1
+137,The Redress Movement,0,0,The Redress Movement,0,0
+138,Housing,1,1,Employment,0,1
+139,Asian stereotype,0,1,Asian stereotype,0,1
+140,Labor union,1,1,Labor Union,0,0
+141,Anti-U.S. foreign policy,0,1,Others,0,0
+142,Labor union,1,0,Labor Union,1,1
+143,Political representation,0,0,Employment,0,0
+144,Housing,0,1,Housing,0,1
+145,Community events,1,0,Others,0,0
+146,Community events,1,0,Others,0,0
+147,The Redress Movement,0,1,The Redress Movement,0,0
+148,Healthcare,1,0,Housing,1,0
+149,Anti-U.S. foreign policy,0,0,Others,0,0
+150,Affirmative action,1,0,Others,0,0
+151,Employment,1,0,Employment,1,0
+152,Housing,0,0,Others,0,0
+153,Housing,0,0,Others,0,0
+154,Political representation,0,0,Political representation,0,0
+155,Arts,1,0,Arts,0,0
+156,Healthcare,1,0,Healthcare,1,0
+157,Employment,0,0,Others,0,0
+158,Arts,1,1,Arts,0,0
+159,Housing,1,0,Others,0,0
+160,Affirmative action,0,1,Others,0,0
+161,Asian stereotype,0,1,Healthcare,1,0
+162,Arts,0,0,Community events,0,0
+163,Housing,0,0,Others,0,0
+164,Employment,0,0,Others,0,0
+165,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+166,Political representation,1,0,Affirmative action,0,0
+167,Others,0,1,Others,0,1
+168,Arts,0,0,Others,0,0
+169,Others,0,0,Others,1,0
+170,Others,0,0,Others,0,0
+171,Affirmative action,1,1,Affirmative action,0,0
+172,Community events,1,0,Employment,0,0
+173,Others,0,0,Others,0,0
+174,Arts,0,0,Arts,0,0
+175,Arts,0,0,Others,0,0
+176,Employment,0,0,Employment,0,1
+177,Arts,0,0,Others,0,0
+178,Arts,0,0,Others,0,0
+179,Housing,1,0,Housing,0,0
+180,Others,0,0,Others,0,0
+181,Employment,0,0,Others,0,0
+182,Labor union,1,0,Labor Union,0,1
+183,Community events,1,0,Others,0,0
+184,Community events,1,0,Others,1,0
+185,Healthcare,1,0,Healthcare,0,0
+186,Employment,1,0,Employment,1,0
+187,Community events,0,0,Community events,0,0
+188,Arts,0,0,Arts,0,0
+189,Community events,1,0,Others,0,0
+190,Employment,0,0,Others,0,0
+191,Arts,1,0,Arts,0,0
+192,Others,0,0,Community events,0,0
+193,Political representation,1,0,Political representation,1,0
+194,Arts,0,0,Others,0,0
+195,Affirmative action,0,1,Others,0,1
+196,Community events,0,0,Community events,0,0
+197,Community events,1,0,Healthcare,0,0
+198,Employment,0,0,Others,0,0
+199,Affirmative action,1,1,Others,0,0
+200,Community events,0,0,Others,0,0
+201,Arts,0,0,Others,0,0
+202,Arts,0,0,Arts,0,0
+203,Community events,1,0,Others,0,0
+204,Arts,0,0,Arts,0,0
+205,Community events,1,0,Others,0,0
+206,Employment,1,0,Political representation,0,0
+207,Political representation,0,1,Political representation,0,0
+208,Community events,0,0,Others,0,0
+209,Affirmative action,1,1,Others,0,0
+210,Community events,1,0,Others,0,0
+211,The Redress Movement,0,1,The Redress Movement,1,0
+212,The Redress Movement,0,1,The Redress Movement,0,0
+213,Housing,0,1,Housing,0,0
+214,The Redress Movement,0,1,Others,0,0
+215,Housing,0,0,Others,0,0
+216,Housing,0,0,Others,0,0
+217,Employment,0,0,Others,0,0
+218,Arts,0,0,Arts,0,0
+219,Arts,0,0,Arts,0,0
+220,Housing,0,0,Others,0,0
+221,Housing,0,0,Housing,1,0
+222,Community events,0,0,Others,1,0
+223,Housing,1,0,Housing,0,0
+224,Community events,1,0,Others,0,0
+225,Labor union,1,1,Labor Union,0,1
+226,Housing,0,0,Housing,0,0
+227,Employment,0,0,Others,0,0
+228,Arts,1,0,Arts,0,0
+229,Arts,0,0,Arts,0,0
+230,Arts,0,0,Arts,0,0
+231,Arts,0,0,Arts,0,0
+232,Housing,0,0,Others,0,0
+233,Community events,1,0,Others,0,0
+234,Community events,1,0,Others,0,0
+235,Others,0,0,Others,0,0
+236,The Redress Movement,0,1,The Redress Movement,1,0
+237,Others,0,0,Others,0,0
+238,Arts,0,0,Arts,0,0
+239,Arts,0,0,Arts,0,0
+240,Others,1,0,Others,0,0
+241,Political representation,0,0,Political representation,0,0
+242,Political representation,0,0,Political representation,0,0
+243,Others,1,1,Others,0,0
+244,Healthcare,1,0,Healthcare,1,0
+245,Asian stereotype,0,1,Others,0,0
+246,Arts,0,0,Arts,0,0
+247,Community events,1,0,Others,0,0
+248,Others,0,0,Others,0,0
+249,Healthcare,1,0,Healthcare,0,0
+250,Housing,0,0,Others,0,0
+251,Housing,0,1,Housing,0,0
+252,Others,0,1,Others,0,1
+253,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+254,Community events,1,0,Community events,0,0
+255,Others,0,0,Others,0,0
+256,Political representation,0,0,Political representation,0,0
+257,Housing,0,0,Others,0,0
+258,Others,0,0,Others,0,0
+259,Others,0,0,Others,0,0
+260,Housing,0,0,Housing,0,0
+261,Affirmative action,1,0,Others,0,0
+262,Community events,0,0,Housing,1,0
+263,Anti-U.S. foreign policy,0,0,Others,0,0
+264,Employment,1,0,Employment,0,0
+265,Anti-U.S. foreign policy,0,0,Others,0,0
+266,Arts,0,0,Arts,0,0
+267,Affirmative action,0,1,Employment,0,0
+268,Affirmative action,0,1,Others,0,0
+269,Employment,0,0,Others,0,0
+270,Others,0,0,Others,0,0
+271,Anti-U.S. foreign policy,0,0,Others,0,0
+272,Arts,0,0,Arts,0,0
+273,The Redress Movement,0,1,The Redress Movement,0,0
+274,Political representation,1,0,Political representation,1,0
+275,Community events,1,0,Community events,0,0
+276,Employment,0,0,Others,0,0
+277,Arts,0,0,Arts,0,0
+278,The Redress Movement,1,0,The Redress Movement,0,1
+279,Community events,1,0,Community events,0,0
+280,Others,0,0,Others,0,0
+281,Others,0,0,Others,0,0
+282,Arts,0,0,Community events,0,0
+283,Housing,1,0,Others,1,0
+284,Others,0,0,Others,0,0
+285,Others,1,0,Others,0,0
+286,Community events,0,0,Employment,0,0
+287,Employment,1,0,Others,0,0
+288,Community events,0,0,Others,0,0
+289,Community events,1,0,Others,0,0
+290,Others,1,1,Asian stereotype,1,1
+291,Arts,0,0,Recipes,0,0
+292,Arts,1,0,Others,0,0
+293,Healthcare,1,0,Healthcare,1,0
+294,Arts,0,0,Arts,0,0
+295,Labor union,0,1,Labor Union,0,0
+296,Arts,0,1,Others,0,0
+297,Healthcare,0,0,Healthcare,0,0
+298,Housing,1,0,Housing,0,0
+299,Employment,0,1,Employment,0,0
+300,Community events,0,0,Others,0,0
+301,Community events,0,0,Others,0,0
+302,Others,0,0,Others,0,0
+303,Others,0,0,Others,0,0
+304,Employment,1,0,Employment,1,0
+305,Housing,0,0,Housing,1,0
+306,Arts,0,0,Arts,0,0
+307,Affirmative action,1,1,Others,0,0
+308,Community events,1,0,Others,0,0
+309,Housing,0,0,Housing,0,0
+310,Others,0,0,Others,0,0
+311,Others,0,0,Others,0,0
+312,Arts,0,0,Arts,0,0
+313,Arts,0,0,Arts,0,0
+314,Employment,0,1,Employment,1,1
+315,Anti-U.S. foreign policy,0,0,Others,0,0
+316,Employment,0,0,Employment,1,0
+317,Others,0,0,Others,0,0
+318,Arts,0,0,Arts,0,0
+319,Others,0,0,Others,0,0
+320,Asian stereotype,0,1,Arts,0,0
+321,Political representation,0,0,Political representation,0,0
+322,Housing,0,0,Housing,1,0
+323,Political representation,1,0,Housing,1,0
+324,Asian stereotype,0,1,Asian stereotype,0,1
+325,Housing,0,0,Others,0,0
+326,Healthcare,0,0,Housing,0,0
+327,Others,0,0,Others,0,0
+328,Housing,0,0,Housing,0,0
+329,Healthcare,1,0,Healthcare,0,0
+330,Arts,0,0,Arts,0,0
+331,Others,0,0,Others,0,0
+332,Employment,0,0,Others,0,0
+333,Affirmative action,0,1,Others,0,0
+334,Affirmative action,0,1,Others,0,0
+335,Community events,0,0,Others,0,0
+336,Others,0,0,Others,0,0
+337,Anti-U.S. foreign policy,0,0,Others,0,0
+338,Housing,0,0,Housing,0,0
+339,Political representation,0,0,Political representation,1,0
+340,Others,1,0,Others,0,0
+341,Employment,0,0,Others,0,0
+342,Housing,0,0,Housing,0,0
+343,Arts,1,0,Arts,0,0
+344,Affirmative action,0,0,Employment,0,1
+345,Community events,0,0,Others,0,0
+346,Employment,1,0,Others,0,0
+347,Affirmative action,0,1,Others,1,0
+348,Healthcare,0,1,Others,0,0
+349,Affirmative action,0,1,Others,0,0
+350,Community events,0,0,Community events,0,0
+351,Employment,0,0,Others,0,0
+352,Others,0,0,Others,0,0
+353,Community events,1,0,Others,0,0
+354,Affirmative action,1,0,Others,0,0
+355,Housing,0,0,Others,0,0
+356,Community events,0,0,Community events,0,0
+357,Arts,0,0,Arts,0,0
+358,Housing,0,1,Housing,0,0
+359,Community events,0,0,Community events,0,0
+360,Political representation,0,0,Others,0,0
+361,Housing,0,0,Housing,0,0
+362,Others,0,0,Others,0,0
+363,Housing,0,0,Housing,0,0
+364,Healthcare,1,0,Others,1,0
+365,Arts,0,0,Arts,0,0
+366,Affirmative action,1,0,Others,1,0
+367,Asian stereotype,0,1,Asian stereotype,0,1
+368,Arts,0,0,Arts,0,0
+369,Community events,0,0,Community events,0,0
+370,Employment,0,0,Others,0,0
+371,Arts,0,0,Arts,0,0
+372,Employment,0,0,Others,0,0
+373,Healthcare,1,0,Community events,0,0
+374,Employment,1,0,Employment,0,0
+375,Healthcare,0,0,Others,0,0
+376,Political representation,0,0,Asian stereotype,0,0
+377,Affirmative action,1,0,Employment,0,0
+378,Hate crimes,0,0,Others,0,0
+379,Community events,0,0,Others,0,0
+380,Affirmative action,1,0,Affirmative action,0,0
+381,Affirmative action,1,0,Others,0,0
+382,Others,0,0,Others,0,0
+383,Healthcare,1,0,Healthcare,0,0
+384,Others,0,0,Others,0,0
+385,Employment,0,0,Others,0,0
+386,The Redress Movement,0,0,Others,0,0
+387,Employment,0,0,Others,0,0
+388,Affirmative action,1,0,Others,0,0
+389,Affirmative action,0,0,Others,0,0
+390,Arts,0,0,Arts,0,0
+391,Community events,0,0,Others,0,0
+392,Arts,0,0,Others,0,0
+393,Community events,1,0,Community events,0,0
+394,Others,1,0,Others,1,0
+395,Anti-U.S. foreign policy,0,0,Others,0,0
+396,Community events,1,0,Others,0,0
+397,Others,0,0,Others,0,0
+398,Anti-U.S. foreign policy,1,0,Anti-U.S. foreign policy,1,0
+399,Employment,0,0,Employment,0,0
+400,Community events,0,0,Community events,0,0
+401,Political representation,0,0,Others,0,0
+402,Community events,1,0,Others,0,0
+403,Employment,0,0,Employment,1,0
+404,Arts,0,0,Arts,0,1
+405,Labor union,0,0,Others,0,0
+406,Labor union,0,0,Labor Union,0,0
+407,Community events,1,0,Others,0,0
+408,Others,0,0,Political representation,1,0
+409,Labor union,0,0,Labor Union,0,0
+410,Community events,1,1,Others,0,0
+411,Housing,0,0,Others,0,0
+412,Others,0,0,Others,0,0
+413,Housing,1,0,Housing,1,0
+414,Employment,0,0,Employment,0,1
+415,Arts,0,0,Arts,0,1
+416,Community events,0,0,Community events,0,0
+417,Arts,0,0,Arts,0,0
+418,Others,0,0,Others,0,0
+419,Affirmative action,1,0,Affirmative action,0,0
+420,Arts,0,0,Arts,0,0
+421,Political representation,0,0,Others,0,0
+422,The Redress Movement,0,1,The Redress Movement,0,0
+423,Housing,0,0,Housing,0,0
+424,Employment,1,0,Employment,0,0
+425,Housing,1,0,Housing,0,0
+426,Political representation,0,0,Political representation,0,0
+427,Arts,0,0,Arts,0,0
+428,Political representation,0,0,Political representation,0,0
+429,Arts,0,0,Arts,0,0
+430,Labor union,0,0,Others,0,0
+431,Affirmative action,0,0,Affirmative action,0,0
+432,Arts,0,0,Arts,0,0
+433,Community events,1,0,Others,0,0
+434,Community events,0,0,Community events,0,0
+435,Arts,0,0,Arts,0,0
+436,Community events,0,0,Others,0,0
+437,Labor union,0,0,Labor Union,0,0
+438,Community events,0,0,Arts,0,0
+439,Others,1,0,Others,0,0
+440,Arts,0,0,Arts,0,0
+441,Labor union,1,1,Labor Union,0,1
+442,The Redress Movement,1,1,The Redress Movement,0,1
+443,Employment,0,0,Employment,0,0
+444,Affirmative action,0,0,Political representation,0,0
+445,Asian stereotype,0,1,Asian stereotype,0,0
+446,Arts,0,0,Arts,0,0
+447,Affirmative action,1,0,Affirmative action,0,0
+448,Others,1,0,Others,0,0
+449,Others,0,0,Others,1,1
+450,Recipes,0,0,Others,0,0
+451,Recipes,0,0,Recipes,0,0
+452,Others,0,0,Others,0,0
+453,Housing,1,0,Housing,1,0
+454,Employment,1,0,Others,1,0
+455,Employment,0,0,Employment,0,0
+456,Political representation,1,0,Political representation,1,0
+457,Community events,0,0,Community events,0,0
+458,Community events,1,0,Others,0,0
+459,Labor union,0,1,Labor Union,0,0
+460,Anti-U.S. foreign policy,0,0,Others,0,0
+461,Political representation,1,0,Political representation,0,0
+462,Arts,0,0,Others,0,0
+463,Community events,0,0,Others,0,0
+464,Community events,0,0,Community events,0,0
+465,Community events,0,1,Others,1,1
+466,Community events,0,0,Community events,0,0
+467,Employment,0,0,Employment,0,0
+468,Others,0,0,Others,0,0
+469,Others,0,0,Others,0,0
+470,Arts,0,0,Arts,0,0
+471,Community events,0,0,Others,0,0
+472,Arts,0,0,Others,0,0
+473,Healthcare,1,0,Healthcare,1,0
+474,Hate crimes,0,1,Others,0,1
+475,Community events,0,0,Community events,0,0
+476,Arts,0,0,Arts,0,0
+477,Community events,0,0,Arts,0,0
+478,Community events,0,0,Community events,0,0
+479,Political representation,0,0,Others,0,0
+480,Healthcare,1,0,Healthcare,0,0
+481,Housing,0,0,Housing,0,0
+482,Healthcare,0,0,Healthcare,0,0
+483,Others,0,0,Others,0,0
+484,Employment,0,0,Employment,0,1
+485,Employment,1,0,Employment,0,0
+486,Community events,1,1,Others,0,0
+487,Arts,0,0,Arts,0,0
+488,Community events,0,0,Community events,0,0
+489,Others,0,0,Employment,0,0
+490,Housing,0,0,Others,0,0
+491,Anti-U.S. foreign policy,0,0,Others,0,0
+492,Arts,0,0,Others,0,0
+493,Community events,0,0,Community events,0,0
+494,Housing,0,0,Others,0,0
+495,Arts,0,0,Asian stereotype,0,1
+496,The Redress Movement,0,1,Anti-U.S. foreign policy,0,0
+497,Arts,0,0,Arts,0,0
+498,Employment,0,0,Others,0,0
+499,Arts,0,0,Arts,0,0
+500,Anti-U.S. foreign policy,0,0,Others,0,0
+501,Others,0,0,Others,0,0
+502,Arts,0,0,Arts,0,0
+503,Arts,0,0,Arts,0,0
+504,Labor union,0,1,Labor Union,0,1
+505,Others,0,0,Others,0,0
+506,Arts,0,0,Arts,0,0
+507,International business,0,0,International business,0,0
+508,Healthcare,0,0,Healthcare,0,0
+509,Employment,0,0,Others,0,0
+510,Community events,1,0,Housing,0,0
+511,Community events,0,0,Others,0,0
+512,Others,1,0,Community events,0,0
+513,Others,0,0,Others,0,0
+514,Hate crimes,0,0,Hate crimes,0,0
+515,International business,0,0,Arts,0,0
+516,Others,0,0,Others,0,0
+517,Employment,0,0,Employment,1,0
+518,Arts,0,0,Arts,0,0
+519,Others,1,0,Employment,0,0
+520,Employment,0,1,Employment,0,1
+521,Asian stereotype,0,1,Arts,0,0
+522,Community events,0,0,Community events,0,0
+523,Housing,0,0,Others,0,0
+524,International business,0,0,International business,0,0
+525,Community events,0,0,Others,0,0
+526,Arts,0,0,Arts,0,0
+527,Others,0,0,Others,0,0
+528,Others,0,0,Others,0,0
+529,Healthcare,1,0,Healthcare,1,0
+530,Others,0,0,Others,0,0
+531,Hate crimes,0,1,Hate crimes,0,1
+532,Others,0,0,Others,0,0
+533,Community events,0,0,Community events,0,0
+534,Political representation,0,0,Political representation,0,0
+535,Community events,1,0,Arts,0,0
+536,Others,0,0,Others,0,0
+537,Others,0,1,Others,0,0
+538,Others,0,0,Others,0,0
+539,Others,0,0,Others,0,0
+540,Community events,0,0,Others,0,0
+541,Community events,0,0,Community events,0,0
+542,Community events,0,0,Anti-U.S. foreign policy,0,0
+543,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+544,Arts,0,0,Arts,0,0
+545,The Redress Movement,0,1,The Redress Movement,0,1
+546,Others,0,0,Asian stereotype,0,0
+547,Arts,0,0,Arts,0,0
+548,Others,0,0,Others,0,0
+549,Political representation,0,0,Political representation,0,0
+550,Community events,1,0,Community events,0,0
+551,Employment,0,0,Employment,1,0
+552,Arts,0,0,Arts,0,0
+553,Others,0,0,Others,0,0
+554,Others,0,0,Others,0,0
+555,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,0
+556,Others,1,0,Others,0,0
+557,Others,1,0,Others,0,0
+558,Healthcare,0,0,Healthcare,0,0
+559,Healthcare,0,0,Healthcare,0,0
+560,Community events,0,0,Political representation,0,0
+561,Others,0,0,Others,0,0
+562,Political representation,1,0,Others,0,0
+563,Community events,0,0,Community events,0,0
+564,Others,0,0,Affirmative action,0,0
+565,Housing,0,0,Housing,0,0
+566,Housing,0,0,Others,0,0
+567,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+568,Others,0,0,Others,0,0
+569,Others,0,0,Healthcare,0,0
+570,Hate crimes,0,1,Hate crimes,0,0
+571,Community events,0,0,Community events,0,0
+572,Community events,0,0,Others,0,0
+573,International business,0,0,International business,0,0
+574,Others,0,0,Others,0,0
+575,Anti-U.S. foreign policy,0,0,Anti-U.S. foreign policy,0,0
+576,Community events,0,0,Arts,0,0
+577,Community events,0,0,Others,0,0
+578,Political representation,1,0,Political representation,1,0
+579,Arts,0,0,Arts,0,0
+580,Healthcare,0,0,Healthcare,0,0
+581,Arts,0,0,Arts,0,0
+582,International business,0,0,International business,0,0
+583,Political representation,0,0,Political representation,0,0
+584,Political representation,1,0,Political representation,1,0
+585,Arts,0,0,Arts,0,0
+586,Asian stereotype,0,0,Asian stereotype,0,1
+587,Others,0,0,Others,0,0
+588,Others,0,0,Others,0,0
+589,Asian stereotype,0,0,Asian stereotype,0,1
+590,Others,0,0,Others,0,0
+591,Others,0,0,Others,0,0
+592,Others,0,0,Arts,0,0
+593,Others,0,0,Others,0,0
+594,Asian stereotype,0,1,Asian stereotype,0,1
+595,Others,1,0,Others,0,0
+596,Housing,1,0,Housing,1,0
+597,International business,0,0,International business,0,0
+598,Arts,1,0,Arts,0,0
+599,Political representation,0,0,Political representation,0,0
+600,Housing,0,0,Housing,0,0
+601,Political representation,0,0,Political representation,0,0
+602,Arts,0,0,Housing,0,0
+603,Arts,0,0,Arts,0,0
+604,International business,0,0,Others,0,0
+605,Hate crimes,0,1,Hate crimes,0,1
+606,Employment,0,0,Labor union,0,0
+607,Others,0,0,Community events,0,0
+608,Political representation,0,0,Political representation,0,0
+609,Others,1,0,Others,1,0
+610,Arts,0,0,Arts,0,0
+611,Hate crimes,0,0,Hate crimes,0,0
+612,Political representation,0,0,Political representation,1,1
+613,Political representation,0,0,Political representation,0,0
+614,Others,0,0,Others,0,0
+615,Others,0,0,Political representation,0,0
+616,Employment,1,0,Others,1,0
+617,Others,0,0,Others,0,0
+618,Others,0,0,Political representation,0,0
+619,Political representation,0,0,Political representation,0,0
+620,Affirmative action,0,1,Asian stereotype,0,1
+621,Arts,1,0,Others,0,0
+622,Others,0,0,Others,0,0
+623,Arts,0,0,Arts,0,0
+624,Political representation,0,0,Political representation,1,0
+625,Community events,0,0,Community events,0,0
+626,Others,0,0,Others,0,0
+627,Others,0,0,Others,0,0
+628,Others,1,0,Arts,0,0
+629,Others,0,0,Others,0,0
+630,Others,0,0,Employment,0,0
+631,Others,0,0,Others,0,0
+632,Political representation,1,0,Political representation,1,0
+633,Others,1,0,Others,0,0
+634,Others,0,0,Others,0,0
+635,The Redress Movement,0,0,The Redress Movement,1,0
+636,Political representation,0,0,Political representation,0,0
+637,Hate crimes,0,0,Others,0,1
+638,Others,0,0,Others,0,0
+639,Political representation,0,0,Political representation,0,0
+640,Hate crimes,0,1,Hate crimes,0,1
+641,Others,0,0,Others,0,0
+642,Others,0,0,Others,0,0
+643,Community events,0,0,Community events,0,0
+644,Others,0,0,Others,0,0
+645,Employment,0,0,Others,0,0
+646,Political representation,0,0,Political representation,1,0
+647,Others,0,0,Others,0,0
+648,Political representation,0,1,Asian stereotype,0,1
+649,Community events,0,0,Community events,0,0
+650,Others,0,1,Employment,0,0
+651,Community events,1,0,Others,0,0
+652,Others,0,0,Others,0,0
+653,Community events,0,0,Community events,0,0
+654,ASian stereotype,0,1,Arts,0,0
+655,International business,0,0,International business,0,0
+656,Community events,0,0,Community events,0,0
+657,Anti-U.S. foreign policy,0,0,Others,0,0
+658,Community events,1,0,Others,1,0
+659,Others,0,0,Others,0,0
+660,Community events,0,0,Community events,0,0
+661,Community events,0,0,Employment,0,0
+662,Others,1,0,Others,0,0
+663,Others,0,0,Others,0,0
+664,Others,0,0,Others,0,0
+665,Housing,0,0,Housing,0,0
+666,Others,0,0,Others,0,0
+667,International business,0,0,Others,0,0
+668,Arts,0,0,Community events,0,0
+669,Housing,0,0,Others,0,0
+670,Employment,1,0,Arts,0,0
+671,Others,0,0,International business,0,1
+672,Arts,0,0,Arts,0,0
+673,Others,0,0,Others,0,0
+674,Others,0,0,Others,0,0
+675,Housing,0,0,Housing,0,0
+676,Arts,0,0,Arts,0,0
+677,Others,0,0,Others,0,0
+678,Others,0,0,Others,0,0
+679,Others,0,0,Others,0,0
+680,Others,0,0,Healthcare,1,0
+681,Arts,0,0,Arts,0,0
+682,ASian stereotype,0,0,Asian stereotype,0,1
+683,Others,0,0,Others,0,0
+684,Employment,0,0,Others,0,0
+685,Others,0,0,Others,0,0
+686,Others,1,0,Community events,0,0
+687,Community events,0,0,Community events,0,0
+688,Others,0,0,Others,0,0
+689,Employment,0,0,Others,0,0
+690,Community events,0,0,Political representation,0,0
+691,Employment,0,0,Others,1,0
+692,Others,1,0,Others,0,0
+693,Community events,0,0,Community events,0,0
+694,Others,0,0,Others,0,0
+695,Political representation,0,0,Political representation,0,0
+696,Healthcare,0,0,Healthcare,0,0
+697,Community events,0,0,Community events,0,0
+698,Labor union,1,0,Labor union,1,0
+699,Others,0,0,Others,0,0
+700,Arts,0,0,Arts,0,0
+701,Employment,0,0,Employment,0,0
+702,Others,1,0,Others,1,0
+703,ASian stereotype,0,1,Arts,0,1
+704,Healthcare,0,0,Healthcare,0,0
+705,Hate crimes,0,0,Hate crimes,0,0
+706,Arts,0,0,Arts,0,0
+707,Arts,0,0,Arts,0,0
+708,Others,1,0,Others,1,0
+709,Housing,0,0,Housing,1,0
+710,Arts,0,0,Arts,0,1
+711,Arts,0,0,Others,0,0
+712,Affirmative action,1,0,Others,1,0
+713,Community events,1,0,Community events,0,0
+714,Housing,0,0,Others,0,0
+715,Arts,0,0,Arts,0,0
+716,ASian stereotype,0,1,Arts,0,1
+717,Community events,1,0,Others,0,0
+718,Arts,0,0,Arts,0,0
+719,Others,0,0,Healthcare,0,0
+720,OTHERS,0,0,Others,0,0
+721,Others,0,0,Others,0,0
+722,Arts,0,0,Others,0,0
+723,Others,0,0,International business,0,0
+724,Arts,0,0,Arts,0,0
+725,Others,1,0,Arts,0,0
+726,Others,1,0,Others,0,0
+727,Housing,1,0,Housing,0,0
+728,Others,0,0,Healthcare,0,0
+729,Employment,0,0,Others,0,0
+730,International business,0,0,Others,0,0
+731,ASian stereotype,0,0,Arts,0,1
+732,ASian stereotype,0,0,Political representation,1,1
+733,Political representation,0,0,Political representation,0,0
+734,Others,0,0,Others,0,0
+735,Employment,0,0,Others,0,0
+736,Others,0,0,Others,0,0
+737,Others,1,0,Political representation,1,0
+738,Healthcare,1,0,Healthcare,0,0
+739,Housing,0,0,Housing,0,0
+740,Healthcare,1,0,Healthcare,0,0
+741,The Redress Movement,0,1,Asian stereotype,0,1
+742,Employment,0,0,Others,0,0
+743,International business,0,0,International business,0,0
+744,Others,1,0,Others,0,0
+745,Political representation,0,0,Political representation,0,0
+746,Community events,1,0,Community events,1,1
+747,Others,1,0,Others,0,0
+748,International business,0,0,International business,0,0
+749,ASian stereotype,0,1,Arts,0,0
+750,Labor union,1,0,Labor union,0,0
+751,Healthcare,1,0,Healthcare,1,0
+752,Others,0,0,Others,0,0
+753,Arts,0,0,Arts,0,0
+754,Arts,0,0,Others,0,0
+755,Arts,0,0,Arts,0,0
+756,Community events,0,0,Community events,0,0
+757,Community events,1,0,Community events,0,0
+758,Others,0,0,Others,0,0
+759,Others,0,0,Others,0,0
+760,Housing,0,0,Housing,1,1
+761,Housing,0,0,Housing,0,0
+762,Others,0,0,Others,0,0
+763,Arts,0,0,Arts,0,0
+764,Others,0,0,Others,0,0
+765,Arts,0,0,Arts,0,0
+766,Community events,0,0,Political representation,0,0
+767,Others,0,0,Others,0,0
+768,Political representation,0,0,Political representation,0,0
+769,Community events,1,0,Community events,1,0
+770,The Redress Movement,0,1,Asian stereotype,0,1
+771,Community events,0,0,Community events,0,0
+772,Others,0,0,Others,0,0
+773,Political representation,0,0,Political representation,0,0
+774,Healthcare,0,0,Healthcare,0,0
+775,Hate crimes,0,1,Asian stereotype,0,1
+776,The Redress Movement,0,1,Hate crimes,0,1
+777,Others,0,0,Others,0,0
+778,Political representation,0,0,Political representation,1,0
+779,Employment,0,0,Employment,0,0
+780,Others,0,0,Community events,0,0
+781,Community events,0,0,Community events,0,0
+782,Community events,0,0,Community events,0,0
+783,Political representation,0,0,Political representation,1,0
+784,Political representation,0,0,Political representation,0,0
+785,Arts,0,0,Community events,0,0
+786,Others,0,0,Others,0,0
+787,Others,0,0,Others,0,0
+788,Others,0,0,Community events,0,0
+789,Others,0,0,Others,0,0
+790,Others,0,0,Others,0,0
+791,Others,0,0,Others,0,0
+792,Arts,0,0,Arts,0,0
+793,Others,0,0,Others,0,0
+794,Others,0,0,Housing,0,0
+795,International business,0,0,International business,0,0
+796,Community events,0,0,Community events,0,0
+797,Others,0,0,Employment,0,0
+798,Arts,1,0,Arts,0,0
+799,Employment,0,0,Others,0,0
+800,Community events,1,0,Community events,0,0
+801,Arts,0,0,Arts,0,0
+802,Others,0,0,Others,0,0
+803,International business,0,0,International business,0,0
+804,Arts,0,0,Arts,0,0
+805,Others,0,0,Others,0,0
+806,Political representation,1,0,Others,0,0
+807,Housing,0,0,Others,0,0
+808,Employment,1,0,Employment,1,0
+809,Others,1,0,Community events,1,0
+810,Political representation,0,0,Political representation,1,1
+811,Political representation,0,0,Political representation,0,0
+812,Housing,1,0,Housing,0,0
+813,Others,0,0,Others,0,0
+814,Community events,0,0,Community events,0,0
+815,Community events,0,0,Arts,0,0
+816,Housing,0,0,Housing,0,0
+817,Community events,1,0,Community events,0,0
+818,Community events,0,0,Community events,0,0
+819,Healthcare,0,0,Healthcare,0,0
+820,Employment,0,0,Employment,0,0
+821,Others,0,0,Others,0,0
+822,Others,1,0,Others,0,0
+823,Political representation,1,0,Political representation,0,0
+824,Healthcare,0,0,Healthcare,0,0
+825,Others,0,0,Others,0,0
+826,Arts,0,0,Arts,0,0
+827,Healthcare,0,0,Healthcare,1,0
+828,International business,0,0,Community events,0,0
+829,Political representation,1,0,Political representation,0,0
+830,Hate crimes,0,1,Hate crimes,0,1
+831,Hate crimes,0,1,Hate crimes,0,1
+832,Others,0,0,Others,0,0
+833,Healthcare,0,0,Healthcare,0,0
+834,Community events,0,0,Community events,0,0
+835,Others,0,0,Political representation,0,0
+836,Arts,0,0,Others,0,0
+837,Arts,0,0,Arts,0,0
+838,Community events,1,0,Community events,0,0
+839,Others,0,0,Employment,0,0
+840,Others,0,0,Others,0,0
+841,Others,1,0,Others,0,0
+842,Employment,0,1,Political representation,1,0
+843,Asian stereotype,0,0,Others,0,0
+844,Healthcare,1,0,Others,0,0
+845,Healthcare,1,0,Community events,0,0
+846,Anti-U.S. foreign policy,0,0,Others,0,0
+847,Others,0,0,Others,0,1
+848,Community events,0,0,Employment,0,0
+849,Healthcare,0,1,Healthcare,0,0
+850,Asian stereotype,0,1,Arts,0,1
+851,Political representation,0,1,Political representation,0,0
+852,Hate crimes,0,1,Hate crimes,0,0
+853,Affirmative action,0,0,Affirmative action,0,0
+854,Others,0,0,Others,0,0
+855,Political representation,0,0,Political representation,0,0
+856,Arts,0,0,Arts,0,0
+857,Employment,1,0,Others,0,0
+858,Others,0,0,Others,0,0
+859,Community events,1,0,Community events,0,0
+860,Others,0,0,Others,0,0
+861,Others,0,0,Asian stereotype,0,0
+862,Arts,0,0,Arts,0,0
+863,Others,0,0,Others,0,0
+864,Employment,1,0,Others,0,0
+865,Arts,0,0,Arts,0,0
+866,Hate crimes,0,1,Others,0,0
+867,Community events,0,0,Others,0,0
+868,Arts,0,0,Arts,0,0
+869,Arts,0,0,Arts,0,0
+870,Employment,0,0,Others,0,0
+871,Arts,0,0,Arts,0,0
+872,Others,0,0,Others,0,0
+873,Others,0,1,Others,0,0
+874,Political representation,0,0,Political representation,0,0
+875,Others,0,1,Employment,0,1
+876,The Redress Movement,0,1,The Redress Movement,1,0
+877,Political representation,1,0,Political representation,0,0
+878,Political representation,0,0,Political representation,0,0
+879,International business,1,0,International business,0,0
+880,Others,0,0,Others,0,0
+881,Political representation,0,0,Political representation,0,0
+882,Political representation,0,0,Political representation,0,0
+883,Others,0,0,Others,0,0
+884,Political representation,1,0,Political representation,0,0
+885,Others,0,0,Others,0,0
+886,Community events,0,0,Others,0,0
+887,Employment,1,0,Employment,0,0
+888,Employment,0,1,Employment,0,1
+889,Employment,0,0,Employment,0,0
+890,Political representation,0,0,Political representation,1,0
+891,Political representation,0,0,Community events,0,0
+892,Community events,0,0,Community events,0,0
+893,Others,0,0,Others,0,0
+894,Community events,1,0,Community events,0,0
+895,Others,0,0,Employment,0,0
+896,Political representation,0,0,Political representation,0,0
+897,Others,0,0,Others,0,0
+898,Arts,0,0,Community events,0,0
+899,Others,0,0,Others,0,0
+900,Political representation,0,0,Political representation,0,0
+901,Healthcare,0,1,Healthcare,0,0
+902,Community events,1,0,Others,0,0
+903,Community events,0,0,Community events,0,0
+904,Others,0,0,Others,0,0
+905,Healthcare,1,0,Healthcare,1,0
+906,Arts,0,0,Arts,0,0
+907,Others,0,0,Others,0,0
+908,Community events,0,0,Others,0,0
+909,Political representation,0,1,Political representation,0,0
+910,Healthcare,0,0,Healthcare,0,0
+911,Community events,0,0,Community events,0,0
+912,Others,0,0,Others,0,0
+913,The Redress Movement,1,0,The Redress Movement,0,0
+914,Arts,0,0,Arts,0,0
+915,Healthcare,0,0,Healthcare,0,0
+916,Political representation,0,0,Political representation,1,1
+917,Community events,0,0,Community events,0,0
+918,Affirmative action,0,0,Arts,0,1
+919,The Redress Movement,1,0,The Redress Movement,1,0
+920,Others,0,1,Others,0,0
+921,Community events,0,0,Community events,0,0
+922,Arts,0,0,Arts,0,0
+923,Affirmative action,0,1,Affirmative action,0,1
+924,Political representation,0,0,Political representation,0,0
+925,Arts,0,0,Others,0,0
+926,Others,0,0,Others,0,0
+927,Community events,0,0,Community events,0,0
+928,Affirmative action,0,0,Affirmative action,0,0
+929,Others,0,1,Employment,0,1
+930,Arts,0,0,Arts,0,0
+931,Community events,1,1,Political representation,0,1
+932,Community events,0,0,Community events,0,0
+933,Arts,1,0,Arts,0,0
+934,Affirmative action,0,0,Affirmative action,0,0
+935,Arts,0,0,Arts,0,0
+936,Others,0,0,Others,0,0
+937,Employment,0,0,Employment,0,0
+938,Affirmative action,0,0,Affirmative action,0,0
+939,Others,1,0,Others,0,0
+940,Healthcare,1,0,Healthcare,1,0
+941,Others,1,0,Others,0,0
+942,Political representation,0,0,Others,0,0
+943,Affirmative action,1,0,Community events,1,1
+944,Others,0,0,Others,0,0
+945,Others,0,0,Arts,0,0
+946,Others,0,0,Others,0,0
+947,Hate crimes,0,1,Hate crimes,0,0
+948,Political representation,0,0,Political representation,0,0
+949,Affirmative action,0,1,Affirmative action,0,0
+950,Community events,1,0,Others,1,0
+951,Asian stereotype,0,0,Asian stereotype,0,0
+952,Others,1,0,Others,0,0
+953,Healthcare,1,0,Community events,0,0
+954,Healthcare,1,0,Others,1,0
+955,Community events,0,0,International business,0,0
+956,Hate crimes,0,0,Hate crimes,0,0
+957,Political representation,0,0,Political representation,0,0
+958,The Redress Movement,0,1,The Redress Movement,0,1
+959,Political representation,1,0,Others,1,0
+960,Political representation,0,0,Political representation,0,0
+961,Others,1,0,Others,1,0
+962,Affirmative action,0,1,Affirmative action,0,1
+963,Community events,0,0,Community events,0,0
+964,Arts,0,0,Arts,0,0
+965,Others,1,0,Others,0,0
+966,Arts,0,1,Arts,0,0
+967,Others,1,0,Community events,0,0
+968,Others,0,0,Others,0,0
+969,Others,0,0,Others,0,0
+970,Anti-U.S. foreign policy,0,0,Others,0,0
+971,Healthcare,1,0,Healthcare,1,0
+972,International business,0,1,International business,0,0
+973,Political representation,1,0,Political representation,1,0
+974,Others,1,0,Others,0,0
+975,Community events,0,0,Community events,0,0
+976,Others,0,0,Others,0,0
+977,Others,0,0,Others,0,0
+978,Anti-U.S. foreign policy,0,0,Others,0,0
+979,Others,0,0,Others,0,0
+980,Others,0,1,Employment,0,1
+981,Others,1,0,Others,0,0
+982,International business,0,0,International business,0,0
+983,Employment,1,0,Employment,1,0
+984,Community events,0,0,Community events,0,0
+985,Arts,1,0,Arts,0,0
+986,Others,1,0,Others,0,0
+987,Arts,0,0,Arts,0,0
+988,Others,0,0,Others,0,0
+989,International business,0,0,International business,0,0
+990,Others,0,0,Arts,0,0
+991,Political representation,0,0,Community events,0,0
+992,Affirmative action,0,0,Others,0,0
+993,Others,0,0,Arts,0,0
+994,Community events,0,0,Community events,0,0
+995,Others,0,0,Community events,0,0
+996,Arts,0,1,Arts,0,0
+997,Others,0,0,Others,0,0
+998,Healthcare,0,0,Healthcare,0,0
+999,Political representation,0,0,Employment,0,1
+1000,Community events,0,0,Community events,0,0
+1001,Arts,0,0,Others,0,1
+1002,Arts,0,0,Arts,0,0
+1003,Others,1,0,Others,1,0
+1004,Asian stereotype,0,1,Others,0,0
+1005,Employment,0,1,Employment,0,1
+1006,Arts,0,0,Arts,0,0
+1007,Political representation,1,0,Political representation,1,0
+1008,Political representation,0,0,Political representation,1,0

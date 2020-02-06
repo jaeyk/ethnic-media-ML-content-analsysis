@@ -1,0 +1,1009 @@
+Article_number,Topics_A,Promoting_collective_gains_A,Preventing_collective_losses_A,Topics_B,Promoting_collective_gains_B,Preventing_collective_losses_B
+1,Church events,0,0,Church events,0,0
+2,Employment,1,0,Civil rights,0,1
+3,Others,0,0,Civil rights,0,1
+4,Life style,0,0,Others,0,1
+5,Employment,1,0,Others,1,0
+6,Criminal justice,0,0,Criminal justice,0,1
+7,Employment,0,0,Others,1,0
+8,Employment,1,0,Others,1,0
+9,Arts,0,0,Arts,0,0
+10,Criminal justice,0,0,Civil rights,0,1
+11,Life style,0,0,Others,0,0
+12,Life style,0,0,Others,0,0
+13,School programs,0,0,Others,1,0
+14,Criminal justice,0,0,Others,0,0
+15,Recipes,0,0,Recipes,0,0
+16,Criminal justice,0,0,Others,0,0
+17,Employment,0,0,Employment,1,0
+18,Arts,0,0,Arts,0,1
+19,Employment,1,0,Employment,1,0
+20,Church events,0,0,Church events,0,0
+21,Arts,0,0,Others,1,0
+22,School programs,1,0,Others,0,0
+23,Arts,0,0,Others,1,0
+24,Arts,0,0,Arts,0,0
+25,Criminal justice,0,0,Civil rights,0,1
+26,Arts,0,0,Arts,0,0
+27,Others,0,0,Others,0,0
+28,Others,0,0,Others,1,0
+29,Arts,1,0,Civil rights,0,1
+30,Recipes,0,0,Recipes,0,0
+31,School programs,1,0,School programs,1,0
+32,Others,0,0,Civil rights,0,1
+33,Life style,0,0,Others,0,0
+34,Civil rights,0,1,Others,1,0
+35,Articles in Spanish,0,0,Articles in Spanish,0,0
+36,Civil rights,0,1,Civil rights,0,1
+37,Church events,0,0,Church events,0,0
+38,School programs,1,0,School programs,1,0
+39,Life style,0,0,Life style,0,0
+40,Others,0,0,Others,1,0
+41,Life style,0,0,Life style,0,0
+42,Others,0,1,Civil rights,0,1
+43,Arts,0,0,Arts,1,0
+44,Arts,0,0,Arts,0,0
+45,Sports,0,0,Sports,0,0
+46,Others,1,0,Others,1,0
+47,Christian advice,1,0,Christian advice,1,0
+48,Others,0,0,Others,0,0
+49,Others,0,0,Others,0,0
+50,Articles in Spanish,0,0,Articles in Spanish,0,0
+51,Others,0,0,Civil rights,0,1
+52,Sports,0,0,Sports,0,0
+53,Others,1,0,Others,1,0
+54,Church events,0,0,Christian advice,0,0
+55,Christian advice,0,0,Others,0,0
+56,Others,0,1,Others,1,0
+57,Others,0,0,Others,1,0
+58,Employment,0,0,Employment,0,0
+59,Arts,0,0,Arts,0,0
+60,Arts,0,0,Employment,1,0
+61,Life style,0,0,Life style,0,0
+62,Others,0,0,Civil rights,0,0
+63,Others,1,0,Criminal justice,1,0
+64,Employment,1,0,Civil rights,0,1
+65,Civil rights,0,1,Civil rights,0,1
+66,Arts,0,0,Others,0,0
+67,Sports,0,0,Sports,0,0
+68,Church events,0,0,Christian advice,0,0
+69,Arts,0,0,Arts,1,0
+70,Arts,0,0,Others,0,0
+71,Employment,1,0,Civil rights,1,0
+72,Housing,1,0,Housing,1,0
+73,School programs,0,1,Civil rights,0,1
+74,Christian advice,0,0,Others,0,0
+75,Others,1,0,Civil rights,1,0
+76,School programs,1,0,Civil rights,0,1
+77,Employment,0,0,Employment,0,0
+78,Arts,0,1,Civil rights,0,1
+79,School programs,1,0,School programs,1,0
+80,School programs,1,0,Civil rights,1,0
+81,School programs,1,0,Others,1,0
+82,Civil rights,0,1,Civil rights,1,0
+83,School programs,1,0,School programs,1,0
+84,Housing,1,0,Housing,0,1
+85,Arts,0,0,Arts,0,0
+86,Anti-U.S. foreign policy,1,0,Anti-U.S. foreign policy,0,1
+87,Life style,0,0,Others,0,0
+88,School programs,1,0,Civil rights,1,0
+89,School programs,1,0,Others,0,0
+90,School programs,0,0,School programs,1,0
+91,Civil rights,0,1,Civil rights,0,1
+92,Others,1,0,Others,1,0
+93,Others,0,1,Civil rights,0,1
+94,Arts,0,0,Arts,0,0
+95,Civil rights,0,0,Others,0,1
+96,Christian advice,0,1,Christian advice,0,1
+97,Others,0,0,Others,0,0
+98,Recipes,0,0,Recipes,0,0
+99,Christian advice,0,0,Christian advice,1,0
+100,Others,1,0,Others,0,1
+101,Others,0,1,Civil rights,0,1
+102,Others,1,0,Others,0,0
+103,Life style,0,0,Life style,0,0
+104,School programs,1,0,School programs,1,0
+105,Arts,0,0,Arts,0,0
+106,Church events,0,0,Church events,0,0
+107,Others,0,1,Others,0,1
+108,School programs,0,1,Others,0,1
+109,Church events,0,0,Christian advice,0,0
+110,Criminal justice,0,0,Others,0,0
+111,Others,0,0,School programs,1,0
+112,Sports,0,0,Sports,0,0
+113,Employment,0,0,Others,0,0
+114,Others,0,0,Others,0,0
+115,Civil rights,0,1,Civil rights,0,1
+116,Sports,0,0,Sports,0,0
+117,Arts,0,1,Others,1,0
+118,School programs,1,0,School programs,1,0
+119,Sports,0,0,Sports,1,0
+120,Others,1,0,Employment,0,0
+121,Others,1,0,Others,1,0
+122,Arts,0,0,Arts,0,0
+123,Arts,0,0,Arts,0,0
+124,Employment,1,0,Employment,0,0
+125,Life style,0,0,Others,0,1
+126,Arts,1,0,Civil rights,1,0
+127,Recipes,0,0,Recipes,0,0
+128,Sports,0,0,Sports,0,0
+129,Recipes,0,0,Recipes,0,0
+130,Arts,0,0,Others,0,0
+131,Housing,1,0,Housing,1,0
+132,Sports,0,0,Others,0,0
+133,Christian advice,1,0,Christian advice,1,0
+134,Life style,0,0,Life style,0,0
+135,Sports,0,0,Sports,0,0
+136,Others,1,0,Civil rights,1,0
+137,Arts,0,0,Others,1,0
+138,Others,0,1,Civil rights,0,1
+139,Life style,0,0,Others,0,0
+140,Sports,0,0,Sports,0,0
+141,Employment,1,0,Others,0,0
+142,School programs,1,0,Others,1,0
+143,Criminal justice,0,1,Civil rights,0,1
+144,Arts,0,0,Arts,0,0
+145,School programs,0,1,School programs,0,1
+146,Others,0,1,Civil rights,0,1
+147,School programs,1,0,School programs,1,0
+148,Life style,0,1,Life style,0,0
+149,Others,1,0,Others,1,0
+150,Civil rights,0,0,Civil rights,0,1
+151,Recipes,0,0,Recipes,0,0
+152,Criminal justice,0,0,Others,0,0
+153,Criminal justice,0,0,Others,0,0
+154,Arts,0,0,Arts,0,0
+155,Arts,0,0,Arts,0,0
+156,Employment,0,1,Others,0,1
+157,Criminal justice,0,0,Others,0,0
+158,Others,0,1,Others,1,0
+159,School programs,1,0,School programs,1,0
+160,Employment,0,0,Others,1,0
+161,Sports,0,0,Sports,0,0
+162,Church events,0,0,Christian advice,0,0
+163,Arts,0,0,Civil rights,1,0
+164,Arts,0,0,Arts,0,0
+165,Life style,0,0,Others,1,0
+166,Arts,0,0,Arts,0,0
+167,Others,0,1,Others,1,0
+168,Life style,0,0,Others,0,0
+169,Employment,0,1,Civil rights,0,1
+170,Arts,0,0,Civil rights,0,1
+171,Church events,0,0,Church events,0,0
+172,Life style,0,0,Others,0,0
+173,School programs,1,0,Others,1,0
+174,Arts,1,0,Civil rights,0,1
+175,Employment,0,0,Civil rights,1,0
+176,Housing,1,0,Civil rights,1,0
+177,School programs,1,0,Civil rights,0,1
+178,Sports,0,0,School programs,0,0
+179,Others,0,0,Others,0,0
+180,Life style,0,0,Others,0,0
+181,Civil rights,0,0,Civil rights,0,1
+182,Life style,0,0,Others,0,0
+183,Employment,1,0,Others,0,0
+184,Sports,0,0,Sports,0,0
+185,Employment,1,0,Employment,0,1
+186,Housing,0,0,Housing,0,0
+187,School programs,1,0,Employment,0,0
+188,Housing,1,0,Others,0,0
+189,Others,1,0,Others,0,0
+190,Others,1,0,Employment,0,1
+191,Arts,0,0,Arts,0,0
+192,Employment,1,0,Employment,0,0
+193,Arts,0,0,Sports,0,0
+194,Life style,0,0,Others,0,0
+195,Sports,0,0,Sports,0,0
+196,Criminal justice,0,0,Civil rights,0,1
+197,Others,0,0,Others,1,0
+198,Employment,0,0,Employment,0,0
+199,Life style,0,0,Others,1,0
+200,Employment,0,0,Others,0,0
+201,Recipes,0,0,Recipes,0,0
+202,Arts,1,0,Others,1,0
+203,Christian advice,1,0,Christian advice,0,1
+204,School programs,1,0,Civil rights,0,1
+205,Criminal justice,0,1,Criminal justice,0,1
+206,Criminal justice,0,0,Criminal justice,0,1
+207,Arts,0,0,Others,0,0
+208,School programs,0,1,Civil rights,1,0
+209,Sports,0,0,Sports,0,0
+210,School programs,0,0,Employment,0,0
+211,Life style,0,0,Life style,0,0
+212,Recipes,0,0,Recipes,0,0
+213,Employment,0,0,Employment,0,0
+214,Others,1,0,Others,1,0
+215,Employment,0,1,Employment,0,1
+216,Arts,0,0,Arts,0,0
+217,Others,1,0,Others,1,0
+218,Articles in Spanish,0,0,Articles in Spanish,0,0
+219,Housing,1,0,Housing,1,0
+220,School programs,1,0,Others,0,0
+221,School programs,1,0,School programs,0,0
+222,Arts,0,0,Arts,0,0
+223,Criminal justice,0,0,Others,0,0
+224,Arts,1,0,Civil rights,0,1
+225,Sports,0,0,Sports,0,0
+226,Church events,0,0,Church events,0,0
+227,Criminal justice,0,0,Others,0,0
+228,Criminal justice,0,1,Criminal justice,0,1
+229,Recipes,0,0,Recipes,0,0
+230,Sports,0,0,Civil rights,0,1
+231,Life style,1,0,Others,0,0
+232,Life style,0,0,Others,0,0
+233,Sports,0,0,Sports,0,0
+234,Anti-U.S. foreign policy,0,1,Others,1,0
+235,Others,0,1,Civil rights,0,1
+236,School programs,1,0,School programs,0,0
+237,School programs,0,0,Others,0,0
+238,Employment,1,0,Employment,1,0
+239,School programs,1,0,Others,0,1
+240,Employment,0,0,Employment,0,0
+241,Employment,0,0,Others,0,1
+242,Others,0,1,Civil rights,0,1
+243,Criminal justice,0,0,Criminal justice,1,0
+244,Others,1,0,Others,0,1
+245,Christian advice,1,0,Christian advice,1,0
+246,Arts,0,0,Arts,0,0
+247,Employment,0,0,Civil rights,1,0
+248,Church events,0,0,Christian advice,0,0
+249,Civil rights,0,0,Others,1,0
+250,Others,0,1,Civil rights,0,1
+251,Criminal justice,1,0,Criminal justice,1,0
+252,Sports,1,0,Others,0,0
+253,Others,0,1,Civil rights,0,1
+254,Others,1,0,Others,1,0
+255,Life style,0,0,Christian advice,0,1
+256,Anti-U.S. foreign policy,0,0,Others,0,1
+257,Church events,0,0,Christian advice,0,0
+258,Employment,1,0,Criminal justice,1,0
+259,Criminal justice,0,1,Criminal justice,0,1
+260,Life style,0,0,Life style,0,0
+261,Others,1,0,Others,1,0
+262,Arts,0,0,Arts,0,0
+263,Arts,0,0,Civil rights,0,1
+264,Sports,0,0,Sports,0,0
+265,Housing,1,0,Housing,1,0
+266,Life style,0,0,Others,0,0
+267,Arts,0,0,Arts,0,0
+268,Criminal justice,0,1,Criminal justice,1,0
+269,Criminal justice,0,1,Civil rights,0,1
+270,School programs,0,0,Others,1,0
+271,Arts,1,0,Arts,0,0
+272,Christian advice,1,0,Christian advice,0,1
+273,School programs,1,0,School programs,1,0
+274,Criminal justice,0,1,Criminal justice,0,1
+275,Sports,0,0,Others,0,0
+276,School programs,1,0,School programs,0,0
+277,Transportation,0,1,Transportation,0,0
+278,Sports,0,0,Sports,0,0
+279,Health advice,0,0,Others,0,0
+280,Criminal justice,0,1,Criminal justice,0,1
+281,Criminal justice,0,1,Civil rights,0,1
+282,Arts,0,0,Arts,0,0
+283,Criminal justice,0,0,Others,0,0
+284,Health advice,0,0,Health advice,0,0
+285,Arts,0,0,Arts,0,0
+286,Church events,0,0,Church events,0,0
+287,Arts,0,0,Arts,0,0
+288,Church events,0,0,Church events,0,0
+289,Criminal justice,0,0,Others,0,0
+290,Employment,0,0,Others,0,0
+291,Civil rights,0,1,Others,0,1
+292,School programs,1,0,Civil rights,1,0
+293,Others,0,1,Civil rights,1,0
+294,Criminal justice,0,0,Housing,0,1
+295,Employment,0,0,Others,0,0
+296,School programs,0,1,School programs,0,1
+297,Arts,0,0,Sports,0,0
+298,Life style,0,0,Employment,0,0
+299,Arts,0,0,Arts,0,0
+300,Christian advice,1,0,Others,1,0
+301,Health advice,0,1,Civil rights,1,0
+302,Arts,1,0,Civil rights,0,1
+303,Arts,0,0,Arts,0,0
+304,School programs,0,0,Others,0,0
+305,School programs,0,1,Others,0,1
+306,Sports,0,0,Sports,0,0
+307,Arts,0,0,Arts,0,0
+308,Employment,1,0,Civil rights,1,0
+309,Arts,0,0,Arts,0,0
+310,Life style,0,0,Others,0,0
+311,Recipes,0,0,Recipes,0,0
+312,Housing,1,0,Housing,1,0
+313,Health advice,1,0,Health advice,0,0
+314,Sports,0,0,Others,0,0
+315,Others,1,0,Others,0,1
+316,Arts,0,0,Arts,0,0
+317,Transportation,1,0,Civil rights,1,0
+318,Others,1,0,Civil rights,0,1
+319,Life style,0,0,Others,0,0
+320,Recipes,0,0,Recipes,0,0
+321,School programs,1,0,Civil rights,1,0
+322,Life style,0,0,Arts,0,0
+323,School programs,0,0,Others,0,0
+324,Civil rights,1,0,Others,1,0
+325,School programs,0,0,Others,0,0
+326,Arts,0,0,Others,0,0
+327,Life style,1,0,Life style,0,0
+328,Others,0,0,Others,0,0
+329,Criminal justice,0,0,Others,0,0
+330,Others,1,0,Others,1,0
+331,Life style,1,0,Arts,0,0
+332,Arts,0,0,Arts,0,0
+333,Transportation,0,1,Transportation,0,1
+334,Others,1,0,Civil rights,0,0
+335,Life style,0,0,Life style,0,0
+336,Criminal justice,0,1,Criminal justice,0,1
+337,Criminal justice,0,1,Civil rights,0,1
+338,School programs,1,0,Others,0,1
+339,Arts,0,0,Arts,0,0
+340,Anti-U.S. foreign policy,0,0,Others,1,0
+341,Life style,0,0,School programs,0,0
+342,Others,1,0,Others,0,0
+343,Sports,0,0,Sports,0,0
+344,Others,0,1,Others,1,0
+345,Criminal justice,0,0,Others,0,0
+346,Criminal justice,0,0,Others,0,0
+347,Anti-U.S. foreign policy,1,0,Others,1,0
+348,Arts,0,0,Arts,0,0
+349,Sports,0,0,Sports,0,0
+350,Sports,0,0,Sports,0,0
+351,School programs,1,0,Others,1,0
+352,Recipes,0,0,Recipes,0,0
+353,Civil rights,0,1,Others,1,0
+354,Housing,1,0,Housing,1,0
+355,Arts,0,0,Arts,0,0
+356,Others,1,0,Others,1,0
+357,Employment,1,0,Employment,1,0
+358,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+359,Arts,0,0,Arts,0,0
+360,Arts,1,0,Arts,0,0
+361,Life style,0,0,Others,0,0
+362,Arts,0,0,Arts,0,0
+363,Others,1,0,Others,1,0
+364,Others,0,1,Others,1,0
+365,Health advice,1,0,Others,0,1
+366,Arts,0,0,Others,0,0
+367,Sports,0,0,Sports,0,0
+368,Employment,1,0,Others,1,0
+369,Church events,0,0,Christian advice,0,0
+370,Health advice,0,0,Health advice,0,0
+371,Employment,0,0,Others,0,0
+372,Sports,0,0,Sports,0,0
+373,Arts,0,0,Others,0,0
+374,Others,0,0,Others,0,1
+375,Civil rights,0,1,Civil rights,0,1
+376,Civil rights,0,1,Civil rights,1,0
+377,Others,0,1,Others,0,0
+378,School programs,0,0,School programs,0,0
+379,Employment,1,0,Others,1,0
+380,Others,1,0,Others,1,0
+381,Others,1,0,Others,0,0
+382,Arts,0,0,Arts,0,0
+383,Arts,0,0,Arts,0,0
+384,Others,0,0,Anti-U.S. foreign policy,0,1
+385,Others,1,0,Others,1,0
+386,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+387,Others,0,1,Others,1,0
+388,Life style,1,0,Others,0,0
+389,Employment,1,0,Civil rights,1,0
+390,Employment,0,0,Others,0,0
+391,Transportation,0,0,Others,0,0
+392,Life style,0,0,Others,0,0
+393,Others,1,0,Others,1,0
+394,Arts,0,0,Employment,1,0
+395,Sports,0,0,Sports,0,0
+396,Arts,0,0,Arts,0,0
+397,Arts,1,0,Civil rights,1,0
+398,Life style,0,0,Others,0,0
+399,Life style,0,0,Others,0,0
+400,Sports,0,0,Sports,0,0
+401,School programs,1,0,Others,1,0
+402,School programs,0,0,Others,0,0
+403,Recipes,0,0,Recipes,0,0
+404,Arts,0,0,Arts,0,0
+405,Others,1,0,Civil rights,1,0
+406,Others,1,0,Others,1,0
+407,Life style,0,0,Life style,0,0
+408,Criminal justice,0,0,Christian advice,0,1
+409,Others,0,0,Others,0,1
+410,Recipes,0,0,Recipes,0,0
+411,Housing,0,1,Housing,0,1
+412,Sports,0,0,Sports,0,0
+413,Arts,0,0,Arts,0,0
+414,Health advice,0,0,Health advice,0,0
+415,Arts,0,0,Arts,0,0
+416,School programs,1,0,Others,0,0
+417,Church events,0,0,Church events,0,0
+418,Life style,0,0,Employment,0,0
+419,Transportation,0,0,Others,0,0
+420,Arts,0,0,Arts,0,0
+421,Others,0,1,Anti-U.S. foreign policy,0,1
+422,Arts,0,0,Arts,0,0
+423,Life style,0,0,Arts,0,0
+424,Arts,0,0,Arts,0,0
+425,School programs,1,0,Others,1,0
+426,Arts,0,0,Arts,0,0
+427,Civil rights,0,1,Civil rights,0,1
+428,Arts,0,0,Arts,0,0
+429,Sports,0,0,Sports,0,0
+430,Others,0,0,Others,1,0
+431,Life style,0,0,Health advice,0,0
+432,Church events,0,0,Church events,0,0
+433,School programs,1,0,Civil rights,0,1
+434,Others,0,1,Civil rights,0,1
+435,Civil rights,0,1,Others,0,1
+436,Arts,0,0,Arts,0,0
+437,School programs,0,1,Others,1,0
+438,School programs,1,0,Others,1,0
+439,Church events,0,0,Others,0,0
+440,Civil rights,1,0,Civil rights,1,0
+441,Employment,0,0,Others,1,0
+442,Arts,0,0,Arts,0,0
+443,Christian advice,1,0,Church events,0,0
+444,School programs,0,1,Others,0,0
+445,School programs,0,0,School programs,0,0
+446,Life style,0,0,Others,0,0
+447,Life style,0,0,Others,0,0
+448,Civil rights,0,1,Civil rights,0,1
+449,Civil rights,0,1,Others,0,1
+450,Employment,1,0,Others,1,0
+451,Civil rights,1,0,Civil rights,1,0
+452,Arts,0,0,Arts,0,0
+453,Arts,0,1,Civil rights,1,0
+454,Employment,0,0,Employment,0,0
+455,Life style,0,0,Others,0,0
+456,School programs,1,0,Others,0,0
+457,Others,0,0,Others,0,0
+458,Housing,1,0,Housing,0,1
+459,Employment,1,0,Employment,0,0
+460,Arts,0,0,Arts,0,0
+461,Life style,0,0,Health advice,0,0
+462,Arts,0,0,Arts,0,0
+463,Christian advice,1,0,Christian advice,0,0
+464,Employment,1,0,Employment,0,0
+465,Criminal justice,0,1,Criminal justice,1,0
+466,Arts,0,0,Arts,0,0
+467,Arts,0,0,Arts,0,0
+468,Arts,0,0,Others,0,0
+469,Employment,1,0,Employment,1,0
+470,Employment,1,0,Others,0,0
+471,School programs,1,0,Others,0,0
+472,Sports,1,0,Sports,1,0
+473,Christian advice,0,1,Others,0,1
+474,Life style,0,0,Others,0,0
+475,Recipes,0,0,Recipes,0,0
+476,Life style,0,0,Others,0,0
+477,Others,0,0,Others,1,0
+478,Life style,0,0,Others,0,0
+479,Life style,0,0,Others,0,0
+480,Life style,0,0,Others,0,0
+481,Employment,1,0,Others,0,0
+482,Criminal justice,0,0,Others,0,0
+483,Housing,0,1,Employment,0,1
+484,Arts,0,0,Arts,0,0
+485,Arts,0,0,Arts,0,0
+486,Housing,0,0,Employment,0,0
+487,Criminal justice,0,0,Others,0,0
+488,Employment,0,1,Employment,0,0
+489,Anti-U.S. foreign policy,0,1,Others,0,0
+490,School programs,0,0,Others,1,0
+491,Arts,0,1,Arts,0,1
+492,Arts,0,1,Arts,0,1
+493,Criminal justice,0,0,Others,0,0
+494,Life style,0,0,Others,0,0
+495,School programs,1,0,Civil rights,1,0
+496,School programs,0,0,Others,0,0
+497,Employment,1,0,Employment,1,0
+498,Recipes,0,0,Recipes,0,0
+499,School programs,1,0,Employment,1,0
+500,Arts,0,0,Arts,0,0
+501,Others,0,0,Others,0,0
+502,Civil rights,0,1,Employment,0,1
+503,School programs,0,1,Others,0,1
+504,Employment,1,0,Employment,1,0
+505,School programs,0,0,Others,0,0
+506,Employment,0,1,Employment,0,1
+507,Housing,1,0,Housing,0,0
+508,Arts,0,0,Arts,0,0
+509,Arts,0,0,Civil rights,0,1
+510,Sports,0,0,Sports,0,0
+511,Housing,0,1,Housing,0,1
+512,Sports,0,0,Sports,0,0
+513,School programs,1,0,School programs,0,0
+514,Health advice,0,0,Others,0,0
+515,Arts,0,0,Arts,0,0
+516,Housing,1,0,Others,0,0
+517,Arts,0,0,Arts,0,0
+518,Life style,1,0,Others,0,0
+519,Arts,0,0,Arts,0,0
+520,Life style,0,0,Others,0,0
+521,Sports,0,0,Sports,0,0
+522,Housing,1,0,Housing,1,0
+523,Civil rights,1,0,Civil rights,1,0
+524,Employment,0,1,Employment,0,1
+525,Civil rights,0,1,Civil rights,0,1
+526,Christian advice,1,0,Christian advice,1,0
+527,School programs,0,1,Employment,0,0
+528,Employment,0,1,Employment,0,0
+529,Civil rights,0,1,Others,0,1
+530,Arts,0,0,Arts,0,0
+531,Civil rights,1,0,Others,1,0
+532,School programs,1,0,Others,0,0
+533,Others,0,0,Others,0,0
+534,School programs,0,1,Others,0,0
+535,Employment,0,0,Others,0,0
+536,Arts,0,0,Arts,0,0
+537,Housing,0,1,Housing,0,1
+538,Criminal justice,0,1,Others,0,0
+539,Sports,0,0,Sports,0,0
+540,Arts,0,0,Arts,0,0
+541,School programs,0,0,Others,0,0
+542,Arts,0,0,Arts,0,0
+543,Others,0,1,Civil rights,0,1
+544,Life style,0,0,Recipes,0,0
+545,Life style,0,0,Sports,0,0
+546,Arts,0,0,Others,0,0
+547,Civil rights,0,1,Civil rights,0,1
+548,Arts,0,0,Arts,0,0
+549,Arts,0,0,Arts,0,0
+550,Arts,0,0,Arts,0,0
+551,Employment,1,0,Employment,1,0
+552,Civil rights,0,1,Employment,0,1
+553,School programs,0,0,Arts,0,0
+554,Others,0,0,Others,0,0
+555,Arts,0,0,Arts,0,0
+556,Civil rights,0,1,Civil rights,0,1
+557,Church events,0,0,Others,0,0
+558,Sports,0,0,Sports,0,0
+559,School programs,0,0,Others,0,0
+560,Housing,0,1,Others,0,1
+561,Housing,1,0,Others,0,0
+562,Employment,1,0,Employment,1,0
+563,Arts,1,0,Others,0,0
+564,Criminal justice,0,0,Police reports,0,0
+565,School programs,1,0,Others,0,0
+566,Sports,0,0,Sports,0,0
+567,Arts,0,0,Arts,0,0
+568,Sports,0,0,Sports,0,0
+569,Life style,0,0,Life style,0,0
+570,Others,0,1,Others,0,0
+571,Arts,0,0,Anti-U.S. foreign policy,0,1
+572,Civil rights,0,1,Civil rights,1,0
+573,Housing,0,1,Housing,0,1
+574,Employment,0,0,Others,0,0
+575,Criminal justice,0,0,Criminal justice,0,0
+576,Church events,0,0,Christian advice,0,0
+577,School programs,0,0,Others,0,0
+578,Church events,0,0,Arts,0,0
+579,Life style,0,0,Arts,0,0
+580,Arts,0,0,Arts,0,0
+581,School programs,1,0,School programs,1,0
+582,Employment,0,1,Employment,0,1
+583,Civil rights,0,1,Civil rights,0,1
+584,Sports,0,0,Sports,0,0
+585,Civil rights,0,1,Civil rights,0,1
+586,Employment,0,0,Employment,0,0
+587,Arts,0,0,Arts,0,0
+588,School programs,0,0,Others,0,0
+589,Health advice,0,0,Health advice,0,0
+590,Housing,1,0,Housing,0,0
+591,School programs,0,0,School programs,0,0
+592,Civil rights,1,0,Others,0,1
+593,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+594,Christian advice,1,0,Others,0,0
+595,Employment,1,0,Employment,0,1
+596,Church events,0,0,Christian advice,0,0
+597,Criminal justice,0,1,Criminal justice,0,1
+598,Housing,0,1,Employment,1,0
+599,Life style,1,0,Others,0,0
+600,Civil rights,0,1,Civil rights,0,1
+601,Housing,1,0,Housing,0,0
+602,Employment,1,0,Employment,1,0
+603,Criminal justice,0,1,Criminal justice,0,1
+604,Arts,0,0,Arts,0,0
+605,Life style,0,0,Others,0,0
+606,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+607,Sports,0,0,Sports,0,0
+608,Civil rights,0,1,Others,0,1
+609,School programs,1,0,Civil rights,1,0
+610,Civil rights,1,0,Civil rights,1,0
+611,Civil rights,0,1,Others,0,1
+612,Arts,0,0,Arts,0,0
+613,Health advice,0,1,Others,0,1
+614,Employment,0,1,Employment,0,1
+615,School programs,0,1,Employment,0,1
+616,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+617,Life style,1,0,Others,0,0
+618,Sports,0,0,Sports,0,0
+619,Civil rights,0,1,Civil rights,0,1
+620,Arts,0,0,Arts,0,0
+621,Civil rights,0,1,Civil rights,1,0
+622,Transportation,1,0,Transportation,0,0
+623,Civil rights,0,1,Civil rights,0,1
+624,Life style,0,0,Others,0,0
+625,Church events,0,0,Church events,0,0
+626,Arts,1,0,Arts,0,0
+627,Arts,0,0,Arts,0,0
+628,Others,1,0,Others,1,0
+629,Arts,0,0,Civil rights,0,1
+630,Civil rights,0,1,Others,0,1
+631,Criminal justice,0,0,Criminal justice,0,0
+632,Civil rights,0,1,Civil rights,0,1
+633,Life style,0,0,Life style,0,0
+634,Others,0,1,Others,0,1
+635,Others,1,0,Others,0,1
+636,Employment,1,0,Civil rights,1,0
+637,Arts,0,0,Arts,0,0
+638,School programs,1,0,Others,0,0
+639,Arts,0,0,Arts,0,0
+640,Employment,1,0,Employment,1,0
+641,Employment,0,0,Others,0,0
+642,Others,1,0,Others,0,0
+643,Church events,0,0,Christian advice,0,0
+644,Others,1,0,Others,0,0
+645,Others,0,0,Others,0,0
+646,Arts,0,0,Arts,0,0
+647,Criminal justice,0,0,Criminal justice,0,1
+648,Christian advice,1,0,Christian advice,1,0
+649,Arts,1,0,Others,0,0
+650,Arts,0,0,Arts,1,0
+651,Arts,0,0,Arts,0,0
+652,Arts,0,0,Arts,0,0
+653,Church events,0,0,Church events,0,0
+654,Arts,0,0,Arts,0,0
+655,Employment,1,0,Employment,0,0
+656,Civil rights,0,1,Civil rights,0,1
+657,Others,0,0,Others,0,0
+658,Life style,1,0,Others,0,0
+659,Criminal justice,0,1,Civil rights,0,1
+660,Christian advice,0,1,Others,0,1
+661,Arts,0,0,Arts,0,0
+662,Criminal justice,0,1,Civil rights,0,1
+663,Arts,1,0,Christian advice,1,0
+664,Arts,0,0,Arts,0,0
+665,Employment,0,0,Others,0,0
+666,Others,1,0,Others,0,0
+667,Arts,0,0,Civil rights,1,0
+668,Sports,0,0,Sports,0,0
+669,Housing,1,0,Housing,1,0
+670,School programs,0,0,School programs,0,0
+671,Employment,1,0,Employment,0,0
+672,Civil rights,1,0,Housing,0,1
+673,Others,1,0,Housing,0,0
+674,Employment,1,0,Others,0,0
+675,Church events,0,0,Health advice,0,0
+676,Christian advice,1,0,Christian advice,1,0
+677,School programs,1,0,School programs,1,0
+678,Criminal justice,0,0,Others,0,0
+679,Employment,1,0,Others,0,0
+680,Life style,0,0,Others,1,0
+681,Civil rights,0,1,Civil rights,0,1
+682,Sports,0,0,Sports,0,0
+683,Civil rights,0,1,Civil rights,0,1
+684,Employment,0,1,Employment,0,0
+685,Civil rights,1,0,Civil rights,0,0
+686,Arts,0,0,Arts,0,0
+687,Sports,1,0,Others,1,0
+688,Transportation,1,0,Anti-U.S. foreign policy,0,1
+689,Criminal justice,0,0,Others,0,0
+690,Criminal justice,0,0,Others,0,0
+691,Arts,0,0,Arts,0,0
+692,Sports,0,0,Sports,0,0
+693,Arts,0,0,Arts,0,0
+694,Criminal justice,0,0,Others,0,0
+695,Others,1,0,Others,1,0
+696,Sports,0,0,Sports,0,0
+697,Arts,0,0,Others,0,0
+698,Life style,0,0,Life style,0,0
+699,Others,1,0,Others,1,0
+700,Others,1,0,Others,1,0
+701,Sports,0,0,Sports,0,0
+702,Arts,0,0,Arts,0,0
+703,Arts,0,0,Arts,0,0
+704,Criminal justice,0,0,Others,0,0
+705,Employment,1,0,Civil rights,1,0
+706,Others,1,0,Others,1,0
+707,Anti-U.S. foreign policy,0,1,Anti-U.S. foreign policy,0,1
+708,Employment,0,0,Civil rights,0,1
+709,Life style,0,0,Arts,0,0
+710,Civil rights,0,1,Civil rights,0,1
+711,Arts,0,0,Arts,0,0
+712,Civil rights,0,1,Civil rights,0,1
+713,Others,1,0,Others,1,0
+714,Others,1,0,Others,1,0
+715,School programs,1,0,Others,0,1
+716,School programs,0,1,Employment,0,1
+717,Sports,0,0,Sports,0,0
+718,Health advice,0,0,Others,1,0
+719,Arts,0,0,Arts,0,0
+720,Housing,0,0,Housing,0,0
+721,Employment,0,0,Others,0,0
+722,Arts,0,0,Arts,0,0
+723,Civil rights,0,1,Civil rights,0,1
+724,Life style,0,0,Others,0,0
+725,Church events,0,0,Christian advice,0,0
+726,Christian advice,0,0,Others,0,0
+727,Others,0,0,Others,0,1
+728,Employment,0,0,Others,0,0
+729,Criminal justice,0,0,Others,0,0
+730,Recipes,0,0,Recipes,0,0
+731,Church events,0,0,Church events,0,0
+732,Sports,0,0,Sports,0,0
+733,Church events,0,0,Civil rights,1,0
+734,Criminal justice,0,0,Others,0,0
+735,School programs,1,0,School programs,0,1
+736,Anti-U.S. foreign policy,1,0,Civil rights,0,1
+737,Sports,0,0,Sports,0,0
+738,Life style,0,0,Others,0,0
+739,Recipes,0,0,Recipes,0,0
+740,Life style,0,0,Others,0,0
+741,Employment,0,0,Employment,0,0
+742,Employment,0,1,Employment,0,1
+743,Employment,1,0,Others,1,0
+744,Arts,0,0,Arts,0,0
+745,Life style,0,0,Others,0,0
+746,Life style,0,0,Others,0,0
+747,Housing,0,1,Others,0,0
+748,Employment,1,0,Others,1,0
+749,Life style,0,1,Others,0,1
+750,Christian advice,0,0,Others,0,0
+751,Arts,0,0,Arts,0,0
+752,Arts,0,0,Others,0,0
+753,Arts,0,0,Arts,0,0
+754,Arts,0,0,Arts,0,0
+755,Church events,0,0,Christian advice,0,0
+756,Life style,0,0,Others,0,0
+757,Life style,0,0,Others,0,0
+758,Employment,1,0,Others,0,0
+759,Sports,0,0,Sports,0,0
+760,Others,0,0,Others,1,0
+761,Arts,0,1,Civil rights,0,1
+762,School programs,0,0,Others,0,0
+763,Housing,0,1,Housing,0,1
+764,School programs,0,1,Others,0,1
+765,Others,1,0,Others,0,0
+766,Life style,0,0,Others,0,0
+767,School programs,1,0,Others,0,0
+768,Church events,0,0,Others,0,0
+769,Life style,0,0,Others,0,0
+770,Criminal justice,0,1,Criminal justice,0,1
+771,Arts,0,0,Arts,0,0
+772,Life style,0,0,Others,0,0
+773,Employment,1,0,Others,0,1
+774,Arts,0,0,Arts,0,0
+775,Recipes,0,0,Recipes,0,0
+776,Criminal justice,0,0,Others,0,0
+777,Sports,0,0,Arts,0,0
+778,Arts,0,0,Arts,0,0
+779,Life style,0,0,Others,0,0
+780,Employment,1,0,Others,1,0
+781,Arts,0,0,Arts,0,0
+782,Life style,0,0,Arts,0,0
+783,Health advice,1,0,Others,0,1
+784,Health advice,0,0,Others,0,0
+785,Employment,1,0,Employment,0,0
+786,Life style,0,0,Others,0,0
+787,Life style,0,0,Recipes,0,0
+788,Employment,0,0,Others,0,0
+789,Sports,0,0,Sports,0,0
+790,School programs,0,1,Housing,0,1
+791,Church events,0,0,Christian advice,0,0
+792,Life style,0,0,Transportation,0,0
+793,Arts,0,0,Others,0,0
+794,Arts,0,0,Arts,0,0
+795,Civil rights,0,1,Civil rights,0,1
+796,Recipes,0,0,Recipes,0,0
+797,Criminal justice,0,0,Others,0,0
+798,Sports,0,0,Criminal justice,0,0
+799,Life style,0,0,Others,0,0
+800,Employment,0,0,Employment,0,0
+801,Church events,0,0,Church events,0,0
+802,Civil rights,1,0,Civil rights,1,0
+803,Anti-U.S. foreign policy,0,0,Others,0,1
+804,Civil rights,0,1,Civil rights,0,1
+805,Others,0,1,Others,0,1
+806,Church events,0,0,Others,0,0
+807,Criminal justice,0,0,Others,0,0
+808,Anti-U.S. foreign policy,0,1,Others,0,1
+809,Sports,0,0,Sports,0,0
+810,Life style,0,0,Others,0,0
+811,Recipes,0,0,Recipes,0,0
+812,Recipes,0,0,Recipes,0,0
+813,Anti-U.S. foreign policy,0,1,Others,0,1
+814,Life style,0,0,Others,0,0
+815,Civil rights,0,1,Civil rights,0,1
+816,Church events,0,0,Others,0,0
+817,Others,0,1,Others,0,0
+818,Recipes,0,0,Recipes,0,0
+819,Church events,0,0,Others,0,0
+820,School programs,0,0,Others,0,0
+821,Life style,0,0,Others,0,0
+822,Civil rights,0,1,Employment,0,1
+823,Sports,0,0,Sports,0,0
+824,Recipes,0,0,Recipes,0,0
+825,Life style,0,0,Others,0,0
+826,Arts,0,0,Arts,0,0
+827,Arts,0,0,Arts,0,0
+828,Sports,0,0,Others,0,0
+829,Others,1,0,Others,0,0
+830,School programs,1,0,Employment,1,0
+831,Sports,0,0,Sports,0,0
+832,Employment,1,0,Civil rights,1,0
+833,Health advice,0,0,Health advice,0,0
+834,Recipes,0,0,Recipes,0,0
+835,Arts,0,0,Arts,0,0
+836,Sports,0,0,Sports,0,0
+837,Employment,0,1,Others,0,1
+838,Criminal justice,0,0,Others,0,0
+839,School programs,0,1,Others,0,0
+840,Employment,0,1,Employment,0,1
+841,Life style,0,0,Others,0,0
+842,Others,0,1,Others,0,1
+843,School programs,0,1,Others,0,1
+844,Arts,0,0,Others,1,0
+845,Arts,0,0,Arts,0,0
+846,Sports,0,0,Sports,0,0
+847,Civil rights,0,1,Others,0,1
+848,Christian advice,1,0,Christian advice,1,0
+849,School programs,1,0,Employment,0,0
+850,Transportation,0,1,Transportation,0,0
+851,Arts,0,0,Arts,0,0
+852,Others,0,1,Others,0,1
+853,Sports,0,0,Sports,0,0
+854,Employment,0,0,Others,0,0
+855,Transportation,0,0,Transportation,0,0
+856,Others,0,1,Employment,0,1
+857,Life style,0,0,Others,0,1
+858,Christian advice,0,0,Others,0,0
+859,Employment,0,1,Others,0,0
+860,Church events,0,0,Christian advice,0,0
+861,Life style,0,0,Others,0,0
+862,Sports,0,0,Sports,0,0
+863,Criminal justice,0,0,Others,0,0
+864,Others,0,1,Others,1,0
+865,Life style,0,0,Recipes,0,0
+866,Life style,0,0,Life style,0,0
+867,Life style,0,0,Recipes,0,0
+868,Life style,0,0,Life style,0,0
+869,Life style,0,0,Life style,0,0
+870,Life style,0,0,Others,0,0
+871,Life style,0,0,Recipes,0,0
+872,Arts,0,1,Anti-U.S. foreign policy,0,1
+873,Recipes,0,0,Recipes,0,0
+874,Church events,0,0,Church events,0,0
+875,Recipes,0,0,Recipes,0,0
+876,Civil rights,0,1,Civil rights,0,1
+877,Christian advice,0,1,Civil rights,0,1
+878,Housing,0,1,Civil rights,0,1
+879,Employment,1,0,Others,0,0
+880,Sports,0,0,Others,0,0
+881,Christian advice,0,0,Christian advice,0,0
+882,Sports,0,1,Sports,0,1
+883,Others,1,0,Others,0,0
+884,Life style,0,0,Others,0,0
+885,Arts,0,0,Arts,0,0
+886,Transportation,0,0,Transportation,0,0
+887,Criminal justice,0,0,Criminal justice,0,1
+888,Arts,0,0,Arts,0,0
+889,Criminal justice,1,0,Health advice,0,1
+890,Arts,0,0,Arts,0,0
+891,Arts,0,0,Civil rights,1,0
+892,Recipes,0,0,Recipes,0,0
+893,Arts,0,0,Arts,0,0
+894,Others,0,1,Civil rights,0,1
+895,Criminal justice,1,0,Others,0,0
+896,Church events,0,0,Others,0,0
+897,Sports,0,0,Sports,0,0
+898,Others,1,0,Others,0,0
+899,Life style,0,0,Others,0,0
+900,Life style,0,0,Others,0,0
+901,Employment,1,0,Others,1,0
+902,Life style,0,0,Others,0,0
+903,Sports,0,0,Sports,0,0
+904,Recipes,0,0,Recipes,0,0
+905,Transportation,1,0,Others,0,0
+906,Employment,0,1,Employment,0,1
+907,Health advice,0,0,Others,0,0
+908,Life style,0,0,Life style,0,0
+909,Arts,0,0,Arts,0,0
+910,Others,0,1,Others,0,1
+911,Life style,0,0,Recipes,0,0
+912,Church events,0,0,Others,0,0
+913,Health advice,1,0,Others,0,0
+914,Christian advice,0,0,Others,0,0
+915,School programs,0,0,Others,0,0
+916,Arts,1,0,Others,0,0
+917,Life style,0,0,Others,0,0
+918,Employment,0,1,Employment,0,0
+919,Recipes,0,0,Recipes,0,0
+920,Employment,0,0,Others,0,0
+921,Civil rights,0,1,Civil rights,0,1
+922,Recipes,0,0,Recipes,0,0
+923,Others,0,0,Others,0,0
+924,Health advice,0,0,Others,0,0
+925,Life style,0,0,Life style,0,0
+926,School programs,1,0,Others,0,0
+927,Arts,0,0,Arts,0,0
+928,Christian advice,1,0,Christian advice,0,1
+929,Housing,0,1,Housing,0,1
+930,Life style,0,0,Others,1,0
+931,Life style,0,0,Others,0,0
+932,Recipes,0,0,Recipes,0,0
+933,Others,0,1,Others,1,0
+934,Employment,0,0,Others,0,0
+935,Sports,0,0,Sports,0,1
+936,Employment,0,0,Housing,0,1
+937,Life style,0,0,Others,0,0
+938,Others,0,1,Civil rights,1,0
+939,Health advice,0,0,Health advice,0,0
+940,School programs,0,0,Others,0,0
+941,Sports,0,0,Sports,0,0
+942,Recipes,0,0,Recipes,0,0
+943,Life style,0,0,Others,0,0
+944,Recipes,0,0,Recipes,0,0
+945,Life style,0,0,Others,0,0
+946,Sports,0,0,Sports,0,0
+947,Housing,0,0,Others,0,0
+948,Life style,0,1,Civil rights,1,0
+949,Housing,0,1,Housing,0,1
+950,Sports,0,0,Sports,0,0
+951,Christian advice,1,0,Others,0,0
+952,Employment,0,1,Employment,0,1
+953,Sports,1,0,Sports,1,0
+954,Others,0,1,Others,0,0
+955,Life style,0,0,Recipes,0,0
+956,Arts,0,0,Arts,0,0
+957,Life style,0,0,Others,0,0
+958,Housing,0,0,Housing,0,0
+959,Sports,0,0,School programs,0,0
+960,Church events,0,0,Church events,0,0
+961,Housing,1,0,Housing,1,0
+962,Arts,0,0,Others,0,1
+963,Recipes,0,0,Recipes,0,0
+964,Others,1,0,Others,1,0
+965,Health advice,0,0,Others,0,1
+966,Employment,0,0,Others,0,0
+967,Employment,0,1,Employment,0,0
+968,Recipes,0,0,Recipes,0,0
+969,Others,1,0,Civil rights,1,0
+970,Employment,0,0,Employment,0,0
+971,Others,1,0,Others,1,0
+972,Recipes,0,0,Recipes,0,0
+973,Life style,0,0,Others,0,0
+974,Sports,1,0,Others,1,0
+975,Sports,0,0,Sports,0,0
+976,Others,0,1,Civil rights,0,1
+977,School programs,1,0,Others,0,0
+978,Life style,0,0,Others,0,0
+979,Recipes,0,0,Recipes,0,0
+980,Church events,0,0,Arts,0,0
+981,School programs,1,0,Others,1,0
+982,Sports,0,0,Sports,0,0
+983,Anti-U.S. foreign policy,1,0,Anti-U.S. foreign policy,0,1
+984,Others,1,0,Others,0,0
+985,Recipes,0,0,Recipes,0,0
+986,Church events,0,0,Church events,0,1
+987,School programs,1,0,Others,0,0
+988,Employment,1,0,Others,0,0
+989,Anti-U.S. foreign policy,0,1,Others,0,1
+990,Church events,0,0,Random commentary or facts,0,0
+991,Sports,0,0,Sports,0,0
+992,Arts,0,0,Others,1,0
+993,Health advice,0,0,Health advice,0,0
+994,Arts,0,0,Arts,0,0
+995,Arts,0,0,Arts,0,0
+996,School programs,1,0,Others,1,0
+997,Arts,0,0,Arts,0,0
+998,Sports,0,0,Sports,0,0
+999,Sports,0,0,Sports,0,0
+1000,Arts,0,1,Others,1,0
+1001,Recipes,0,0,Recipes,0,0
+1002,Life style,0,0,Others,0,0
+1003,Church events,0,0,Christian advice,0,1
+1004,Others,1,0,Civil rights,0,1
+1005,School programs,1,0,Others,0,0
+1006,Church events,0,0,Others,1,0
+1007,Employment,0,1,It's about the East Bay Municipal Utility District being sued for not going far enough in finding minority candidates.,0,1
+1008,Church events,0,0,a highlight of a 100 year old church going lady,0,0
