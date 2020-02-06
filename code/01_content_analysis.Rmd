@@ -28,6 +28,8 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         irr, # for calculating inter-coder reliability score
+        corrplot, # for visualizing correlation coefficients
+        ggpubr, # for arranging ggplots 
         ggthemes # for fancy ggplot themes
 )
 
@@ -38,11 +40,11 @@ pacman::p_load(
 
 ```{r}
 
-# Training data for classifying articles from Asian American newspapers (dropping article identifiers)
-training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")[, -1]
+# Training data for classifying articles from Asian American newspapers 
+training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")
 
-# Training data for classifying articles from African American newspapers (dropping article identifiers)
-training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")[, -1]
+# Training data for classifying articles from African American newspapers
+training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")
 
 # Dimensions 
 dim(training_asian)
@@ -72,17 +74,19 @@ training_asian[is.na(training_asian)] <- 0
 
 ### 2.2. Data visualization 
 
+#### 2.2.1. Percentages of agreement 
+
 ```{r}
 
-summary_statistics <- bind_rows(
+df <- bind_rows(
   mutate(training_asian, Group = "Asian Americans"),
-  mutate(training_black, Group = "African Americans ")
+  mutate(training_black, Group = "African Americans")
 ) %>%
   mutate(linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
          linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0),
-         topic = ifelse(Topics_A == Topics_B, Topics_A, NA))
+         topic = ifelse(Topics_A == Topics_B, Topics_A, "Mismatched"))
 
-summary_statistics %>%
+df %>%
   gather(type, value, linked_progress, linked_hurt) %>%
   group_by(Group, type) %>%
   summarise(mean = mean(value), # summarize mean, standard deviation, and n 
@@ -101,22 +105,38 @@ summary_statistics %>%
          caption = "Ethnic NewsWatch") +
     theme(text = element_text(size = 15)) # large font size 
 
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
 ```
 
-### 2,3, Checking the data balance 
+#### 2.2.2. Checking the data balance 
 
 ```{r}
-summary_statistics %>%
+
+ggarrange(
+df %>%
   group_by(Group, linked_progress) %>%
   summarize(n = n()) %>%
-  mutate(freq = n / sum(n)) 
+  mutate(freq = n / sum(n)) %>%
+  ggplot(aes(x = as.factor(linked_progress), y = freq, fill = Group)) +
+    geom_col(position = "dodge") +
+    labs(x = "Values", y = "Freq",
+         title = "Linked progress",
+         subtitle = "Yes = 1, No = 0") +
+    theme_fivethirtyeight(),
 
-summary_statistics %>%
+df %>%
   group_by(Group, linked_hurt) %>%
   summarize(n = n()) %>%
-  mutate(freq = n / sum(n)) 
-```
+  mutate(freq = n / sum(n))  %>%  
+  ggplot(aes(x = as.factor(linked_hurt), y = freq, fill = Group)) +
+    geom_col(position = "dodge") +     
+    labs(x = "Values", y = "Freq",
+         title = "Linked hurt",
+         subtitle = "Yes = 1, No = 0") +
+    theme_fivethirtyeight(), common.legend = TRUE)
 
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_frequency.png")
+```
 
 ## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
 
@@ -178,7 +198,7 @@ mutate(bind_cols(training_black %>%
 
 ```
 
-### 3.3 Visualizing agreement and Kappa  
+### 3.3. Visualizing agreement and Kappa  
 
 ```{r}
 
@@ -194,4 +214,88 @@ irr_summary %>%
     theme_fivethirtyeight() + # five thirty eight theme 
     theme(text = element_text(size = 15)) # large font size 
 
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
 ```
+
+## 4. Additional exploratory data analyses 
+
+### 4.1. Visualizing the frequency of agreed topics 
+
+```{r}
+
+df %>%
+#  filter(linked_progress == 1 | linked_hurt == 1) %>%
+  gather(type, value, linked_progress, linked_hurt) %>%
+  group_by(Group, type, topic) %>%
+  summarize(n = n()) %>%
+  mutate(freq = n / sum(n)) %>%
+  ggplot(aes(x = reorder(as.factor(topic), freq), y = freq, fill = type)) +
+    geom_col(position = "dodge") +     
+    labs(x = "Values", y = "Freq",
+         title = "The frequency of agreed topics") +
+    theme_fivethirtyeight() +
+    coord_flip() +
+    facet_wrap(~Group)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png")
+```
+
+### 4.2. Visualizing correlation coefficients between the two concepts
+
+```{r}
+
+df %>%
+  filter(Group == "Asian Americans") %>%
+  dplyr::select(linked_progress, linked_hurt) %>%
+  cor() %>%
+  corrplot(method = "color", 
+           tl.col="black", 
+           addCoef.col = "black",
+           title = "Asian Americans")
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_corr_asian.png")
+```
+
+```{r}
+
+df %>%
+  filter(Group == "African Americans") %>%
+  dplyr::select(linked_progress, linked_hurt) %>%
+  cor() %>%
+  corrplot(method = "color", 
+           tl.col="black", 
+           addCoef.col = "black",
+           title = "African Americans")
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_corr_black.png")
+```
+## 5. Re-labeling data
+
+```{r}
+
+sample_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.csv") 
+sample_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.csv")
+
+labeled_asian <- sample_asian %>%
+  mutate(mixed = ifelse(linked_progress == linked_hurt, 1, 0),
+         progress = ifelse(mixed == 0, linked_progress, 0),
+         hurt = ifelse(mixed == 0, linked_hurt, 0)) %>%
+  dplyr::select(!contains("linked"))
+
+labeled_black <- sample_black %>%
+  mutate(mixed = ifelse(linked_progress == linked_hurt, 1, 0),
+         progress = ifelse(mixed == 0, linked_progress, 0),
+         hurt = ifelse(mixed == 0, linked_hurt, 0)) %>%
+  dplyr::select(!contains("linked"))
+
+```
+
+### 5.3. Exporting for classification 
+
+```{r}
+
+write.csv(labeled_asian, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/labeled_asian.csv")
+write.csv(labeled_black, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/labeled_black.csv")
+
+```
+
