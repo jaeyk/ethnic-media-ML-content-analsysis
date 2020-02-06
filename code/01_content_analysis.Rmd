@@ -53,7 +53,7 @@ names(training_asian) == names(training_black)
 
 ```
 
-## 2. Descriptive statisics 
+## 2. Descriptive statistics 
 
 ### 2.1. Data cleaning 
 
@@ -95,7 +95,7 @@ summary_statistics %>%
     geom_pointrange(size = 0.7) + # point estimates plus confidence intervals 
     theme_fivethirtyeight() +
     coord_flip() +
-    labs(y= "Percentages of Agreement", x = "Measure Type",
+    labs(y= "Percentages of Agreement", x = "Linked Fate Type",
          title = "Percentages of Agreement",
          subtitle = "1: Perfect agreement, 0: Zero agreement",
          caption = "Ethnic NewsWatch") +
@@ -120,9 +120,9 @@ summary_statistics %>%
 
 ## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
 
-### 3.1. Creating fuctions 
+### 3.1. Creating functions
 
-aggreement = accuracy 
+agreement = accuracy 
 
 precision = kappa 
 
