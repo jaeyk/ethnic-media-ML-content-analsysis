@@ -95,7 +95,7 @@ df %>%
   mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
          lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-  ggplot(aes(x = reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = Group)) +
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = Group)) +
     geom_pointrange(size = 0.7) + # point estimates plus confidence intervals 
     theme_fivethirtyeight() +
     coord_flip() +
@@ -115,27 +115,25 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ggarrange(
 df %>%
   group_by(Group, linked_progress) %>%
-  summarize(n = n()) %>%
-  mutate(freq = n / sum(n)) %>%
-  ggplot(aes(x = as.factor(linked_progress), y = freq, fill = Group)) +
+  add_count() %>%
+  ggplot(aes(x = as.factor(linked_progress), y = n, fill = Group)) +
     geom_col(position = "dodge") +
-    labs(x = "Values", y = "Freq",
+    labs(x = "Values", y = "N",
          title = "Linked Progress",
          subtitle = "Yes = 1, No = 0") +
     theme_fivethirtyeight(),
 
 df %>%
   group_by(Group, linked_hurt) %>%
-  summarize(n = n()) %>%
-  mutate(freq = n / sum(n))  %>%  
-  ggplot(aes(x = as.factor(linked_hurt), y = freq, fill = Group)) +
+  add_count() %>%
+  ggplot(aes(x = as.factor(linked_hurt), y = n, fill = Group)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
          title = "Linked Hurt",
          subtitle = "Yes = 1, No = 0") +
     theme_fivethirtyeight(), common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_frequency.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
 ```
 
 ## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
@@ -204,7 +202,7 @@ mutate(bind_cols(training_black %>%
 
 irr_summary %>%
   gather(type, value, kappa_progress:agreement_hurt) %>% 
-  ggplot(aes(x = reorder(as.factor(type), value), y = value, fill = Group)) +
+  ggplot(aes(x = fct_reorder(type, value), y = value, fill = Group)) +
     geom_col(position = "dodge") +
     coord_flip() +
     labs(y= "Intercorder Reliability Scores", x = "Linked Fate Type",
@@ -227,12 +225,11 @@ df %>%
 #  filter(linked_progress == 1 | linked_hurt == 1) %>%
   gather(type, value, linked_progress, linked_hurt) %>%
   group_by(Group, type, topic) %>%
-  summarize(n = n()) %>%
-  mutate(freq = n / sum(n)) %>%
-  ggplot(aes(x = reorder(as.factor(topic), freq), y = freq, fill = type)) +
+  add_count() %>%
+  ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
-         title = "The Frequency of Agreed Topics") +
+         title = "N of Agreed Topics") +
     theme_fivethirtyeight() +
     coord_flip() +
     facet_wrap(~Group)
@@ -245,28 +242,19 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ```{r}
 
 df %>%
-  filter(Group == "Asian Americans") %>%
-  dplyr::select(linked_progress, linked_hurt) %>%
-  cor() %>%
-  corrplot(method = "color", 
-           tl.col="black", 
-           addCoef.col = "black",
-           title = "Asian Americans")
+  dplyr::select(linked_progress, linked_hurt, Group) %>%
+  group_by(Group) %>%
+  summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
+  ggplot(aes(x = fct_reorder(Group, corr), y = corr)) +
+    geom_col() +
+    labs(title = "Correlation Coefficients between Linked Progress and Linked Hurt",
+         y = "Pearson Correlation coefficient",
+         x = "Group",
+         caption = "Ethnic NewsWatch") +
+    theme_fivethirtyeight() +
+    geom_col() +
+    coord_flip()
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_corr_asian.png")
-```
-
-```{r}
-
-df %>%
-  filter(Group == "African Americans") %>%
-  dplyr::select(linked_progress, linked_hurt) %>%
-  cor() %>%
-  corrplot(method = "color", 
-           tl.col="black", 
-           addCoef.col = "black",
-           title = "African Americans")
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_corr_black.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis.png")
 
 ```
