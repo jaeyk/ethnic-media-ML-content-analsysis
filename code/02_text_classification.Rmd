@@ -123,18 +123,16 @@ clean_text <- function(document){
 labeled_asian$text <- clean_text(labeled_asian$text) 
 labeled_black$text <- clean_text(labeled_black$text) 
 
-data_clean <- labeled_asian 
 ```
 
-### 2.3. Checking the balance 
+## 3. Feature engineering 
 
 ```{r}
-data_clean %>%
-  ggplot(aes(linked_progress)) +
-  geom_bar()
 
+train_test_response <- function(dataset, measure){
+  
 data_counts <- map_df(1:2,
-                      ~ unnest_tokens(data_clean, word, text, 
+                      ~ unnest_tokens(dataset, word, text, 
                                       token = "ngrams", n = .x)) %>%
   anti_join(stop_words, by = "word") %>%
   count(id, word, sort = TRUE)
@@ -151,14 +149,29 @@ data_dtm <- data_counts %>%
   cast_dtm(id, word, tf_idf)
 
 meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
-  left_join(data_clean[!duplicated(data_clean$id), ], by = "id")
+  left_join(dataset[!duplicated(dataset$id), ], by = "id")
 
-trainIndex <- createDataPartition(meta$linked_progress, p = 0.8, list = FALSE, times = 1)
+trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1)
+
+#perform grouped K means
+group_folds <- groupKFold(dataset$year, k = 10)
 
 data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
+
 data_df_test <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame()
 
-response_train <- meta$linked_progress[trainIndex]
+response_train <- meta[[measure]][trainIndex]
+
+result <- list(data_df_train, data_df_test, response_train, group_folds)
+
+return(result)
+
+}
+
+asian_lp <- train_test_response(labeled_asian, 'linked_progress')
+asian_lh <- train_test_response(labeled_asian, 'linked_hurt')
+black_lp <- train_test_response(labeled_black, 'linked_progress')
+black_lh <- train_test_response(labeled_black, 'linked_hurt')
 
 ```
 
@@ -168,20 +181,25 @@ response_train <- meta$linked_progress[trainIndex]
 
 ```{r}
 
-ctrl <- trainControl(method = "none")
+dataset <- asian_lp 
+  
+data_df_train <- dataset[[1]] 
+data_df_test <- dataset[[2]]
+response_train <- dataset[[3]]
+ground_folds <- dataset[[4]]-
+
+ctrl <- trainControl(method = "cv",
+                     number = 10)
 
 svm_mod <- train(x = data_df_train,
-                 y = as.factor(response_train),
-                 method = "svmLinearWeights2",
-                 trControl = ctrl,
-                 tuneGrid = data.frame(cost = 1, 
-                                       Loss = 0, 
-                                       weight = 1))
+                 y = as.factor(response_train),      
+                 method = "svmLinear3",
+                 trControl = ctrl)
 
 svm_pred <- predict(svm_mod,
                     newdata = data_df_test)
 
-svm_cm <- confusionMatrix(svm_pred, factor(meta[-trainIndex, ]$linked_progress))
+svm_cm <- confusionMatrix(svm_pred, ground_truth)
 
 nb_mod <- train(x = data_df_train,
                 y = as.factor(response_train),
@@ -190,11 +208,10 @@ nb_mod <- train(x = data_df_train,
                 tuneGrid = data.frame(laplace = 0,
                                       usekernel = FALSE,
                                       adjust = FALSE))
-
 nb_pred <- predict(nb_mod,
                    newdata = data_df_test)
 
-nb_cm <- confusionMatrix(nb_pred, factor(meta[-trainIndex, ]$linked_progress))
+nb_cm <- confusionMatrix(nb_pred, ground_truth)
 
 logitboost_mod <- train(x = data_df_train,
                         y = as.factor(response_train),
@@ -204,7 +221,7 @@ logitboost_mod <- train(x = data_df_train,
 logitboost_pred <- predict(logitboost_mod,
                            newdata = data_df_test)
 
-logitboost_cm <- confusionMatrix(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress))
+logitboost_cm <- confusionMatrix(logitboost_pred, ground_truth)
 
 rf_mod <- train(x = data_df_train, 
                 y = as.factor(response_train), 
@@ -213,11 +230,10 @@ rf_mod <- train(x = data_df_train,
                 tuneGrid = data.frame(mtry = floor(sqrt(dim(data_df_train)[2])),
                                       splitrule = "gini",
                                       min.node.size = 1))
-
 rf_pred <- predict(rf_mod,
                    newdata = data_df_test)
 
-rf_cm <- confusionMatrix(rf_pred, factor(meta[-trainIndex, ]$linked_progress))
+rf_cm <- confusionMatrix(rf_pred, ground_truth)
 
 acu_results <- rbind(
   svm_cm$overall, 
@@ -229,17 +245,19 @@ acu_results <- rbind(
   mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
 
 balanced_acu_results <- c(
-  bal_accuracy_vec(svm_pred, factor(meta[-trainIndex, ]$linked_progress)),
-  bal_accuracy_vec(nb_pred, factor(meta[-trainIndex, ]$linked_progress)),
-  bal_accuracy_vec(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress)),
-  bal_accuracy_vec(rf_pred, factor(meta[-trainIndex, ]$linked_progress))) 
+  bal_accuracy_vec(svm_pred, ground_truth),
+  bal_accuracy_vec(nb_pred, ground_truth),
+  bal_accuracy_vec(logitboost_pred, ground_truth),
+  bal_accuracy_vec(rf_pred, ground_truth))
 
+return(mod_results)}
 
+mod_asian_lp <- build_test(asian_lp, linked_progress)
+  
 mod_results <- data.frame(acu = acu_results$Accuracy,
                           kappa = acu_results$Kappa,
                           balanced_acu = balanced_acu_results) %>%
   mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest")) 
-
 mod_results %>%
   gather(metrices, value, c("acu", "kappa", "balanced_acu")) %>%
   ggplot(aes(fct_reorder(model, value), value, fill = metrices)) +
@@ -248,11 +266,8 @@ mod_results %>%
          y = "Performance rate",
          title = "ML performances")
     theme_clean()
+    
 ```
-
-## 3. Model building and testing  
-
-
 
 ## 4. Predictions 
 
