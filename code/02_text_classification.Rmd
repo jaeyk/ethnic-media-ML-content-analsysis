@@ -15,6 +15,11 @@ Resources
 - https://towardsdatascience.com/modelling-with-tidymodels-and-parsnip-bae2c01c131c
 - https://www.hvitfeldt.me/blog/authorship-classification-with-tidymodels-and-textrecipes/
 - https://cran.r-project.org/web/packages/text2vec/vignettes/text-vectorization.html
+- https://stackoverflow.com/questions/43744399/can-i-get-classification-accuracy-and-cohens-kappa-from-glm-results
+- http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
+- http://fisher.stats.uwo.ca/faculty/aim/2019/9850/RNotebooks/21_CaravanRevisited_Apr7.html
+- https://fderyckel.github.io/2016-12-07-Texts_Classification_in_R/
+- https://cfss.uchicago.edu/notes/supervised-text-classification/
 
 ## 0. Setup 
 
@@ -37,8 +42,11 @@ if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         tidymodels, # for tidy modeling  
+        caret, # for ML
+        pROC, # for ROC
         parsnip, # for modeling
         tidytext, # for text analysis in a tidy way
+        lubridate, # for date manipulation
         textrecipes, # for preprocessing text data
         text2vec, # for preprocessing text data
         stopwords, # for stopwords
@@ -50,7 +58,14 @@ pacman::p_load(
         tidyr, # for creating tidy data
         furrr, # for applying mapping functions 
         ggthemes, # for fancy ggplot themes
-        glmnet # for logistic regression classifier
+        glmnet, # for logistic regression classifier
+        randomForest, # for random forest classifier
+        rpart, # for recursive partitioning
+        caTools, # for ML
+        splitstackshape, # for stratified random sampling
+        DMwR, # for daealing with imbalanced classes 
+        imbalance, # for dealing wiht imbalanced classes 
+        yardstick # for ML measures
 )
 
 ```
@@ -64,17 +79,24 @@ https://www.alexpghayes.com/blog/implementing-the-super-learner-with-tidymodels/
 
 # Labeled data 
 
-labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[, -1]
-labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[, -1]
+labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-2] 
+labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-2]
 
 # Unlabeled data 
 
-unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[, -1]
-unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[, -1]
+unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-2]
+unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-2]
+
+# rename the missing col name 
+
+colnames(labeled_asian)[1] <- "id"
+colnames(labeled_black)[1] <- "id"
+colnames(unlabeled_asian)[1] <- "id"
+colnames(unlabeled_black)[1] <- "id"
 
 ```
 
-## 2. Preprocessing text
+## 2. Cleaning text
 
 ### 2.1. Creating my custom text clean function 
 
@@ -82,11 +104,11 @@ unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perfor
 
 clean_text <- function(document){
   document %>% 
-    replace_number() %>%
     replace_non_ascii() %>%
     replace_contraction() %>%
     add_comma_space() %>%
-    removePunctuation() %>%                tolower() %>% # low key 
+    removePunctuation() %>%                
+    tolower() %>% # low key 
     str_trim() %>% # remove whitespace 
     gsub("[\r?\n]", "", .) %>% # remove \n
     gsub("  ", " ", .)
@@ -98,16 +120,46 @@ clean_text <- function(document){
 
 ```{r}
 
-# test 
-# clean_text(labeled_asian$text[1])
+labeled_asian$text <- clean_text(labeled_asian$text) 
+labeled_black$text <- clean_text(labeled_black$text) 
 
-# Seen
+data_clean <- labeled_asian 
+```
 
-labeled_asian$text <- clean_text(labeled_asian$text)
+### 2.3. Checking the balance 
 
-labeled_black$text <- clean_text(labeled_black$text)
+```{r}
+data_clean %>%
+  ggplot(aes(linked_progress)) +
+  geom_bar()
 
-labeled_asian$text[1]
+data_counts <- map_df(1:2,
+                      ~ unnest_tokens(data_clean, word, text, 
+                                      token = "ngrams", n = .x)) %>%
+  anti_join(stop_words, by = "word") %>%
+  count(id, word, sort = TRUE)
+
+words_10 <- data_counts %>%
+  group_by(word) %>%
+  summarise(n = n()) %>% 
+  filter(n >= 10) %>%
+  select(word)
+
+data_dtm <- data_counts %>%
+  right_join(words_10, by = "word") %>%
+  bind_tf_idf(word, id, n) %>%
+  cast_dtm(id, word, tf_idf)
+
+meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
+  left_join(data_clean[!duplicated(data_clean$id), ], by = "id")
+
+trainIndex <- createDataPartition(meta$linked_progress, p = 0.8, list = FALSE, times = 1)
+
+data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
+data_df_test <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame()
+
+response_train <- meta$linked_progress[trainIndex]
+
 ```
 
 ## 3. Model building and testing  
@@ -116,253 +168,93 @@ labeled_asian$text[1]
 
 ```{r}
 
-glm_model <- function(dataset, response){
-  
-split <- rsample::initial_split(data = dataset, 
-                       prop = 0.80,
-                       strata = "year")
+ctrl <- trainControl(method = "none")
 
-df_train <- split %>% training()
-df_test <- split %>% testing()
+svm_mod <- train(x = data_df_train,
+                 y = as.factor(response_train),
+                 method = "svmLinearWeights2",
+                 trControl = ctrl,
+                 tuneGrid = data.frame(cost = 1, 
+                                       Loss = 0, 
+                                       weight = 1))
 
-# define preprocessing function and tokenization function
+svm_pred <- predict(svm_mod,
+                    newdata = data_df_test)
 
-tok_fun <- word_tokenizer
+svm_cm <- confusionMatrix(svm_pred, factor(meta[-trainIndex, ]$linked_progress))
 
-it_train <- itoken(df_train$text, 
-             tokenizer = tok_fun, 
-             progressbar = FALSE)
+nb_mod <- train(x = data_df_train,
+                y = as.factor(response_train),
+                method = "naive_bayes",
+                trControl = trctrl,
+                tuneGrid = data.frame(laplace = 0,
+                                      usekernel = FALSE,
+                                      adjust = FALSE))
 
-vocab <- create_vocabulary(it_train) 
-                           #ngram = c(1L, 2L))
+nb_pred <- predict(nb_mod,
+                   newdata = data_df_test)
 
-vocab <- prune_vocabulary(vocab, 
-                          term_count_min = 10, 
-                          doc_proportion_max = 0.5,
-                          doc_proportion_min = 0.001)
+nb_cm <- confusionMatrix(nb_pred, factor(meta[-trainIndex, ]$linked_progress))
 
-vectorizer <- vocab_vectorizer(vocab)
+logitboost_mod <- train(x = data_df_train,
+                        y = as.factor(response_train),
+                        method = "LogitBoost",
+                        trControl = trctrl)
 
-dtm_train <- create_dtm(it_train, vectorizer) %>%
-  normalize("l1")
+logitboost_pred <- predict(logitboost_mod,
+                           newdata = data_df_test)
 
-#By “normalization” we assume transformation of the rows of DTM so we adjust values measured on different scales to a notionally common scale. For the case when length of the documents vary we can apply “L1” normalization. It means we will transform rows in a way that sum of the row values will be equal to 1
+logitboost_cm <- confusionMatrix(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress))
 
-# from word2vec
+rf_mod <- train(x = data_df_train, 
+                y = as.factor(response_train), 
+                method = "ranger",
+                trControl = trctrl,
+                tuneGrid = data.frame(mtry = floor(sqrt(dim(data_df_train)[2])),
+                                      splitrule = "gini",
+                                      min.node.size = 1))
 
-# TF-IDF
+rf_pred <- predict(rf_mod,
+                   newdata = data_df_test)
 
-# define tfidf model
-#tfidf = TfIdf$new()
-# fit model to train data and transform train data with fitted model
-#dtm_train_tfidf = fit_transform(dtm_train, tfidf)
-# tfidf modified by fit_transform() call!
-# apply pre-trained tf-idf transformation to test data
-#dtm_test_tfidf = create_dtm(it_test, vectorizer)
-#dtm_test_tfidf = transform(dtm_test_tfidf, tfidf)
+rf_cm <- confusionMatrix(rf_pred, factor(meta[-trainIndex, ]$linked_progress))
 
-### 3.3. Classifier 
+acu_results <- rbind(
+  svm_cm$overall, 
+  nb_cm$overall,
+  logitboost_cm$overall,
+  rf_cm$overall
+  ) %>%
+  as.data.frame() %>%
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
 
-glmnet_classifier <- cv.glmnet(x = dtm_train, y = df_train[[response]], 
-                              family = 'binomial', 
-                              # L1 penalty
-                              alpha = 1, # lasso 
-                              # interested in the area under ROC curve
-                              type.measure = measure,
-                              # 5-fold cross-validation
-                              nfolds = 4,
-                              # high value is less accurate, but has faster training
-                              thresh = 1e-3,
-                              # again lower number of iterations for faster training
-                              maxit = 1e3)
+balanced_acu_results <- c(
+  bal_accuracy_vec(svm_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(nb_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(rf_pred, factor(meta[-trainIndex, ]$linked_progress))) 
 
-#plot(glmnet_classifier)
 
-print(paste("max AUC =", round(max(glmnet_classifier$cvm), 4)))
+mod_results <- data.frame(acu = acu_results$Accuracy,
+                          kappa = acu_results$Kappa,
+                          balanced_acu = balanced_acu_results) %>%
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest")) 
 
-it_test <- df_test$text %>% 
-  tok_fun %>% 
-  # turn off progressbar because it won't look nice in rmd
-  itoken(progressbar = FALSE)
-
-dtm_test <- create_dtm(it_test, vectorizer)
-
-preds <- predict(glmnet_classifier, dtm_test, type = 'response')[,1]
-
-glmnet:::auc(df_test[[response]], preds)
-
-}
-
-glm_model(labeled_asian, 'linked_progress')
-glm_model(labeled_asian, 'linked_hurt')
-glm_model(labeled_black, 'linked_progress')
-glm_model(labeled_black, 'linked_hurt')
-
+mod_results %>%
+  gather(metrices, value, c("acu", "kappa", "balanced_acu")) %>%
+  ggplot(aes(fct_reorder(model, value), value, fill = metrices)) +
+    geom_col(position = "dodge") +
+    labs(x = "Model type", 
+         y = "Performance rate",
+         title = "ML performances")
+    theme_clean()
 ```
 
-## 3. Feature engineering 
+## 3. Model building and testing  
 
-```{r}
 
-# DTM 
 
-def dtm_train(data, text, column, year):
-    # Bag of words model
-    
-    features = vectorizer.fit_transform(data[text]).todense() # todense() returns a matrix
-    
-#    features = transformer.fit_transform(features)
-    
-    response = data[column].values 
-
-    # split into train/test datasets 
-
-    X_train, X_test, y_train, y_test = train_test_split(features, response, 
-                                                        test_size = 0.2,
-                                                        random_state = 1234,
-                                                        stratify = data[year])
-    # label encode the target variables 
-    
-    encoder = preprocessing.LabelEncoder()
-    
-    y_train = encoder.fit_transform(y_train)
-    y_test = encoder.fit_transform(y_test)
-
-    return(X_train, y_train, X_test, y_test)
-
-```
-
-```{r}
-# Asian 
-
-## Linked progress
-asian_lp_dtm = dtm_train(asian_sample, 'text', 'linked_progress', 'year')
-asian_X_train_lp = asian_lp_dtm[0]
-asian_y_train_lp = asian_lp_dtm[1]
-asian_X_test_lp = asian_lp_dtm[2]
-asian_y_test_lp = asian_lp_dtm[3]
-
-## Linked hurt 
-asian_lh_dtm = dtm_train(asian_sample, 'text', 'linked_hurt', 'year')
-asian_X_train_lh = asian_lh_dtm[0]
-asian_y_train_lh = asian_lh_dtm[1]
-asian_X_test_lh = asian_lh_dtm[2]
-asian_y_test_lh = asian_lh_dtm[3]
-
-# Black
-
-## Linked progress
-black_lp_dtm = dtm_train(black_sample, 'text', 'linked_progress', 'year')
-black_X_train_lp = black_lp_dtm[0]
-black_y_train_lp = black_lp_dtm[1]
-black_X_test_lp = black_lp_dtm[2]
-black_y_test_lp = black_lp_dtm[3]
-
-## Linked hurt 
-black_lh_dtm = dtm_train(black_sample, 'text', 'linked_hurt', 'year')
-black_X_train_lh = black_lh_dtm[0]
-black_y_train_lh = black_lh_dtm[1]
-black_X_test_lh = black_lh_dtm[2]
-black_y_test_lh = black_lh_dtm[3]
-
-```
-## 4. Model fit and evaluations 
-
-```{r}
-
-## fitting 
-
-def fit_logistic_regression(X_train, y_train):
-    model = LogisticRegression(max_iter = 4000)
-    model.fit(X_train, y_train)
-    return model
-
-def fit_bayes(X_train, y_train):
-    model = MultinomialNB()
-    model.fit(X_train, y_train)
-    return model
-
-def fit_xgboost(X_train, y_train):
-    model = XGBClassifier(random_state = 42,
-                         seed = 2, 
-                         colsample_bytree = 0.6,
-                         subsample = 0.7)
-    model.fit(X_train, y_train)
-    return model
-
-## evaluating 
-
-def test_model(model, X_train, y_train, X_test, y_test):
-    y_pred = model.predict(X_test)
-    score = accuracy_score(y_test, y_pred)
-   # print(confusion_matrix(y_test, y_pred))
-   # print(classification_report(y_test, y_pred))
-    print("Accuracy:", score)
-    
-```
-
-```{r}
-# asian_sample 
-
-## linked progress
-asian_lp = fit_logistic_regression(asian_X_train_lp, asian_y_train_lp)
-asian_lp_bayes = fit_bayes(asian_X_train_lp, asian_y_train_lp)
-asian_lp_xgboost = fit_xgboost(asian_X_train_lp, asian_y_train_lp)
-
-## linked hurt 
-asian_lh = fit_logistic_regression(asian_X_train_lh, asian_y_train_lh)
-asian_lh_bayes = fit_bayes(asian_X_train_lh, asian_y_train_lh)
-asian_lh_xgboost = fit_xgboost(asian_X_train_lh, asian_y_train_lh)
-
-# black_sample 
-
-## linked progress
-black_lp = fit_logistic_regression(black_X_train_lp, black_y_train_lp)
-black_lp_bayes = fit_bayes(black_X_train_lp, black_y_train_lp)
-black_lp_xgboost = fit_xgboost(black_X_train_lp, black_y_train_lp)
-
-## linked hurt 
-black_lh = fit_logistic_regression(black_X_train_lh, black_y_train_lh)
-black_lh_bayes = fit_bayes(black_X_train_lh, black_y_train_lh)
-black_lh_xgboost = fit_xgboost(black_X_train_lh, black_y_train_lh)
-```
-
-```{r}
-# asian sample test 
-
-print("Asian linked progress: Logistic regression")
-test_model(asian_lp, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
-print("Asian linked progress: Naive Bayes")
-test_model(asian_lp_bayes, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
-print("Asian linked progress: XGBoost")
-test_model(asian_lp_xgboost, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
-
-print("Asian linked hurt: Logistic regression")
-test_model(asian_lh, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
-print("Asian linked hurt: Naive Bayes")
-test_model(asian_lh_bayes, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
-print("Asian linked hurt: XGBoost")
-test_model(asian_lh_xgboost, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
-
-# black sample test
-
-print("Black linked progress: Logistic regression")
-test_model(black_lp, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
-print("Black linked progress: Naive Bayes")
-test_model(black_lp_bayes, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
-print("Black linked progress: XGBoost")
-test_model(black_lp_xgboost, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
-
-print("Black linked hurt: Logistic regression")
-test_model(black_lh, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
-print("Black linked hurt: Naive Bayes")
-test_model(black_lh_bayes, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
-print("Black linked hurt: XGBoost")
-test_model(black_lh_xgboost, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
-```
-### 4.1. Cross validations 
-
-## 5. Predictions 
+## 4. Predictions 
 
 ```{r}
 
@@ -406,19 +298,7 @@ print("asian linked progress:", sum(test_text(asian_sample['text'], asian_lp)),
       "blakc linked hurt:", sum(test_text(black_sample['text'], black_lh)))
 ```
 
-```{r}
-
-print("asian linked progress:", sum(asian_lp_full),
-      "asian linked hurt:", sum(asian_lh_full),
-      "black linked progress:", sum(black_lp_full),
-      "black linked hurt:", sum(black_lh_full))
-
-print("asian progress / hurt", round(sum(asian_lp_full)/sum(asian_lh_full),2),
-      "black progress / hurt", round(sum(black_lp_full)/sum(black_lh_full),2))
-
-```
-
-## 6. Exporting results as a csv file 
+## 5. Exporting results as a csv file 
 
 ```{r}
 
