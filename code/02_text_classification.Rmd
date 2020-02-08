@@ -56,7 +56,8 @@ pacman::p_load(
         textshape, # for cleaning text 
         tm, # for cleaning text 
         tidyr, # for creating tidy data
-        furrr, # for applying mapping functions 
+        furrr, # for applying mapping functions
+        ggpubr, # for arranging ggplot2 
         ggthemes, # for fancy ggplot themes
         glmnet, # for logistic regression classifier
         randomForest, # for random forest classifier
@@ -154,7 +155,6 @@ meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
 trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1)
 
 #perform grouped K means
-group_folds <- groupKFold(dataset$year, k = 10)
 
 data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
 
@@ -162,7 +162,9 @@ data_df_test <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame()
 
 response_train <- meta[[measure]][trainIndex]
 
-result <- list(data_df_train, data_df_test, response_train, group_folds)
+ground_truth <- factor(meta[[measure]][-trainIndex])
+
+result <- list(data_df_train, data_df_test, response_train, ground_truth)
 
 return(result)
 
@@ -181,25 +183,15 @@ black_lh <- train_test_response(labeled_black, 'linked_hurt')
 
 ```{r}
 
-dataset <- asian_lp 
+build_test <- function(dataset){
   
 data_df_train <- dataset[[1]] 
 data_df_test <- dataset[[2]]
 response_train <- dataset[[3]]
-ground_folds <- dataset[[4]]-
+ground_truth <- dataset[[4]]
 
 ctrl <- trainControl(method = "cv",
                      number = 10)
-
-svm_mod <- train(x = data_df_train,
-                 y = as.factor(response_train),      
-                 method = "svmLinear3",
-                 trControl = ctrl)
-
-svm_pred <- predict(svm_mod,
-                    newdata = data_df_test)
-
-svm_cm <- confusionMatrix(svm_pred, ground_truth)
 
 nb_mod <- train(x = data_df_train,
                 y = as.factor(response_train),
@@ -236,37 +228,45 @@ rf_pred <- predict(rf_mod,
 rf_cm <- confusionMatrix(rf_pred, ground_truth)
 
 acu_results <- rbind(
-  svm_cm$overall, 
   nb_cm$overall,
   logitboost_cm$overall,
   rf_cm$overall
   ) %>%
   as.data.frame() %>%
-  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
+  mutate(model = c("Naive-Bayes", "LogitBoost", "Random forest"))
 
 balanced_acu_results <- c(
-  bal_accuracy_vec(svm_pred, ground_truth),
   bal_accuracy_vec(nb_pred, ground_truth),
   bal_accuracy_vec(logitboost_pred, ground_truth),
   bal_accuracy_vec(rf_pred, ground_truth))
-
-return(mod_results)}
-
-mod_asian_lp <- build_test(asian_lp, linked_progress)
   
 mod_results <- data.frame(acu = acu_results$Accuracy,
                           kappa = acu_results$Kappa,
                           balanced_acu = balanced_acu_results) %>%
-  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest")) 
+  
+  mutate(model = c("Naive-Bayes", "LogitBoost", "Random forest")) 
+
 mod_results %>%
   gather(metrices, value, c("acu", "kappa", "balanced_acu")) %>%
   ggplot(aes(fct_reorder(model, value), value, fill = metrices)) +
     geom_col(position = "dodge") +
     labs(x = "Model type", 
-         y = "Performance rate",
-         title = "ML performances")
-    theme_clean()
+         y = "Performance (%)")}
     
+plot_asian_lp <- build_test(asian_lp) + 
+    theme_clean() + ggtitle("Linked progress in Asian American newspapers")
+
+plot_asian_lh <- build_test(asian_lh) + 
+    theme_clean() + ggtitle("Linked hurt in Asian American newspaeprs")
+
+plot_black_lp <- build_test(black_lp) + 
+    theme_clean() + ggtitle("Linked progress in African American newspapers")
+
+plot_black_lh <- build_test(black_lh) + 
+    theme_clean() + ggtitle("Linked hurt in African American newspapres")
+
+ggarrange(plot_asian_lp, plot_asian_lh, plot_black_lp, plot_black_lh)
+
 ```
 
 ## 4. Predictions 
