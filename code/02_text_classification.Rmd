@@ -1,0 +1,438 @@
+---
+title: "Text classification"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+Resources 
+- https://www.hvitfeldt.me/blog/text-classification-with-tidymodels/#introduction
+- https://juliasilge.com/blog/tidy-text-classification/
+- http://www.rebeccabarter.com/blog/2019-06-06_pre_processing/
+- https://www.benjaminsorensen.me/post/modeling-with-parsnip-and-tidymodels/
+- https://towardsdatascience.com/modelling-with-tidymodels-and-parsnip-bae2c01c131c
+- https://www.hvitfeldt.me/blog/authorship-classification-with-tidymodels-and-textrecipes/
+- https://cran.r-project.org/web/packages/text2vec/vignettes/text-vectorization.html
+
+## 0. Setup 
+
+I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8, 
+                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
+```
+
+```{r}
+
+# Clean up the environment
+
+# rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        tidymodels, # for tidy modeling  
+        parsnip, # for modeling
+        tidytext, # for text analysis in a tidy way
+        textrecipes, # for preprocessing text data
+        text2vec, # for preprocessing text data
+        stopwords, # for stopwords
+        tokenizers, # for tokenizing
+        textclean, # for cleaning text
+        hunspell, # for cleaning text 
+        textshape, # for cleaning text 
+        tm, # for cleaning text 
+        tidyr, # for creating tidy data
+        furrr, # for applying mapping functions 
+        ggthemes, # for fancy ggplot themes
+        glmnet # for logistic regression classifier
+)
+
+```
+
+https://www.alexpghayes.com/blog/implementing-the-super-learner-with-tidymodels/
+
+## 1. Importing files 
+
+
+```{r}
+
+# Labeled data 
+
+labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[, -1]
+labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[, -1]
+
+# Unlabeled data 
+
+unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[, -1]
+unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[, -1]
+
+```
+
+## 2. Preprocessing text
+
+### 2.1. Creating my custom text clean function 
+
+```{r}
+
+clean_text <- function(document){
+  document %>% 
+    replace_number() %>%
+    replace_non_ascii() %>%
+    replace_contraction() %>%
+    add_comma_space() %>%
+    removePunctuation() %>%                tolower() %>% # low key 
+    str_trim() %>% # remove whitespace 
+    gsub("[\r?\n]", "", .) %>% # remove \n
+    gsub("  ", " ", .)
+}
+
+```
+
+### 2.2 Applying the function to each data 
+
+```{r}
+
+# test 
+# clean_text(labeled_asian$text[1])
+
+# Seen
+
+labeled_asian$text <- clean_text(labeled_asian$text)
+
+labeled_black$text <- clean_text(labeled_black$text)
+
+labeled_asian$text[1]
+```
+
+## 3. Model building and testing  
+
+### 3.1. Creating a function for model building and testing 
+
+```{r}
+
+glm_model <- function(dataset, response){
+  
+split <- rsample::initial_split(data = dataset, 
+                       prop = 0.80,
+                       strata = "year")
+
+df_train <- split %>% training()
+df_test <- split %>% testing()
+
+# define preprocessing function and tokenization function
+
+tok_fun <- word_tokenizer
+
+it_train <- itoken(df_train$text, 
+             tokenizer = tok_fun, 
+             progressbar = FALSE)
+
+vocab <- create_vocabulary(it_train) 
+                           #ngram = c(1L, 2L))
+
+vocab <- prune_vocabulary(vocab, 
+                          term_count_min = 10, 
+                          doc_proportion_max = 0.5,
+                          doc_proportion_min = 0.001)
+
+vectorizer <- vocab_vectorizer(vocab)
+
+dtm_train <- create_dtm(it_train, vectorizer) %>%
+  normalize("l1")
+
+#By “normalization” we assume transformation of the rows of DTM so we adjust values measured on different scales to a notionally common scale. For the case when length of the documents vary we can apply “L1” normalization. It means we will transform rows in a way that sum of the row values will be equal to 1
+
+# from word2vec
+
+# TF-IDF
+
+# define tfidf model
+#tfidf = TfIdf$new()
+# fit model to train data and transform train data with fitted model
+#dtm_train_tfidf = fit_transform(dtm_train, tfidf)
+# tfidf modified by fit_transform() call!
+# apply pre-trained tf-idf transformation to test data
+#dtm_test_tfidf = create_dtm(it_test, vectorizer)
+#dtm_test_tfidf = transform(dtm_test_tfidf, tfidf)
+
+### 3.3. Classifier 
+
+glmnet_classifier <- cv.glmnet(x = dtm_train, y = df_train[[response]], 
+                              family = 'binomial', 
+                              # L1 penalty
+                              alpha = 1, # lasso 
+                              # interested in the area under ROC curve
+                              type.measure = measure,
+                              # 5-fold cross-validation
+                              nfolds = 4,
+                              # high value is less accurate, but has faster training
+                              thresh = 1e-3,
+                              # again lower number of iterations for faster training
+                              maxit = 1e3)
+
+#plot(glmnet_classifier)
+
+print(paste("max AUC =", round(max(glmnet_classifier$cvm), 4)))
+
+it_test <- df_test$text %>% 
+  tok_fun %>% 
+  # turn off progressbar because it won't look nice in rmd
+  itoken(progressbar = FALSE)
+
+dtm_test <- create_dtm(it_test, vectorizer)
+
+preds <- predict(glmnet_classifier, dtm_test, type = 'response')[,1]
+
+glmnet:::auc(df_test[[response]], preds)
+
+}
+
+glm_model(labeled_asian, 'linked_progress')
+glm_model(labeled_asian, 'linked_hurt')
+glm_model(labeled_black, 'linked_progress')
+glm_model(labeled_black, 'linked_hurt')
+
+```
+
+## 3. Feature engineering 
+
+```{r}
+
+# DTM 
+
+def dtm_train(data, text, column, year):
+    # Bag of words model
+    
+    features = vectorizer.fit_transform(data[text]).todense() # todense() returns a matrix
+    
+#    features = transformer.fit_transform(features)
+    
+    response = data[column].values 
+
+    # split into train/test datasets 
+
+    X_train, X_test, y_train, y_test = train_test_split(features, response, 
+                                                        test_size = 0.2,
+                                                        random_state = 1234,
+                                                        stratify = data[year])
+    # label encode the target variables 
+    
+    encoder = preprocessing.LabelEncoder()
+    
+    y_train = encoder.fit_transform(y_train)
+    y_test = encoder.fit_transform(y_test)
+
+    return(X_train, y_train, X_test, y_test)
+
+```
+
+```{r}
+# Asian 
+
+## Linked progress
+asian_lp_dtm = dtm_train(asian_sample, 'text', 'linked_progress', 'year')
+asian_X_train_lp = asian_lp_dtm[0]
+asian_y_train_lp = asian_lp_dtm[1]
+asian_X_test_lp = asian_lp_dtm[2]
+asian_y_test_lp = asian_lp_dtm[3]
+
+## Linked hurt 
+asian_lh_dtm = dtm_train(asian_sample, 'text', 'linked_hurt', 'year')
+asian_X_train_lh = asian_lh_dtm[0]
+asian_y_train_lh = asian_lh_dtm[1]
+asian_X_test_lh = asian_lh_dtm[2]
+asian_y_test_lh = asian_lh_dtm[3]
+
+# Black
+
+## Linked progress
+black_lp_dtm = dtm_train(black_sample, 'text', 'linked_progress', 'year')
+black_X_train_lp = black_lp_dtm[0]
+black_y_train_lp = black_lp_dtm[1]
+black_X_test_lp = black_lp_dtm[2]
+black_y_test_lp = black_lp_dtm[3]
+
+## Linked hurt 
+black_lh_dtm = dtm_train(black_sample, 'text', 'linked_hurt', 'year')
+black_X_train_lh = black_lh_dtm[0]
+black_y_train_lh = black_lh_dtm[1]
+black_X_test_lh = black_lh_dtm[2]
+black_y_test_lh = black_lh_dtm[3]
+
+```
+## 4. Model fit and evaluations 
+
+```{r}
+
+## fitting 
+
+def fit_logistic_regression(X_train, y_train):
+    model = LogisticRegression(max_iter = 4000)
+    model.fit(X_train, y_train)
+    return model
+
+def fit_bayes(X_train, y_train):
+    model = MultinomialNB()
+    model.fit(X_train, y_train)
+    return model
+
+def fit_xgboost(X_train, y_train):
+    model = XGBClassifier(random_state = 42,
+                         seed = 2, 
+                         colsample_bytree = 0.6,
+                         subsample = 0.7)
+    model.fit(X_train, y_train)
+    return model
+
+## evaluating 
+
+def test_model(model, X_train, y_train, X_test, y_test):
+    y_pred = model.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+   # print(confusion_matrix(y_test, y_pred))
+   # print(classification_report(y_test, y_pred))
+    print("Accuracy:", score)
+    
+```
+
+```{r}
+# asian_sample 
+
+## linked progress
+asian_lp = fit_logistic_regression(asian_X_train_lp, asian_y_train_lp)
+asian_lp_bayes = fit_bayes(asian_X_train_lp, asian_y_train_lp)
+asian_lp_xgboost = fit_xgboost(asian_X_train_lp, asian_y_train_lp)
+
+## linked hurt 
+asian_lh = fit_logistic_regression(asian_X_train_lh, asian_y_train_lh)
+asian_lh_bayes = fit_bayes(asian_X_train_lh, asian_y_train_lh)
+asian_lh_xgboost = fit_xgboost(asian_X_train_lh, asian_y_train_lh)
+
+# black_sample 
+
+## linked progress
+black_lp = fit_logistic_regression(black_X_train_lp, black_y_train_lp)
+black_lp_bayes = fit_bayes(black_X_train_lp, black_y_train_lp)
+black_lp_xgboost = fit_xgboost(black_X_train_lp, black_y_train_lp)
+
+## linked hurt 
+black_lh = fit_logistic_regression(black_X_train_lh, black_y_train_lh)
+black_lh_bayes = fit_bayes(black_X_train_lh, black_y_train_lh)
+black_lh_xgboost = fit_xgboost(black_X_train_lh, black_y_train_lh)
+```
+
+```{r}
+# asian sample test 
+
+print("Asian linked progress: Logistic regression")
+test_model(asian_lp, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
+print("Asian linked progress: Naive Bayes")
+test_model(asian_lp_bayes, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
+print("Asian linked progress: XGBoost")
+test_model(asian_lp_xgboost, asian_X_train_lp, asian_y_train_lp, asian_X_test_lp, asian_y_test_lp)
+
+print("Asian linked hurt: Logistic regression")
+test_model(asian_lh, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
+print("Asian linked hurt: Naive Bayes")
+test_model(asian_lh_bayes, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
+print("Asian linked hurt: XGBoost")
+test_model(asian_lh_xgboost, asian_X_train_lh, asian_y_train_lh, asian_X_test_lh, asian_y_test_lh)
+
+# black sample test
+
+print("Black linked progress: Logistic regression")
+test_model(black_lp, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
+print("Black linked progress: Naive Bayes")
+test_model(black_lp_bayes, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
+print("Black linked progress: XGBoost")
+test_model(black_lp_xgboost, black_X_train_lp, black_y_train_lp, black_X_test_lp, black_y_test_lp)
+
+print("Black linked hurt: Logistic regression")
+test_model(black_lh, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
+print("Black linked hurt: Naive Bayes")
+test_model(black_lh_bayes, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
+print("Black linked hurt: XGBoost")
+test_model(black_lh_xgboost, black_X_train_lh, black_y_train_lh, black_X_test_lh, black_y_test_lh)
+```
+### 4.1. Cross validations 
+
+## 5. Predictions 
+
+```{r}
+
+def test_text(text, model):   
+      
+    features = vectorizer.fit_transform(text).todense()
+    
+#    features = transformer.fit_transform(features)
+    
+    predictions = model.predict(features)
+    return predictions
+```
+
+```{r}
+# asian
+## unlabeled
+asian_lp_full = test_text(asian_unlabeled['text'], asian_lp)
+asian_lh_full = test_text(asian_unlabeled['text'], asian_lh)
+
+# black
+## unlabeled 
+black_lp_full = test_text(black_unlabeled['text'], black_lp)
+black_lh_full = test_text(black_unlabeled['text'], black_lh)
+```
+
+```{r}
+# The original 
+
+print("asian linked progress:", sum(asian_sample['linked_progress']),
+      "asian linked hurt:", sum(asian_sample['linked_hurt']),
+      "black linked progress:", sum(black_sample['linked_progress']),
+      "blakc linked hurt:", sum(black_sample['linked_hurt']))
+```
+
+```{r}
+# The machine coded
+
+print("asian linked progress:", sum(test_text(asian_sample['text'], asian_lp)),
+      "asian linked hurt:", sum(test_text(asian_sample['text'], asian_lh)),
+      "black linked progress:", sum(test_text(black_sample['text'], black_lp)),
+      "blakc linked hurt:", sum(test_text(black_sample['text'], black_lh)))
+```
+
+```{r}
+
+print("asian linked progress:", sum(asian_lp_full),
+      "asian linked hurt:", sum(asian_lh_full),
+      "black linked progress:", sum(black_lp_full),
+      "black linked hurt:", sum(black_lh_full))
+
+print("asian progress / hurt", round(sum(asian_lp_full)/sum(asian_lh_full),2),
+      "black progress / hurt", round(sum(black_lp_full)/sum(black_lh_full),2))
+
+```
+
+## 6. Exporting results as a csv file 
+
+```{r}
+
+# Asian
+asian_lp_data = pd.DataFrame(asian_lp_full).rename(columns = {0:'labeled_linked_progress'})
+asian_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lp_data.csv")
+
+asian_lh_data = pd.DataFrame(asian_lh_full).rename(columns = {0:'labeled_linked_hurt'})
+asian_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lh_data.csv")
+
+# Black
+black_lp_data = pd.DataFrame(black_lp_full).rename(columns = {0:'labeled_linked_progress'})
+black_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lp_data.csv")
+
+black_lh_data = pd.DataFrame(black_lh_full).rename(columns = {0:'labeled_linked_hurt'})
+black_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lh_data.csv")
+```
