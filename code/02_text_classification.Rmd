@@ -140,7 +140,6 @@ labeled_black$text <- clean_text(labeled_black$text)
 train_test_response <- function(dataset, measure){
   
 data_counts <- unnest_tokens(dataset, word, text) %>%
- # anti_join(stop_words, by = "word") %>%
   count(id, word, sort = TRUE)
 
 words_10 <- data_counts %>%
@@ -374,10 +373,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 
 extract_feature <- function(dataset){
  
-dataset <- unlabeled_asian
-
 data_counts <- unnest_tokens(dataset, word, text) %>%
-  anti_join(stop_words, by = "word") %>%
   count(id, word, sort = TRUE) 
 
 print("Data count works.")
@@ -407,33 +403,20 @@ return(data_df_test)
 ```{r}
 
 unlabeled_asian$text <- clean_text(unlabeled_asian$text)
-
-#unlabeled_black$text <- clean_text(unlabeled_black$text)
+unlabeled_black$text <- clean_text(unlabeled_black$text)
 
 asian_dtm <- extract_feature(unlabeled_asian)
+black_dtm <- extract_feature(unlabeled_black)
 
-dtm <- asian_dtm 
+asian_lp_preds <- predict(asian_lp_model[[1]][[3]], asian_dtm)
 
-#black_dtm <- extract_feature(unlabeled_black)
+asian_lh_preds <- predict(asian_lh_model[[1]][[3]], asian_dtm)
 
-asian_lp_boosted <- asian_lp_model[[1]][[3]] 
+black_lp_preds <- predict(black_lp_model[[1]][[3]], black_dtm)
 
-preds <- predict(asian_lp_boosted, dtm)
-
-```
-
-### 4.2. Applying the prediction function to each data
-
-```{r}
-
-asian_lp_full <- predict_unlabeled(unlabeled_asian, 'linked_progress')
-asian_lh_full <- predict_unlabeled(unlabeled_asian, 'linked_hurt')
-
-black_lp_full <- predict_unlabeled(unlabeled_black, 'linked_progress')
-black_lh_full <- predict_unlabeled(unlabeled_black, 'linked_hurt')
+black_lh_preds <- predict(black_lh_model[[1]][[3]], black_dtm)
 
 ```
-
 
 ## 5. Exporting results as a csv file 
 
