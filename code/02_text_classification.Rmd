@@ -20,6 +20,7 @@ Resources
 - http://fisher.stats.uwo.ca/faculty/aim/2019/9850/RNotebooks/21_CaravanRevisited_Apr7.html
 - https://fderyckel.github.io/2016-12-07-Texts_Classification_in_R/
 - https://cfss.uchicago.edu/notes/supervised-text-classification/
+- https://abndistro.com/post/2019/02/17/text-classification-using-text2vec/
 
 ## 0. Setup 
 
@@ -34,7 +35,7 @@ knitr::opts_chunk$set(fig.width = 12, fig.height = 8,
 
 # Clean up the environment
 
-# rm(list = ls())
+rm(list = ls())
 
 # Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
 
@@ -67,7 +68,8 @@ pacman::p_load(
         splitstackshape, # for stratified random sampling
         DMwR, # for daealing with imbalanced classes 
         imbalance, # for dealing wiht imbalanced classes 
-        yardstick # for ML measures
+        yardstick, # for ML measures
+        superml # for building ML like using scikit-learn in R
 )
 
 ```
@@ -99,6 +101,7 @@ colnames(unlabeled_black)[1] <- "id"
 # correlation and kappa 
 
 irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")
+
 ```
 
 ## 2. Cleaning text
@@ -108,16 +111,14 @@ irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performanc
 ```{r}
 
 clean_text <- function(document){
-  document$text %>% 
+    document %>% 
     tolower() %>% # low key 
     gsub("[\r?\n]", "", .) %>% # remove \n
     gsub("[\"]", "", .) %>%
     gsub("[.]", "", .) %>%
     gsub("[,]", "", .) %>%
-    add_comma_space() %>%
-    replace_number() %>%
-    replace_non_ascii() %>%
-    replace_contraction() %>%
+    gsub("[-]", "", .) %>%
+    gsub("[']", "", .) %>%
     str_trim() # remove whitespace 
 }
 
@@ -126,11 +127,10 @@ clean_text <- function(document){
 ### 2.2. Applying the function to each data 
 
 ```{r}
+  
+labeled_asian$text <- clean_text(labeled_asian$text) 
+labeled_black$text <- clean_text(labeled_black$text) 
 
-labeled_asian$text <- clean_text(labeled_asian) 
-labeled_black$text <- clean_text(labeled_black) 
-
-labeled_asian$text[1]
 ```
 
 ## 3. Feature engineering 
@@ -139,10 +139,8 @@ labeled_asian$text[1]
 
 train_test_response <- function(dataset, measure){
   
-data_counts <- map_df(1:2,
-                      ~ unnest_tokens(dataset, word, text, 
-                                      token = "ngrams", n = .x)) %>%
-  anti_join(stop_words, by = "word") %>%
+data_counts <- unnest_tokens(dataset, word, text) %>%
+ # anti_join(stop_words, by = "word") %>%
   count(id, word, sort = TRUE)
 
 words_10 <- data_counts %>%
@@ -160,7 +158,6 @@ meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
   left_join(dataset[!duplicated(dataset$id), ], by = "id")
 
 trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1) # stratified by response variable 
-
 #perform grouped K means  
 
 data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
@@ -201,7 +198,7 @@ ground_truth <- dataset[[4]]
 
 ################# TRAIN CONTROL SETUP ##################
 
-seed(1234)
+set.seed(1234)
 
 trctrl <- trainControl(method = "cv", # cross validation 
                       number = 10) # repeat 10 times 
@@ -302,12 +299,31 @@ return(mod_results)}
 
 ```
 
+### 3.2. Extracting and visualizing the model outcomes
+
 ```{r}
 
-all_model <- bind_rows(mutate(build_test(asian_lp), group = "Asian_Americans", type = "Linked_progress"),
-          mutate(build_test(asian_lh), group = "Asian_Americans", type = "Linked_hurt"),
-          mutate(build_test(black_lp), group = "African_Americans", type = "Linked_progress"),
-          mutate(build_test(black_lh), group = "African_Americans", type = "Linked_hurt"))
+# Using multiple cores 
+doMC::registerDoMC(cores = 4)
+
+asian_lp_model <- build_test(asian_lp)
+asian_lh_model <- build_test(asian_lh)
+black_lp_model <- build_test(black_lp)
+black_lh_model <- build_test(black_lh)
+
+asian_lp_metrices <- asian_lp_model[2] %>% as.data.frame()
+asian_lh_metrices <- asian_lh_model[2] %>% as.data.frame()
+black_lp_metrices <- black_lp_model[2] %>% as.data.frame()
+black_lh_metrices <- black_lh_model[2] %>% as.data.frame()
+
+```
+
+```{r}
+
+all_model <- bind_rows(mutate(asian_lp_metrices, group = "Asian_Americans", type = "Linked_progress"),
+          mutate(asian_lh_metrices, group = "Asian_Americans", type = "Linked_hurt"),
+          mutate(black_lp_metrices, group = "African_Americans", type = "Linked_progress"),
+          mutate(black_lh_metrices, group = "African_Americans", type = "Linked_hurt"))
 
 numerify <- function(data){
   data %>% unlist() %>% as.numeric()
@@ -321,12 +337,16 @@ irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 2]), num
 
 merged_model <- all_model %>% right_join(irr_resummary) 
 
+```
+
+```{r}
+
 accu_plot <- merged_model %>%
   gather(metrices, performance, acu, balanced_acu) %>%
   ggplot(aes(x = fct_reorder(model, performance), y = performance, fill = metrices)) +
     geom_col(position = "dodge") +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
-    facet_grid(group~type) +
+    facet_grid(type~group) +
     theme_base() +
     labs(title = "Accuracy", x = "Model", y = "Performance (%)") +
     coord_flip()
@@ -335,52 +355,70 @@ kappa_plot <- merged_model %>%
   ggplot(aes(x = fct_reorder(model, kappa), y = kappa)) +
     geom_col(position = "dodge") +
     geom_hline(aes(yintercept = content_kappa), linetype = "dashed") +
-    facet_grid(group~type) +
+    facet_grid(type~group) +
     theme_base() +
     labs(title = "Reliability", x = "Model", y = "Performance (%)") +
     coord_flip()
 
 ggarrange(accu_plot, kappa_plot, ncol = 1, nrow = 2)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performance.png")
+
 ```
 
-## 4. Predictions 
+## 4. Applying to the unlabeled data
 
 ### 4.1. Buidling a prediction function 
 
 ```{r}
 
-predict_unlabeled <- function(dataset, measure){
+extract_feature <- function(dataset){
+ 
+dataset <- unlabeled_asian
+
+data_counts <- unnest_tokens(dataset, word, text) %>%
+  anti_join(stop_words, by = "word") %>%
+  count(id, word, sort = TRUE) 
+
+print("Data count works.")
+
+words_10 <- data_counts %>%
+  group_by(word) %>%
+  summarise(n = n()) %>% 
+  filter(n >= 10) %>%
+  select(word)
+
+print("Word 20 is working fine, too.")
+
+data_dtm <- data_counts %>%
+  right_join(words_10, by = "word") %>%
+  bind_tf_idf(word, id, n) %>%
+  cast_dtm(id, word, tf_idf)
+
+print("Matrix transformation is complete.")
+
+data_df_test <- data_dtm %>% as.matrix() %>% as.data.frame()
   
-  dataset$text <- clean_text(dataset) 
-  
-  model_ready <- train_test_response(dataset, measure)
-  
-  data_df_train <- model_ready[[1]] 
-  data_df_test <- model_ready[[2]]
-  response_train <- model_ready[[3]]
-  ground_truth <- model_ready[[4]]
-
-################# TRAIN CONTROL SETUP ##################
-
-  seed(1234)
-
-  trctrl <- trainControl(method = "cv", # cross validation 
-                      number = 10) # repeat 10 times 
-
-  cv <- cv.glmnet(x = as.matrix(data_df_train),
-                y = as.factor(response_train), alpha = 1, family = "binomial")
-
-  lasso_mod <- train(x = data_df_train,
-                    y = as.factor(response_train), 
-                    method = "glmnet",
-                    trControl = trctrl,
-                    tuneGrid = expand.grid(alpha = 1,
-                                         lambda = cv$lambda.min))
-
-  preds <- predict(lasso_mod,
-                           newdata = data_df_test)
-  return(preds)
+return(data_df_test)
 }
+
+```
+
+```{r}
+
+unlabeled_asian$text <- clean_text(unlabeled_asian$text)
+
+#unlabeled_black$text <- clean_text(unlabeled_black$text)
+
+asian_dtm <- extract_feature(unlabeled_asian)
+
+dtm <- asian_dtm 
+
+#black_dtm <- extract_feature(unlabeled_black)
+
+asian_lp_boosted <- asian_lp_model[[1]][[3]] 
+
+preds <- predict(asian_lp_boosted, dtm)
 
 ```
 
@@ -388,11 +426,11 @@ predict_unlabeled <- function(dataset, measure){
 
 ```{r}
 
-asian_lp_full <- predict_unlabeled(unlabeled_asian, asian_lp)
-asian_lh_full <- predict_unlabeled(unlabeled_asian, asian_lh)
+asian_lp_full <- predict_unlabeled(unlabeled_asian, 'linked_progress')
+asian_lh_full <- predict_unlabeled(unlabeled_asian, 'linked_hurt')
 
-black_lp_full <- predict_unlabeled(unlabeled_black, black_lp)
-black_lh_full <- predict_unlabeled(unlabeled_black, black_lh)
+black_lp_full <- predict_unlabeled(unlabeled_black, 'linked_progress')
+black_lh_full <- predict_unlabeled(unlabeled_black, 'linked_hurt')
 
 ```
 
