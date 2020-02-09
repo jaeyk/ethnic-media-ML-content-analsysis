@@ -95,6 +95,9 @@ colnames(labeled_black)[1] <- "id"
 colnames(unlabeled_asian)[1] <- "id"
 colnames(unlabeled_black)[1] <- "id"
 
+# correlation and kappa 
+
+irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")
 ```
 
 ## 2. Cleaning text
@@ -105,14 +108,13 @@ colnames(unlabeled_black)[1] <- "id"
 
 clean_text <- function(document){
   document %>% 
-    replace_non_ascii() %>%
-    replace_contraction() %>%
-    add_comma_space() %>%
-    removePunctuation() %>%                
     tolower() %>% # low key 
-    str_trim() %>% # remove whitespace 
     gsub("[\r?\n]", "", .) %>% # remove \n
-    gsub("  ", " ", .)
+    gsub("[\"]", "", .) %>%
+    gsub("[.]", "", .) %>%
+    gsub("[,]", "", .) %>%
+    add_comma_space() %>%
+    str_trim() # remove whitespace 
 }
 
 ```
@@ -124,6 +126,7 @@ clean_text <- function(document){
 labeled_asian$text <- clean_text(labeled_asian$text) 
 labeled_black$text <- clean_text(labeled_black$text) 
 
+labeled_asiank$text[1]
 ```
 
 ## 3. Feature engineering 
@@ -152,9 +155,9 @@ data_dtm <- data_counts %>%
 meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
   left_join(dataset[!duplicated(dataset$id), ], by = "id")
 
-trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1)
+trainIndex <- createDataPartition(meta[['year']], p = 0.8, list = FALSE, times = 1)
 
-#perform grouped K means
+#perform grouped K means  
 
 data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
 
@@ -190,8 +193,8 @@ data_df_test <- dataset[[2]]
 response_train <- dataset[[3]]
 ground_truth <- dataset[[4]]
 
-ctrl <- trainControl(method = "cv",
-                     number = 10)
+trctrl <- trainControl(method = "cv",
+                      number = 10)
 
 nb_mod <- train(x = data_df_train,
                 y = as.factor(response_train),
@@ -246,88 +249,77 @@ mod_results <- data.frame(acu = acu_results$Accuracy,
   
   mutate(model = c("Naive-Bayes", "LogitBoost", "Random forest")) 
 
-mod_results %>%
-  gather(metrices, value, c("acu", "kappa", "balanced_acu")) %>%
-  ggplot(aes(fct_reorder(model, value), value, fill = metrices)) +
+return(mod_results)}
+
+```
+
+```{r}
+
+all_model <- bind_rows(mutate(build_test(asian_lp), group = "Asian_Americans", type = "Linked_progress"),
+          mutate(build_test(asian_lh), group = "Asian_Americans", type = "Linked_hurt"),
+          mutate(build_test(black_lp), group = "African_Americans", type = "Linked_progress"),
+          mutate(build_test(black_lh), group = "African_Americans", type = "Linked_hurt"))
+
+numerify <- function(data){
+  data %>% unlist() %>% as.numeric()
+}
+
+irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 2]), numerify(irr_summary[1:2, 3])),
+                            content_agreement = c(numerify(irr_summary[1:2, 4]), numerify(irr_summary[1:2, 5])),
+                            type = c("Linked_progress", "Linked_hurt", "Linked_progress", "Linked_hurt"),
+                            group = c("Asian_Americans", "Asian_Americans", "African_Americans", "African_Americans")
+)
+
+merged_model <- all_model %>% right_join(irr_resummary) 
+
+accu_plot <- merged_model %>%
+  gather(metrices, performance, acu, balanced_acu) %>%
+  ggplot(aes(x = fct_reorder(model, performance), y = performance, fill = metrices)) +
     geom_col(position = "dodge") +
-    labs(x = "Model type", 
-         y = "Performance (%)")}
-    
-plot_asian_lp <- build_test(asian_lp) + 
-    theme_clean() + ggtitle("Linked progress in Asian American newspapers")
+    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
+    facet_grid(group~type) +
+    theme_base() +
+    labs(title = "Accuracy", x = "Model", y = "Performance (%)") +
+    coord_flip()
 
-plot_asian_lh <- build_test(asian_lh) + 
-    theme_clean() + ggtitle("Linked hurt in Asian American newspaeprs")
+kappa_plot <- merged_model %>%
+  ggplot(aes(x = fct_reorder(model, kappa), y = kappa)) +
+    geom_col(position = "dodge") +
+    geom_hline(aes(yintercept = content_kappa), linetype = "dashed") +
+    facet_grid(group~type) +
+    theme_base() +
+    labs(title = "Reliability", x = "Model", y = "Performance (%)") +
+    coord_flip()
 
-plot_black_lp <- build_test(black_lp) + 
-    theme_clean() + ggtitle("Linked progress in African American newspapers")
-
-plot_black_lh <- build_test(black_lh) + 
-    theme_clean() + ggtitle("Linked hurt in African American newspapres")
-
-ggarrange(plot_asian_lp, plot_asian_lh, plot_black_lp, plot_black_lh)
-
+ggarrange(accu_plot, kappa_plot, ncol = 1, nrow = 2)
 ```
 
 ## 4. Predictions 
 
 ```{r}
 
-def test_text(text, model):   
-      
-    features = vectorizer.fit_transform(text).todense()
+#function(text, model){
+  
+ #  features = text %>% cleaned_
     
-#    features = transformer.fit_transform(features)
+#   predictions = model.predict(features)
     
-    predictions = model.predict(features)
-    return predictions
+ # return(preds)
+#}
+
 ```
 
 ```{r}
 # asian
 ## unlabeled
-asian_lp_full = test_text(asian_unlabeled['text'], asian_lp)
-asian_lh_full = test_text(asian_unlabeled['text'], asian_lh)
+#asian_lp_full = test_text(asian_unlabeled['text'], asian_lp)
+#asian_lh_full = test_text(asian_unlabeled['text'], asian_lh)
 
 # black
 ## unlabeled 
-black_lp_full = test_text(black_unlabeled['text'], black_lp)
-black_lh_full = test_text(black_unlabeled['text'], black_lh)
+#black_lp_full = test_text(black_unlabeled['text'], black_lp)
+#black_lh_full = test_text(black_unlabeled['text'], black_lh)
 ```
 
-```{r}
-# The original 
-
-print("asian linked progress:", sum(asian_sample['linked_progress']),
-      "asian linked hurt:", sum(asian_sample['linked_hurt']),
-      "black linked progress:", sum(black_sample['linked_progress']),
-      "blakc linked hurt:", sum(black_sample['linked_hurt']))
-```
-
-```{r}
-# The machine coded
-
-print("asian linked progress:", sum(test_text(asian_sample['text'], asian_lp)),
-      "asian linked hurt:", sum(test_text(asian_sample['text'], asian_lh)),
-      "black linked progress:", sum(test_text(black_sample['text'], black_lp)),
-      "blakc linked hurt:", sum(test_text(black_sample['text'], black_lh)))
-```
 
 ## 5. Exporting results as a csv file 
-
-```{r}
-
-# Asian
-asian_lp_data = pd.DataFrame(asian_lp_full).rename(columns = {0:'labeled_linked_progress'})
-asian_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lp_data.csv")
-
-asian_lh_data = pd.DataFrame(asian_lh_full).rename(columns = {0:'labeled_linked_hurt'})
-asian_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lh_data.csv")
-
-# Black
-black_lp_data = pd.DataFrame(black_lp_full).rename(columns = {0:'labeled_linked_progress'})
-black_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lp_data.csv")
-
-black_lh_data = pd.DataFrame(black_lh_full).rename(columns = {0:'labeled_linked_hurt'})
-black_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lh_data.csv")
-```
