@@ -53,7 +53,8 @@ pacman::p_load(
         tokenizers, # for tokenizing
         textclean, # for cleaning text
         hunspell, # for cleaning text 
-        textshape, # for cleaning text 
+        textshape, # for cleaning text
+        SuperLearner, # for ensemble models 
         tm, # for cleaning text 
         tidyr, # for creating tidy data
         furrr, # for applying mapping functions
@@ -107,26 +108,29 @@ irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performanc
 ```{r}
 
 clean_text <- function(document){
-  document %>% 
+  document$text %>% 
     tolower() %>% # low key 
     gsub("[\r?\n]", "", .) %>% # remove \n
     gsub("[\"]", "", .) %>%
     gsub("[.]", "", .) %>%
     gsub("[,]", "", .) %>%
     add_comma_space() %>%
+    replace_number() %>%
+    replace_non_ascii() %>%
+    replace_contraction() %>%
     str_trim() # remove whitespace 
 }
 
 ```
 
-### 2.2 Applying the function to each data 
+### 2.2. Applying the function to each data 
 
 ```{r}
 
-labeled_asian$text <- clean_text(labeled_asian$text) 
-labeled_black$text <- clean_text(labeled_black$text) 
+labeled_asian$text <- clean_text(labeled_asian) 
+labeled_black$text <- clean_text(labeled_black) 
 
-labeled_asiank$text[1]
+labeled_asian$text[1]
 ```
 
 ## 3. Feature engineering 
@@ -155,7 +159,7 @@ data_dtm <- data_counts %>%
 meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
   left_join(dataset[!duplicated(dataset$id), ], by = "id")
 
-trainIndex <- createDataPartition(meta[['year']], p = 0.8, list = FALSE, times = 1)
+trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1) # stratified by response variable 
 
 #perform grouped K means  
 
@@ -188,13 +192,21 @@ black_lh <- train_test_response(labeled_black, 'linked_hurt')
 
 build_test <- function(dataset){
   
+################## DATA SETUP #######################
+  
 data_df_train <- dataset[[1]] 
 data_df_test <- dataset[[2]]
 response_train <- dataset[[3]]
 ground_truth <- dataset[[4]]
 
-trctrl <- trainControl(method = "cv",
-                      number = 10)
+################# TRAIN CONTROL SETUP ##################
+
+seed(1234)
+
+trctrl <- trainControl(method = "cv", # cross validation 
+                      number = 10) # repeat 10 times 
+
+################# NAIVE BAYES ####################
 
 nb_mod <- train(x = data_df_train,
                 y = as.factor(response_train),
@@ -203,10 +215,30 @@ nb_mod <- train(x = data_df_train,
                 tuneGrid = data.frame(laplace = 0,
                                       usekernel = FALSE,
                                       adjust = FALSE))
+
 nb_pred <- predict(nb_mod,
                    newdata = data_df_test)
 
 nb_cm <- confusionMatrix(nb_pred, ground_truth)
+
+################# PENALIZED LOGIT ####################
+
+cv <- cv.glmnet(x = as.matrix(data_df_train),
+                y = as.factor(response_train), alpha = 1, family = "binomial")
+
+lasso_mod <- train(x = data_df_train,
+                  y = as.factor(response_train), 
+                  method = "glmnet",
+                  trControl = trctrl,
+                  tuneGrid = expand.grid(alpha = 1,
+                                       lambda = cv$lambda.min))
+
+lasso_pred <- predict(lasso_mod,
+                           newdata = data_df_test)
+  
+lasso_cm <- confusionMatrix(lasso_pred, ground_truth)
+
+################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = data_df_train,
                         y = as.factor(response_train),
@@ -218,6 +250,8 @@ logitboost_pred <- predict(logitboost_mod,
 
 logitboost_cm <- confusionMatrix(logitboost_pred, ground_truth)
 
+################# RANDOM FOREST ####################
+
 rf_mod <- train(x = data_df_train, 
                 y = as.factor(response_train), 
                 method = "ranger",
@@ -225,29 +259,44 @@ rf_mod <- train(x = data_df_train,
                 tuneGrid = data.frame(mtry = floor(sqrt(dim(data_df_train)[2])),
                                       splitrule = "gini",
                                       min.node.size = 1))
+
 rf_pred <- predict(rf_mod,
                    newdata = data_df_test)
 
 rf_cm <- confusionMatrix(rf_pred, ground_truth)
 
+################# STACKED MODEL ####################
+
+################# BINDING RESULTS ####################
+
+# Accuracy 
 acu_results <- rbind(
   nb_cm$overall,
+  lasso_cm$overall,
   logitboost_cm$overall,
   rf_cm$overall
   ) %>%
   as.data.frame() %>%
-  mutate(model = c("Naive-Bayes", "LogitBoost", "Random forest"))
+  mutate(model = c("Naive-Bayes", "Penalized logit", "LogitBoost", "Random forest"))
+
+# Balanced accuracy 
 
 balanced_acu_results <- c(
   bal_accuracy_vec(nb_pred, ground_truth),
+  bal_accuracy_vec(lasso_pred, ground_truth),
   bal_accuracy_vec(logitboost_pred, ground_truth),
   bal_accuracy_vec(rf_pred, ground_truth))
+
+# Putting all together as a dataframe
+
+mods <- list(nb_mod, lasso_mod, logitboost_mod, rf_mod)
   
-mod_results <- data.frame(acu = acu_results$Accuracy,
+metrices <- data.frame(acu = acu_results$Accuracy,
                           kappa = acu_results$Kappa,
                           balanced_acu = balanced_acu_results) %>%
-  
-  mutate(model = c("Naive-Bayes", "LogitBoost", "Random forest")) 
+  mutate(model = c("Naive-Bayes", "Penalized logit", "LogitBoost", "Random forest")) 
+
+mod_results <- list(mods, metrices)
 
 return(mod_results)}
 
@@ -296,30 +345,61 @@ ggarrange(accu_plot, kappa_plot, ncol = 1, nrow = 2)
 
 ## 4. Predictions 
 
+### 4.1. Buidling a prediction function 
+
 ```{r}
 
-#function(text, model){
+predict_unlabeled <- function(dataset, measure){
   
- #  features = text %>% cleaned_
-    
-#   predictions = model.predict(features)
-    
- # return(preds)
-#}
+  dataset$text <- clean_text(dataset) 
+  
+  model_ready <- train_test_response(dataset, measure)
+  
+  data_df_train <- model_ready[[1]] 
+  data_df_test <- model_ready[[2]]
+  response_train <- model_ready[[3]]
+  ground_truth <- model_ready[[4]]
+
+################# TRAIN CONTROL SETUP ##################
+
+  seed(1234)
+
+  trctrl <- trainControl(method = "cv", # cross validation 
+                      number = 10) # repeat 10 times 
+
+  cv <- cv.glmnet(x = as.matrix(data_df_train),
+                y = as.factor(response_train), alpha = 1, family = "binomial")
+
+  lasso_mod <- train(x = data_df_train,
+                    y = as.factor(response_train), 
+                    method = "glmnet",
+                    trControl = trctrl,
+                    tuneGrid = expand.grid(alpha = 1,
+                                         lambda = cv$lambda.min))
+
+  preds <- predict(lasso_mod,
+                           newdata = data_df_test)
+  return(preds)
+}
 
 ```
 
-```{r}
-# asian
-## unlabeled
-#asian_lp_full = test_text(asian_unlabeled['text'], asian_lp)
-#asian_lh_full = test_text(asian_unlabeled['text'], asian_lh)
+### 4.2. Applying the prediction function to each data
 
-# black
-## unlabeled 
-#black_lp_full = test_text(black_unlabeled['text'], black_lp)
-#black_lh_full = test_text(black_unlabeled['text'], black_lh)
+```{r}
+
+asian_lp_full <- predict_unlabeled(unlabeled_asian, asian_lp)
+asian_lh_full <- predict_unlabeled(unlabeled_asian, asian_lh)
+
+black_lp_full <- predict_unlabeled(unlabeled_black, black_lp)
+black_lh_full <- predict_unlabeled(unlabeled_black, black_lh)
+
 ```
 
 
 ## 5. Exporting results as a csv file 
+
+```{r}
+
+```
+
