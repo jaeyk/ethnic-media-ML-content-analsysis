@@ -142,6 +142,8 @@ labeled_asian$text[5]
 
 ```{r}
 
+# dataset <- labeled_asian
+
 vectorize_train_test <- function(dataset, measure){
 
 # Add doc ID (this var turns out to be very important for sorting)
@@ -156,7 +158,7 @@ stopword <- rename(stopword, word=value)
 
 # Tokenize and reduce noisy tokens (=stopwords)
 
-data_counts <- map_df(1:2, ~ unnest_tokens(dataset, word, text, token = "ngrams", n =.x)) %>%
+data_counts <- unnest_tokens(dataset, word, text) %>%
   anti_join(stopword, by = 'word') %>% # remove stopwords 
   count(doc_id, word, sort = TRUE)
 
@@ -178,11 +180,12 @@ data_dtm <- data_counts %>%
 meta <- tibble(doc_id = as.numeric(dimnames(data_dtm)[[1]])) %>%
   left_join(dataset[!duplicated(dataset$doc_id), ], by = "doc_id") %>% as.data.frame()
 
-# Create two random samples (testing and training sets) stratifying on year variable (the exactly same variable I used to create a list of documents for content anlysis)
+# Create two random samples (testing and training sets) 
 
 set.seed(1234) # for reproducibility
 
-trainIndex <- createDataPartition(meta$year, p = 0.8, list = FALSE, times = 1) 
+# Stratifying by year variable
+trainIndex <- createDataPartition(meta$year, p = 0.7, list = FALSE, times = 1) 
 
 train_matrix <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
 test_matrix <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
@@ -198,8 +201,6 @@ result <- list(train_matrix, test_matrix, train_response, test_response)
 return(result)
 
 }
-
-
 
 ```
 
@@ -223,6 +224,8 @@ black_lh <- vectorize_train_test(labeled_black, 'linked_hurt')
 
 ```{r}
 
+# dataset <- asian_lp
+
 build_test <- function(dataset){
     
 ################## DATA SETUP #######################
@@ -243,10 +246,10 @@ print("Data setup is okay.")
 
 set.seed(1234)
 
-trctrl <- trainControl(method = "repeatedcv", 
-             number = 5, 
-             repeats = 5)
-                       
+trctrl <- trainControl(method="cv", 
+                       number=10, 
+                       sampling = "smote") 
+
 print("Train control setup is okay.")
 
 svm_mod <- train(x = train_matrix,
@@ -297,7 +300,6 @@ print("Logit boost works.")
 
 logitboost_cm
 
-
 ################# RANDOM FOREST ####################
 
 rf_mod <- train(x = train_matrix, 
@@ -315,18 +317,18 @@ rf_cm <- confusionMatrix(rf_pred, test_response)
 
 print("Random forest works.")
 
-
 ################# BINDING RESULTS ####################
 
 # Accuracy 
 acu_results <- rbind(
   svm_cm$overall,
   nb_cm$overall,
+  xg_cm$overall,
   logitboost_cm$overall,
   rf_cm$overall
   ) %>%
   as.data.frame() %>%
-  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
+  mutate(model = c("SVM", "Naive-Bayes", "XG Boost", "LogitBoost", "Random forest"))
 
 # Balanced accuracy 
 
@@ -338,7 +340,7 @@ balanced_acu_results <- c(
 
 # Putting all together as a dataframe
 
-mods <- list(nb_mod, logitboost_mod, rf_mod)
+mods <- list(svm_mod, nb_mod, logitboost_mod, rf_mod)
   
 metrices <- data.frame(acu = acu_results$Accuracy,
                        kappa = acu_results$Kappa,
@@ -375,6 +377,13 @@ asian_lh_metrices <- asian_lh_model[2] %>% as.data.frame()
 black_lp_metrices <- black_lp_model[2] %>% as.data.frame()
 
 black_lh_metrices <- black_lh_model[2] %>% as.data.frame()
+
+###### Save these files ######
+
+write_rds(asian_lp_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_model.RDS")
+write_rds(asian_lh_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_model.RDS")
+write_rds(black_lp_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_model.RDS")
+write_rds(black_lh_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_model.RDS")
 
 ```
 
@@ -446,7 +455,7 @@ stopword <- rename(stopword, word=value)
 
 # Tokenize and reduce noisy tokens (=stopwords)
 
-data_counts <- map_df(1:2, ~ unnest_tokens(dataset, word, text, token = "ngrams", n =.x)) %>%
+data_counts <- unnest_tokens(dataset, word, text) %>%
   anti_join(stopword, by = 'word') %>% # remove stopwords 
   count(doc_id, word, sort = TRUE)
 
@@ -470,9 +479,9 @@ meta <- tibble(doc_id = as.numeric(dimnames(data_dtm)[[1]])) %>%
  
 matrix <- data_dtm %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
 
-response <- meta[, measure] %>% as.factor() # Originally, it was matrix.
+# response <- meta[, measure] %>% as.factor() # Originally, it was matrix.
 
-return(result)
+return(matrix)
 }
 
 ```
@@ -483,17 +492,18 @@ unlabeled_asian$text <- clean_text(unlabeled_asian$text)
 #unlabeled_black$text <- clean_text(unlabeled_black$text)
 
 asian_dtm <- extract_feature(unlabeled_asian)
-#black_dtm <- extract_feature(unlabeled_black)
+# black_dtm <- extract_feature(unlabeled_black)
 
-asian_lp_preds <- predict(asian_lp_model[[1]][[3]], asian_dtm)
+asian_lp_preds <- predict(asian_lp_model[[1]][2], asian_dtm)
 
-asian_lh_preds <- predict(asian_lh_model[[1]][[3]], asian_dtm)
+# asian_lh_preds <- predict(asian_lh_model[[1]][[2]], asian_dtm)
 
-#black_lp_preds <- predict(black_lp_model[[1]][[3]], black_dtm)
+# black_lp_preds <- predict(black_lp_model[[1]][[2]], black_dtm)
 
-#black_lh_preds <- predict(black_lh_model[[1]][[3]], black_dtm)
+# black_lh_preds <- predict(black_lh_model[[1]][[2]], black_dtm)
 
-sum(as.numeric(as.character(asian_lp_preds)))
+table(asian_lp_preds)
+# table(asian_lh_preds)
 
 ```
 
