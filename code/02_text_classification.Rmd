@@ -98,7 +98,6 @@ unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perfor
 
 irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1]
 
-names(unlabeled_asian)
 ```
 
 ## 2. Cleaning text
@@ -152,66 +151,47 @@ dataset <- dataset %>%
 
 # Define stopwords
 
-stopword <- as_tibble(stopwords::stopwords("en")) 
+stopword <- tibble::enframe(stopwords::stopwords("en")) 
 stopword <- rename(stopword, word=value) 
 
 # Tokenize and reduce noisy tokens (=stopwords)
 
-tidy_docs <- dataset %>%
-  unnest_tokens(word, text) %>%
+data_counts <- map_df(1:2, ~ unnest_tokens(dataset, word, text, token = "ngrams", n =.x)) %>%
   anti_join(stopword, by = 'word') %>% # remove stopwords 
-  group_by(word) %>% 
-  filter(n() >= 20) %>% # remove words appeared less than 20 times
-  ungroup()
-  
+  count(doc_id, word, sort = TRUE)
+
+words_10 <- data_counts %>%
+  group_by(word) %>%
+  summarise(n = n()) %>% 
+  filter(n >= 10) %>%
+  dplyr::select(word)
+
+# TF-IDF
+
+data_dtm <- data_counts %>%
+  right_join(words_10, by = "word") %>%
+  bind_tf_idf(word, doc_id, n) %>%
+  cast_dtm(doc_id, word, tf_idf)
+
+# Meta 
+
+meta <- tibble(doc_id = as.numeric(dimnames(data_dtm)[[1]])) %>%
+  left_join(dataset[!duplicated(dataset$doc_id), ], by = "doc_id") %>% as.data.frame()
+
 # Create two random samples (testing and training sets) stratifying on year variable (the exactly same variable I used to create a list of documents for content anlysis)
 
 set.seed(1234) # for reproducibility
 
-docs_split <- dataset %>%
-  initial_split(prop = 0.8, strata = year) # year: stratifying variable
+trainIndex <- createDataPartition(meta$year, p = 0.8, list = FALSE, times = 1) 
 
-train_data <- training(docs_split) # Training set
+train_matrix <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
+test_matrix <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
 
-test_data <- testing(docs_split) # Testing set
+train_response <- meta[trainIndex, measure] %>% as.factor() # Originally, it was matrix.
+test_response <- meta[-trainIndex, measure] %>% as.factor() # Originally, it was matrix.
 
-# Turning training and test data from a tidy data structure into a sparse matrix 
-
-train_matrix <- tidy_docs %>%
-  count(doc_id, word) %>%
-  inner_join(train_data, by = "doc_id") %>%
-  cast_sparse(doc_id, word, n) 
-
-print(paste("N of observations in the training set:", dim(train_matrix)[1], "," , "N of features in the training set:", dim(train_matrix)[2]))
-
-test_matrix <- tidy_docs %>%
-  count(doc_id, word) %>%
-  inner_join(test_data, by = "doc_id") %>%
-  cast_sparse(doc_id, word, n) 
-
-print(paste("N of observations in the testing set:", dim(test_matrix)[1], "," , "N of features in the testing set:", dim(test_matrix)[2]))
-
-################### Set response variable of the training set ####################
-
-print(names(dataset))
-
-# Extract the response variable from the dataset by matching doc ID between them 
-
-train_joined <- tibble(doc_id = as.integer(rownames(train_matrix))) %>%
-  left_join(dataset[,c(measure,7)])
-
-train_response <- train_joined[2] == 1
-
-################### Set response variable of the testing set ####################
-
-# Extract the response variable from the dataset by matching doc ID between them 
-
-test_joined <- tibble(doc_id = as.integer(rownames(test_matrix))) %>%
-  left_join(dataset[,c(measure,7)])
-
-# This is the target 
-
-test_response <- test_joined[2] == 1
+levels(train_response) <- c("No", "Yes") # Rename factor levels 
+levels(test_response) <- c("No", "Yes") # Rename factor levels
 
 result <- list(train_matrix, test_matrix, train_response, test_response)
 
@@ -219,21 +199,21 @@ return(result)
 
 }
 
+
+
 ```
 
 ### 3.2. Applying the function to each data 
 
 ```{r}
 
-# 5 is the index number of linked progress column and 6 is the index number of linked hurt.
+asian_lp <- vectorize_train_test(labeled_asian, 'linked_progress')
 
-asian_lp <- vectorize_train_test(labeled_asian, 5)
+asian_lh <- vectorize_train_test(labeled_asian, 'linked_hurt')
 
-asian_lh <- vectorize_train_test(labeled_asian, 6)
+black_lp <- vectorize_train_test(labeled_black, 'linked_progress')
 
-black_lp <- vectorize_train_test(labeled_black, 5)
-
-black_lh <- vectorize_train_test(labeled_black, 6)
+black_lh <- vectorize_train_test(labeled_black, 'linked_hurt')
 
 ```
 
@@ -243,21 +223,19 @@ black_lh <- vectorize_train_test(labeled_black, 6)
 
 ```{r}
 
-build_test <- function(dataset){
+dataset <- asian_lp
+
+# build_test <- function(dataset){
     
 ################## DATA SETUP #######################
   
-train_matrix <- dataset[[1]] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
+train_matrix <- dataset[[1]]
 
-test_matrix <- dataset[[2]] %>% as.matrix %>% as.data.frame() # Originally, it was a sparse matrix.
+test_matrix <- dataset[[2]] 
 
-train_response <- dataset[[3]] %>% as.factor() # Originally, it was matrix.
+train_response <- dataset[[3]] 
 
-test_response <- dataset[[4]] %>% as.factor() # Originally, it was matrix.
-
-levels(train_response) <- c("No", "Yes") # Rename factor levels 
-
-levels(test_response) <- c("No", "Yes") # Rename factor levels
+test_response <- dataset[[4]] 
 
 print("Data setup is okay.")
 
@@ -267,10 +245,33 @@ print("Data setup is okay.")
 
 set.seed(1234)
 
-trctrl <- trainControl(method = "cv", number = 10) # 10-fold CV
-
+trainControl(method = "repeatedcv", 
+             number = 5, 
+             repeats = 5, 
+             summaryFunction = twoClassSummary, 
+             classProbs = T, 
+             savePredictions = "final")
+                       
 print("Train control setup is okay.")
 
+```
+
+```{r}
+svm_mod <- train(x = train_matrix,
+                 y = train_response,
+                 method = "svmLinearWeights2",
+                 trControl = trctrl,
+                 tuneGrid = data.frame(cost = 1, 
+                                       Loss = 0, 
+                                       weight = 1))
+
+svm_pred <- predict(svm_mod,
+                    newdata = data_df_test)
+
+svm_cm <- confusionMatrix(svm_pred, meta[-trainIndex, ]$disaster)
+```
+
+```{r}
 ################# NAIVE BAYES ####################
 
 nb_mod <- train(x = train_matrix,
@@ -278,8 +279,8 @@ nb_mod <- train(x = train_matrix,
                 method = "naive_bayes",
                 trControl = trctrl,
                 tuneGrid = data.frame(laplace = 0,
-                                      usekernel = FALSE,
-                                      adjust = FALSE))
+                                usekernel = FALSE,
+                                adjust = FALSE))
 
 nb_pred <- predict(nb_mod,
                    newdata = test_matrix)
@@ -291,29 +292,12 @@ print("Naive Bayes model works.")
 ```
 
 ```{r}
-################# PENALIZED LOGIT ####################
-
-lasso_mod <- train(x = data.matrix(train_matrix),
-                  y = train_response, 
-                  method = "plr",
-                  trControl = trctrl)
-
-lasso_pred <- predict(lasso_mod,
-                           newdata = data.matrix(test_matrix))
-  
-lasso_cm <- confusionMatrix(lasso_pred, test_response)
-
-print("Lasso works.")
-
-
-```
-
-```{r}
 ################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = train_matrix,
                         y = train_response,
                         method = "LogitBoost",
+                        metric="Sens", 
                         trControl = trctrl)
 
 logitboost_pred <- predict(logitboost_mod,
@@ -323,6 +307,11 @@ logitboost_cm <- confusionMatrix(logitboost_pred, test_response)
 
 print("Logit boost works.")
 
+logitboost_cm
+
+```
+
+```{r}
 ################# RANDOM FOREST ####################
 
 rf_mod <- train(x = train_matrix, 
@@ -340,34 +329,37 @@ rf_cm <- confusionMatrix(rf_pred, test_response)
 
 print("Random forest works.")
 
+```
+
+```{r}
 ################# BINDING RESULTS ####################
 
 # Accuracy 
 acu_results <- rbind(
+  svm_cm$overall,
   nb_cm$overall,
-  lasso_cm$overall,
   logitboost_cm$overall,
   rf_cm$overall
   ) %>%
   as.data.frame() %>%
-  mutate(model = c("Naive-Bayes", "Penalized logit", "LogitBoost", "Random forest"))
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
 
 # Balanced accuracy 
 
 balanced_acu_results <- c(
+  bal_accuracy_vec(svm_pred, test_response),
   bal_accuracy_vec(nb_pred, test_response),
-  bal_accuracy_vec(lasso_pred, test_response),
   bal_accuracy_vec(logitboost_pred, test_response),
   bal_accuracy_vec(rf_pred, test_response))
 
 # Putting all together as a dataframe
 
-mods <- list(nb_mod, lasso_mod, logitboost_mod, rf_mod)
+mods <- list(nb_mod, logitboost_mod, rf_mod)
   
 metrices <- data.frame(acu = acu_results$Accuracy,
-                          kappa = acu_results$Kappa,
-                          balanced_acu = balanced_acu_results) %>%
-  mutate(model = c("Naive-Bayes", "Penalized logit", "LogitBoost", "Random forest")) 
+                       kappa = acu_results$Kappa,
+                       balanced_acu = balanced_acu_results) %>%
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest")) 
 
 mod_results <- list(mods, metrices)
 
@@ -461,29 +453,45 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 
 extract_feature <- function(dataset){
  
-data_counts <- unnest_tokens(dataset, word, text) %>%
-  count(id, word, sort = TRUE) 
+# Add doc ID (this var turns out to be very important for sorting)
 
-print("Data count works.")
+dataset <- dataset %>%
+  mutate(doc_id = row_number())
+
+# Define stopwords
+
+stopword <- tibble::enframe(stopwords::stopwords("en")) 
+stopword <- rename(stopword, word=value) 
+
+# Tokenize and reduce noisy tokens (=stopwords)
+
+data_counts <- map_df(1:2, ~ unnest_tokens(dataset, word, text, token = "ngrams", n =.x)) %>%
+  anti_join(stopword, by = 'word') %>% # remove stopwords 
+  count(doc_id, word, sort = TRUE)
 
 words_10 <- data_counts %>%
   group_by(word) %>%
   summarise(n = n()) %>% 
   filter(n >= 10) %>%
-  select(word)
+  dplyr::select(word)
 
-print("Word 20 is working fine, too.")
+# TF-IDF
 
 data_dtm <- data_counts %>%
   right_join(words_10, by = "word") %>%
-  bind_tf_idf(word, id, n) %>%
-  cast_dtm(id, word, tf_idf)
+  bind_tf_idf(word, doc_id, n) %>%
+  cast_dtm(doc_id, word, tf_idf)
 
-print("Matrix transformation is complete.")
+# Meta 
 
-test_matrix <- data_dtm %>% as.matrix() %>% as.data.frame()
-  
-return(test_matrix)
+meta <- tibble(doc_id = as.numeric(dimnames(data_dtm)[[1]])) %>%
+  left_join(dataset[!duplicated(dataset$doc_id), ], by = "doc_id") %>% as.data.frame()
+ 
+matrix <- data_dtm %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
+
+response <- meta[, measure] %>% as.factor() # Originally, it was matrix.
+
+return(result)
 }
 
 ```
