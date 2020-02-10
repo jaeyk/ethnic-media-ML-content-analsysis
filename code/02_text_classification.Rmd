@@ -21,6 +21,7 @@ Resources
 - https://fderyckel.github.io/2016-12-07-Texts_Classification_in_R/
 - https://cfss.uchicago.edu/notes/supervised-text-classification/
 - https://abndistro.com/post/2019/02/17/text-classification-using-text2vec/
+- https://www.kirenz.com/post/2019-09-16-r-text-mining/
 
 ## 0. Setup 
 
@@ -67,7 +68,8 @@ pacman::p_load(
         caTools, # for ML
         splitstackshape, # for stratified random sampling
         DMwR, # for daealing with imbalanced classes 
-        imbalance, # for dealing wiht imbalanced classes 
+        imbalance, # for dealing wiht imbalanced classes
+        broom, # for visualizing coefficients
         yardstick, # for ML measures
         superml # for building ML like using scikit-learn in R
 )
@@ -78,29 +80,23 @@ https://www.alexpghayes.com/blog/implementing-the-super-learner-with-tidymodels/
 
 ## 1. Importing files 
 
+Importing data. I skipped the first column of all of these files because they are not informative.
 
 ```{r}
 
 # Labeled data 
 
-labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-2] 
-labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-2]
+labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-1]
+labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-1]
 
 # Unlabeled data 
 
-unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-2]
-unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-2]
+unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-1]
+unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-1]
 
-# rename the missing col name 
+# From content analysis: Correlation coefficients and Kappa statistics 
 
-colnames(labeled_asian)[1] <- "id"
-colnames(labeled_black)[1] <- "id"
-colnames(unlabeled_asian)[1] <- "id"
-colnames(unlabeled_black)[1] <- "id"
-
-# correlation and kappa 
-
-irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")
+irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1]
 
 ```
 
@@ -113,13 +109,19 @@ irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performanc
 clean_text <- function(document){
     document %>% 
     tolower() %>% # low key 
-    gsub("[\r?\n]", "", .) %>% # remove \n
-    gsub("[\"]", "", .) %>%
+    # Some noisy patterns in the text 
+    gsub("[\r?\n]", " ", .) %>% # remove \n
+    gsub("[\"]", " ", .) %>%
     gsub("[.]", "", .) %>%
-    gsub("[,]", "", .) %>%
+    gsub("[,]", " ", .) %>%
     gsub("[-]", "", .) %>%
     gsub("[']", "", .) %>%
-    str_trim() # remove whitespace 
+    gsub("[/]", " ", .) %>%
+    gsub("[/]", " ", .) %>%
+    gsub("[(]", " ", .) %>%
+    gsub("[)]", " ", .) %>%
+    gsub("[;]", " ", .) %>%
+    trimws() # remove whitespace 
 }
 
 ```
@@ -133,79 +135,133 @@ labeled_black$text <- clean_text(labeled_black$text)
 
 ```
 
-## 3. Feature engineering 
+## 3. Feature engineering (bag of words)
+
+### 3.1. Creating my custom function for feature engineering
 
 ```{r}
 
-train_test_response <- function(dataset, measure){
+
+vectorize_train_test <- function(dataset, measure){
+
+# Add doc ID (this var turns out to be very important for sorting)
+
+dataset <- dataset %>%
+  mutate(doc_id = row_number())
+
+# Define stopwords
+
+stopword <- as_tibble(stopwords::stopwords("en")) 
+stopword <- rename(stopword, word=value) 
+
+# Tokenize and reduce noisy tokens (=stopwords)
+
+tidy_docs <- dataset %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stopword, by = 'word') %>% # remove stopwords 
+  group_by(word) %>% 
+  filter(n() > 10) %>% # remove words appeared less than 10 times
+  ungroup()
   
-data_counts <- unnest_tokens(dataset, word, text) %>%
-  count(id, word, sort = TRUE)
+# Create two random samples stratifying on year variable (the exactly same variable I used to create training samples for content anlysis)
 
-words_10 <- data_counts %>%
-  group_by(word) %>%
-  summarise(n = n()) %>% 
-  filter(n >= 10) %>%
-  select(word)
+set.seed(1234) # for reproducibility
 
-data_dtm <- data_counts %>%
-  right_join(words_10, by = "word") %>%
-  bind_tf_idf(word, id, n) %>%
-  cast_dtm(id, word, tf_idf)
+docs_split <- dataset %>%
+  initial_split(prop = 0.8, strata = year) # year: stratifying variable
 
-meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
-  left_join(dataset[!duplicated(dataset$id), ], by = "id")
+train_data <- training(docs_split) # Training set
 
-trainIndex <- createDataPartition(meta[[measure]], p = 0.8, list = FALSE, times = 1) # stratified by response variable 
-#perform grouped K means  
+test_data <- testing(docs_split) # Testing set
 
-data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
+# Turning training and test data from a tidy data structure into a sparse matrix 
 
-data_df_test <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame()
+train_matrix <- tidy_docs %>%
+  count(doc_id, word) %>%
+  inner_join(train_data, by = "doc_id") %>%
+  cast_sparse(doc_id, word, n) 
 
-response_train <- meta[[measure]][trainIndex]
+print(paste("N of observations:", dim(train_matrix)[1], "," , "N of features:", dim(train_matrix)[2]))
 
-ground_truth <- factor(meta[[measure]][-trainIndex])
+test_matrix <- tidy_docs %>%
+  count(doc_id, word) %>%
+  inner_join(test_data, by = "doc_id") %>%
+  cast_sparse(doc_id, word, n) 
 
-result <- list(data_df_train, data_df_test, response_train, ground_truth)
+print(paste("N of observations:", dim(test_matrix)[1], "," , "N of features:", dim(test_matrix)[2]))
+
+################### Set response variable of the training set ####################
+
+# Extract the response variable from the dataset by matching doc ID between them 
+
+train_joined <- tibble(doc_id = as.integer(rownames(train_matrix))) %>%
+  left_join(dataset %>%
+              dplyr::select(doc_id, measure))
+
+# This is the target 
+
+train_response <- train_joined$linked_progress == 1
+
+################### Set response variable of the testing set ####################
+
+# Extract the response variable from the dataset by matching doc ID between them 
+
+test_joined <- tibble(doc_id = as.integer(rownames(test_matrix))) %>%
+  left_join(dataset %>%
+              dplyr::select(doc_id, measure))
+
+# This is the target 
+
+test_response <- test_joined$measure == 1
+
+result <- list(train_matrix, test_matrix, train_response, test_response)
 
 return(result)
 
 }
 
-asian_lp <- train_test_response(labeled_asian, 'linked_progress')
-asian_lh <- train_test_response(labeled_asian, 'linked_hurt')
-black_lp <- train_test_response(labeled_black, 'linked_progress')
-black_lh <- train_test_response(labeled_black, 'linked_hurt')
+```
+
+### 3.2. Applying the function to each data 
+
+```{r}
+
+asian_lp <- vectorize_train_test(labeled_asian, linked_progress)
+asian_lh <- vectorize_train_test(labeled_asian, linked_hurt)
+black_lp <- vectorize_train_test(labeled_black, linked_progress)
+black_lh <- vectorize_train_test(labeled_black, linked_hurt)
 
 ```
 
 ## 3. Model building and testing  
 
-### 3.1. Creating a function for model building and testing 
+### 3.1. Creating my custom function for model building and testing 
 
 ```{r}
+
 
 build_test <- function(dataset){
   
 ################## DATA SETUP #######################
   
-data_df_train <- dataset[[1]] 
-data_df_test <- dataset[[2]]
-response_train <- dataset[[3]]
-ground_truth <- dataset[[4]]
+train_matrix <- dataset[[1]] 
+test_matrix <- dataset[[2]]
+train_response <- dataset[[3]]
+target_response <- dataset[[4]]
 
 ################# TRAIN CONTROL SETUP ##################
 
 set.seed(1234)
 
-trctrl <- trainControl(method = "cv", # cross validation 
-                      number = 10) # repeat 10 times 
+trctrl <- trainControl(method = "repeatedcv", 
+             repeats = 5) # five repeats of 10-fold CV 
+            # classProbs = FALSE,
+            # sampling = "down") # Down the size of the class to match wit hthe 
 
 ################# NAIVE BAYES ####################
 
-nb_mod <- train(x = data_df_train,
-                y = as.factor(response_train),
+nb_mod <- train(x = train_matrix,
+                y = as.factor(train_response),
                 method = "naive_bayes",
                 trControl = trctrl,
                 tuneGrid = data.frame(laplace = 0,
@@ -213,55 +269,57 @@ nb_mod <- train(x = data_df_train,
                                       adjust = FALSE))
 
 nb_pred <- predict(nb_mod,
-                   newdata = data_df_test)
+                   newdata = test_matrix)
 
-nb_cm <- confusionMatrix(nb_pred, ground_truth)
+nb_cm <- confusionMatrix(nb_pred, target_response)
 
 ################# PENALIZED LOGIT ####################
 
-cv <- cv.glmnet(x = as.matrix(data_df_train),
-                y = as.factor(response_train), alpha = 1, family = "binomial")
+cv <- cv.glmnet(x = as.matrix(train_matrix),
+                y = as.factor(train_response), 
+                alpha = 1, 
+                family = "binomial",
+                parallel = TRUE,
+                keep = TRUE)
 
-lasso_mod <- train(x = data_df_train,
-                  y = as.factor(response_train), 
+lasso_mod <- train(x = train_matrix,
+                  y = as.factor(train_response), 
                   method = "glmnet",
                   trControl = trctrl,
                   tuneGrid = expand.grid(alpha = 1,
                                        lambda = cv$lambda.min))
 
 lasso_pred <- predict(lasso_mod,
-                           newdata = data_df_test)
+                           newdata = test_matrix)
   
-lasso_cm <- confusionMatrix(lasso_pred, ground_truth)
+lasso_cm <- confusionMatrix(lasso_pred, target_response)
 
 ################# LOGIT BOOST ####################
 
-logitboost_mod <- train(x = data_df_train,
-                        y = as.factor(response_train),
+logitboost_mod <- train(x = train_matrix,
+                        y = as.factor(train_response),
                         method = "LogitBoost",
                         trControl = trctrl)
 
 logitboost_pred <- predict(logitboost_mod,
-                           newdata = data_df_test)
+                           newdata = test_matrix)
 
-logitboost_cm <- confusionMatrix(logitboost_pred, ground_truth)
+logitboost_cm <- confusionMatrix(logitboost_pred, target_response)
 
 ################# RANDOM FOREST ####################
 
-rf_mod <- train(x = data_df_train, 
-                y = as.factor(response_train), 
+rf_mod <- train(x = train_matrix, 
+                y = as.factor(train_response), 
                 method = "ranger",
                 trControl = trctrl,
-                tuneGrid = data.frame(mtry = floor(sqrt(dim(data_df_train)[2])),
+                tuneGrid = data.frame(mtry = floor(sqrt(dim(train_matrix)[2])),
                                       splitrule = "gini",
                                       min.node.size = 1))
 
 rf_pred <- predict(rf_mod,
-                   newdata = data_df_test)
+                   newdata = test_matrix)
 
-rf_cm <- confusionMatrix(rf_pred, ground_truth)
-
-################# STACKED MODEL ####################
+rf_cm <- confusionMatrix(rf_pred, target_response)
 
 ################# BINDING RESULTS ####################
 
@@ -278,10 +336,10 @@ acu_results <- rbind(
 # Balanced accuracy 
 
 balanced_acu_results <- c(
-  bal_accuracy_vec(nb_pred, ground_truth),
-  bal_accuracy_vec(lasso_pred, ground_truth),
-  bal_accuracy_vec(logitboost_pred, ground_truth),
-  bal_accuracy_vec(rf_pred, ground_truth))
+  bal_accuracy_vec(nb_pred, target_response),
+  bal_accuracy_vec(lasso_pred, target_response),
+  bal_accuracy_vec(logitboost_pred, target_response),
+  bal_accuracy_vec(rf_pred, target_response))
 
 # Putting all together as a dataframe
 
@@ -303,7 +361,7 @@ return(mod_results)}
 ```{r}
 
 # Using multiple cores 
-doMC::registerDoMC(cores = 4)
+doMC::registerDoMC(cores = 6)
 
 asian_lp_model <- build_test(asian_lp)
 asian_lh_model <- build_test(asian_lh)
@@ -367,7 +425,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 
 ## 4. Applying to the unlabeled data
 
-### 4.1. Buidling a prediction function 
+### 4.1. Building a prediction function 
 
 ```{r}
 
@@ -393,9 +451,9 @@ data_dtm <- data_counts %>%
 
 print("Matrix transformation is complete.")
 
-data_df_test <- data_dtm %>% as.matrix() %>% as.data.frame()
+test_matrix <- data_dtm %>% as.matrix() %>% as.data.frame()
   
-return(data_df_test)
+return(test_matrix)
 }
 
 ```
@@ -403,19 +461,20 @@ return(data_df_test)
 ```{r}
 
 unlabeled_asian$text <- clean_text(unlabeled_asian$text)
-unlabeled_black$text <- clean_text(unlabeled_black$text)
+#unlabeled_black$text <- clean_text(unlabeled_black$text)
 
 asian_dtm <- extract_feature(unlabeled_asian)
-black_dtm <- extract_feature(unlabeled_black)
+#black_dtm <- extract_feature(unlabeled_black)
 
 asian_lp_preds <- predict(asian_lp_model[[1]][[3]], asian_dtm)
 
 asian_lh_preds <- predict(asian_lh_model[[1]][[3]], asian_dtm)
 
-black_lp_preds <- predict(black_lp_model[[1]][[3]], black_dtm)
+#black_lp_preds <- predict(black_lp_model[[1]][[3]], black_dtm)
 
-black_lh_preds <- predict(black_lh_model[[1]][[3]], black_dtm)
+#black_lh_preds <- predict(black_lh_model[[1]][[3]], black_dtm)
 
+sum(as.numeric(as.character(asian_lp_preds)))
 ```
 
 ## 5. Exporting results as a csv file 
