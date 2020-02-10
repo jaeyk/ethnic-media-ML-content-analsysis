@@ -176,7 +176,7 @@ monthly_trends <- full_articles %>%
 
 ggarrange(yearly_trends, monthly_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/time_series_plot.png", height = 8)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 8)
 
 ```
 
