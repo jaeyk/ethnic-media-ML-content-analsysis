@@ -242,9 +242,7 @@ black_lh <- vectorize_train_test(labeled_black, 7)
 
 ```{r}
 
-dataset <- asian_lp
-
-#build_test <- function(dataset){
+build_test <- function(dataset){
     
 ################## DATA SETUP #######################
   
@@ -256,35 +254,42 @@ train_response <- dataset[[3]] %>% as.factor() # Originally, it was matrix.
 
 test_response <- dataset[[4]] %>% as.factor() # Originally, it was matrix.
 
-```
+levels(train_response) <- c("No", "Yes") # Rename factor levels 
 
-```{r}
+levels(test_response) <- c("No", "Yes") # Rename factor levels
+
+print("Data setup is okay.")
+
 ################# TRAIN CONTROL SETUP ##################
+
+# This setup defines measures of performance.
 
 set.seed(1234)
 
-trctrl <- trainControl(method = 'repeatedcv',
-                       number = 10,
-                       repeats = 3) 
+trctrl <- trainControl(method = "repeatedcv", repeats = 5,
+                     classProbs = TRUE,
+                  #   summaryFunction = twoClassSummary, # I commented this out to use Accuracy as a metric 
+                     sampling = "smote") # Create artificial observations for the minority class
 
-```
+print("Train control setup is okay.")
 
-```{r}
 ################# NAIVE BAYES ####################
 
 nb_mod <- train(x = train_matrix,
                 y = train_response,
                 method = "naive_bayes",
-                trControl = trctrl)
+                trControl = trctrl,
+                tuneGrid = data.frame(laplace = 0,
+                                      usekernel = FALSE,
+                                      adjust = FALSE))
 
 nb_pred <- predict(nb_mod,
                    newdata = test_matrix)
 
 nb_cm <- confusionMatrix(nb_pred, test_response)
 
-```
+print("Naive Bayes model works.")
 
-```{r}
 ################# PENALIZED LOGIT ####################
 
 cv <- cv.glmnet(x = train_matrix,
@@ -306,9 +311,8 @@ lasso_pred <- predict(lasso_mod,
   
 lasso_cm <- confusionMatrix(lasso_pred, test_response)
 
-```
+print("Lasso works.")
 
-```{r}
 ################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = train_matrix,
@@ -320,6 +324,8 @@ logitboost_pred <- predict(logitboost_mod,
                            newdata = test_matrix)
 
 logitboost_cm <- confusionMatrix(logitboost_pred, test_response)
+
+print("Logit boost works.")
 
 ################# RANDOM FOREST ####################
 
@@ -335,9 +341,9 @@ rf_pred <- predict(rf_mod,
                    newdata = test_matrix)
 
 rf_cm <- confusionMatrix(rf_pred, test_response)
-```
 
-```{r}
+print("Random forest works.")
+
 ################# BINDING RESULTS ####################
 
 # Accuracy 
@@ -378,16 +384,27 @@ return(mod_results)}
 ```{r}
 
 # Using multiple cores 
-doMC::registerDoMC(cores = 6)
+# doMC::registerDoMC(cores = 6)
+
+##### Extract outcomes #####
 
 asian_lp_model <- build_test(asian_lp)
+
 asian_lh_model <- build_test(asian_lh)
+
 black_lp_model <- build_test(black_lp)
+
 black_lh_model <- build_test(black_lh)
 
+
+##### Extract metrices #####
+
 asian_lp_metrices <- asian_lp_model[2] %>% as.data.frame()
+
 asian_lh_metrices <- asian_lh_model[2] %>% as.data.frame()
+
 black_lp_metrices <- black_lp_model[2] %>% as.data.frame()
+
 black_lh_metrices <- black_lh_model[2] %>% as.data.frame()
 
 ```
