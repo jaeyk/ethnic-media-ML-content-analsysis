@@ -260,7 +260,7 @@ svm_mod <- train(x = train_matrix,
 svm_pred <- predict(svm_mod,
                     newdata = test_matrix)
 
-svm_cm <- confusionMatrix(svm_pred, meta[-trainIndex, ]$disaster)
+svm_cm <- confusionMatrix(svm_pred, test_response)
 
 print("SVM works.")
 
