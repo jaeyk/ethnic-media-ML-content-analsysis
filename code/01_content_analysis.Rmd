@@ -79,8 +79,8 @@ training_asian[is.na(training_asian)] <- 0
 ```{r}
 
 df <- bind_rows(
-  mutate(training_asian, Group = "Asian Americans"),
-  mutate(training_black, Group = "African Americans")
+  mutate(training_asian, group = "Asian Americans"),
+  mutate(training_black, group = "African Americans")
 ) %>%
   mutate(linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
          linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0),
@@ -88,16 +88,16 @@ df <- bind_rows(
 
 df %>%
   gather(type, value, linked_progress, linked_hurt) %>%
-  group_by(Group, type) %>%
+  group_by(group, type) %>%
   summarise(mean = mean(value), # summarize mean, standard deviation, and n 
             sd = sd(value),
             n = n()) %>%
   mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
          lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = Group)) +
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = group)) +
     geom_pointrange(size = 0.7) + # point estimates plus confidence intervals 
-    theme_fivethirtyeight() +
+    theme_clean() +
     coord_flip() +
     labs(y= "Percentages of Agreement", x = "Linked Fate Type",
          title = "Percentages of Agreement",
@@ -106,6 +106,7 @@ df %>%
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
+
 ```
 
 #### 2.2.2. Checking the data balance 
@@ -114,24 +115,24 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ggarrange(
 df %>%
-  group_by(Group, linked_progress) %>%
+  group_by(group, linked_progress) %>%
   add_count() %>%
-  ggplot(aes(x = as.factor(linked_progress), y = n, fill = Group)) +
+  ggplot(aes(x = as.factor(linked_progress), y = n, fill = group)) +
     geom_col(position = "dodge") +
     labs(x = "Values", y = "N",
          title = "Linked Progress",
          subtitle = "Yes = 1, No = 0") +
-    theme_fivethirtyeight(),
+    theme_clean(),
 
 df %>%
-  group_by(Group, linked_hurt) %>%
+  group_by(group, linked_hurt) %>%
   add_count() %>%
-  ggplot(aes(x = as.factor(linked_hurt), y = n, fill = Group)) +
+  ggplot(aes(x = as.factor(linked_hurt), y = n, fill = group)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
          title = "Linked Hurt",
          subtitle = "Yes = 1, No = 0") +
-    theme_fivethirtyeight(), common.legend = TRUE)
+    theme_clean(), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
 ```
@@ -185,15 +186,18 @@ extract_agreement <- function(data){
 ```{r}
 
 irr_summary <- bind_rows(
-mutate(bind_cols(training_asian %>%
+mutate(
+  bind_cols(training_asian %>%
   extract_kappa(),
           training_asian %>%
-  extract_agreement()), Group = "Asian Americans"),
-mutate(bind_cols(training_black %>%
+  extract_agreement()), group = "Asian Americans"),
+mutate(
+  bind_cols(training_black %>%
   extract_kappa(),
           training_black %>%
-  extract_agreement()), Group = "African Americans"))
+  extract_agreement()), group = "African Americans"))
 
+write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")
 ```
 
 ### 3.3. Visualizing agreement and Kappa  
@@ -202,14 +206,14 @@ mutate(bind_cols(training_black %>%
 
 irr_summary %>%
   gather(type, value, kappa_progress:agreement_hurt) %>% 
-  ggplot(aes(x = fct_reorder(type, value), y = value, fill = Group)) +
+  ggplot(aes(x = fct_reorder(type, value), y = value, fill = group)) +
     geom_col(position = "dodge") +
     coord_flip() +
     labs(y= "Intercorder Reliability Scores", x = "Linked Fate Type",
          title = "Content Analysis Results",
          subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
          caption = "Ethnic NewsWatch") +
-    theme_fivethirtyeight() + # five thirty eight theme 
+    theme_clean() + # five thirty eight theme 
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
@@ -224,15 +228,15 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 df %>%
 #  filter(linked_progress == 1 | linked_hurt == 1) %>%
   gather(type, value, linked_progress, linked_hurt) %>%
-  group_by(Group, type, topic) %>%
+  group_by(group, type, topic) %>%
   add_count() %>%
   ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
          title = "N of Agreed Topics") +
-    theme_fivethirtyeight() +
+    theme_clean() +
     coord_flip() +
-    facet_wrap(~Group)
+    facet_wrap(~group)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png")
 ```
@@ -242,16 +246,16 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ```{r}
 
 df %>%
-  dplyr::select(linked_progress, linked_hurt, Group) %>%
-  group_by(Group) %>%
+  dplyr::select(linked_progress, linked_hurt, group) %>%
+  group_by(group) %>%
   summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
-  ggplot(aes(x = fct_reorder(Group, corr), y = corr)) +
+  ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
     geom_col() +
     labs(title = "Correlation Coefficients between Linked Progress and Linked Hurt",
          y = "Pearson Correlation coefficient",
          x = "Group",
          caption = "Ethnic NewsWatch") +
-    theme_fivethirtyeight() +
+    theme_clean() +
     geom_col() +
     coord_flip()
 
