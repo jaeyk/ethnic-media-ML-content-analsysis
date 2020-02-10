@@ -1,0 +1,209 @@
+---
+title: "Visualizing time series data"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+## 0. Setup 
+
+I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8, 
+                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
+```
+
+```{r}
+
+# Clean up the environment
+
+rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        irr, # for calculating inter-coder reliability score
+        corrplot, # for visualizing correlation coefficients
+        ggpubr, # for arranging ggplots 
+        ggthemes # for fancy ggplot themes
+)
+
+```
+
+## 1. Import files 
+
+```{r include=FALSE}
+
+# Predicted values
+asian_lp_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_data.csv")
+asian_lh_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_data.csv")
+
+black_lp_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_data.csv")
+black_lh_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_data.csv")
+
+# Labeled articles
+asian_sample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")
+black_sample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")
+
+# Unlabeled articles
+asian_unlabeled <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")
+black_unlabeled<- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")
+
+```
+
+## 2. Wrangle data
+
+### 2.1. Joinning predicted values and unlabeled articles
+
+```{r}
+
+asian_unlabeled$linked_progress <- asian_lp_data$labeled_linked_progress
+asian_unlabeled$linked_hurt <- asian_lh_data$labeled_linked_hurt
+
+black_unlabeled$linked_progress <- black_lp_data$labeled_linked_progress
+black_unlabeled$linked_hurt <- black_lh_data$labeled_linked_hurt
+
+```
+
+### 2.2. Joining labeled and unlabled articles 
+
+```{r}
+
+# These should return all TRUEs to bind them by rows 
+names(asian_sample) == names(asian_unlabeled)
+names(black_sample) == names(black_unlabeled)
+
+# Bind them by rows 
+asian_full_labeled <- bind_rows(asian_sample, asian_unlabeled)
+black_full_labeled <- bind_rows(black_sample, black_unlabeled)
+
+# Drop the first column
+asian_full_labeled <- asian_full_labeled[,-1]
+black_full_labeled <- black_full_labeled[,-1]
+```
+
+### 2.3. Joining Asian American and African American data 
+
+```{r}
+
+# Join the two data 
+full_articles <- bind_rows(
+  mutate(asian_full_labeled, group = "Asian Americans"),
+  mutate(black_full_labeled, group = "African Americans"))
+
+```
+
+### 2.4. Check the data types
+
+```{r}
+
+# Check 
+glimpse(full_articles)
+
+# Reorder the factor levels 
+levels(full_articles$group) <- c("Asian Americans", "African Americans")
+
+```
+
+### 2.5. Distinguis exclusive from mixed articles 
+
+```{r}
+
+full_articles <- full_articles %>%
+  mutate(lp_exclusive = ifelse(linked_progress == 1 & linked_hurt == 0, 1, 0),
+         lh_exclusive = ifelse(linked_progress == 0 & linked_hurt == 1, 1, 0),
+         lf_mixed = ifelse(linked_progress == 1 & linked_hurt == 1, 1, 0))
+
+names(full_articles)
+
+```
+
+## 3. Visualize data
+
+### 3.1. Time serieds trends 
+
+
+```{r}
+# Extract year-month
+full_articles$year_mon <- format(as.Date(full_articles$date), "%Y-%m")
+
+# Check
+full_articles$year_mon[1:10]
+```
+
+```{r}
+
+yearly_trends <- full_articles %>%
+  group_by(group, year) %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  ggplot(aes(x = anytime::anydate(year), y = value, col = linked_fate)) +
+  stat_summary(fun.y = mean, geom = "point") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96)) +
+  geom_smooth() +
+  scale_x_date(date_labels = "%Y") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+  coord_flip() +
+  facet_wrap(~group) +
+  labs(title = "Time series trends (Yearly)", 
+       subtitle = "All newspaper sources are located in West Coast",
+       caption = "Source: Ethnic Newswatch",
+       y = "Proportion of articles", x = "Publication year") +
+  theme_base()
+
+monthly_trends <- full_articles %>%
+  group_by(group, year_mon) %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  ggplot(aes(x = anytime::anydate(year_mon), y = value, col = linked_fate)) +
+  stat_summary(fun.y = mean, geom = "point") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96)) +
+  geom_smooth() +
+  scale_x_date(date_labels = "%Y-%m") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+  coord_flip() +
+  facet_wrap(~group) +
+  labs(title = "Time series trends (Monthly)", 
+       subtitle = "All newspaper sources are located in West Coast",
+       caption = "Source: Ethnic Newswatch",
+       y = "Proportion of articles", x = "Publication month") +
+  theme_base()
+
+ggarrange(yearly_trends, monthly_trends, nrow = 2, ncol = 1, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/time_series_plot.png", height = 8)
+
+```
+
+### 3.2. Matched comparison
+
+```{r}
+full_articles %>%
+  filter(year >= 1976 & year <= 1981 ) %>%
+  group_by(group) %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  ggplot(aes(x = group, y = value, fill = linked_fate)) +
+    stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", size = 2) +
+    stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
+#  ylim(c(0,17)) +
+  theme_base() +
+  labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
+  scale_fill_manual(name = "Type", labels = c("Mixed","Collective loss","Collective gain"), values=c("purple","red","blue")) +
+  scale_y_continuous(labels = scales::percent) +
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png")
+
+```
+
+## 4. Export the merged file  
+```{r}
+
+write.csv(full_articles, 
+          "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+
+```

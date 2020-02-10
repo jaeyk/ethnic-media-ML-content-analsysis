@@ -29,7 +29,7 @@ pacman::p_load(
         tidyverse, # for the tidyverse framework
         ggpubr, # for arranging ggplot2 
         ggthemes, # for fancy ggplot themes
-        broom, # for visualizing coefficients
+        broom # for visualizing coefficients
 )
 ```
 
@@ -57,7 +57,7 @@ black_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-
 
 # From content analysis: Correlation coefficients and Kappa statistics 
 
-irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1][,-1]
+irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1]
 
 ```
 
@@ -66,7 +66,7 @@ irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performanc
 ### 2.1. Putting all ML evals together
 
 ```{r}
-
+  
 # Put all 
 all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian_Americans", measure = "Linked_progress", resampling = "None"),
           mutate(asian_lh_models, group = "Asian_Americans", measure = "Linked_hurt", resampling = "None"),
@@ -78,13 +78,10 @@ all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian_Americans", measur
           mutate(black_lh_models_resample, group = "African_Americans", measure = "Linked_hurt", resampling = "Upsampling")
           )
 
-# Drop the first column
-all_evals <- all_evals[,-1] 
-
 # Gather all the models 
-
 all_evals <- all_evals %>%
-  gather(models, rate, c("Lasso", "Bayes", "XG Boost"))
+  gather(metrices, rate, c("Accuracy", "Balanced Accuracy"))
+
 ```
 
 ### 2.2. Extracting correlation coefficients and Cohen's Kappa from the content analysis
@@ -101,16 +98,18 @@ irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 1]), num
                             group = c("Asian_Americans", "Asian_Americans", "African_Americans", "African_Americans")
 )
 
-
 ```
 
 ### 2.3. Merging them together 
 
 ```{r}
 
+# Merging 
 merged_model <- all_evals %>% right_join(irr_resummary) 
 
-merged_model
+# Upper casing col names 
+names(merged_model) <- tolower(names(merged_model))
+
 ```
 
 ## 3. Visualizing data 
@@ -121,51 +120,61 @@ merged_model
 
 no_resampling_plot <- merged_model %>%
   filter(resampling == "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, col = Evals)) +
-    geom_point(size = 2) +
-    facet_grid(measure~group) +
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    facet_grid(measure ~ group) +
     theme_base() +
+    ylim(c(0, 1)) +
     labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)") +
-    coord_flip()
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
 
 resampling_plot <- merged_model %>%
   filter(resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, col = Evals)) +
-    geom_point(size = 2) +
-    facet_grid(measure~group) +
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    facet_grid(measure ~ group) +
     theme_base() +
+    ylim(c(0, 1)) +
     labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)") +
-    coord_flip()
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances.png")
 
 ```
 
 ```{r}
 
-accuracy_plot <- merged_model %>%
-  filter(Evals != "Kappa" & resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = Evals)) +
+no_resampling_plot <- merged_model %>%
+  filter(resampling == "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
-    facet_grid(measure~group) +
+    facet_grid(measure ~ group) +
     theme_base() +
-    labs(title = "Accuracy", x = "Models", y = "Performance (%)") +
-    coord_flip()
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
 
-reliability_plot <- merged_model %>%
-  filter(Evals == "Kappa" & resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate)) +
+resampling_plot <- merged_model %>%
+  filter(resampling != "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
-    geom_hline(aes(yintercept = content_kappa), linetype = "dashed") +
-    facet_grid(measure~group) +
+    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
+    facet_grid(measure ~ group) +
     theme_base() +
-    labs(title = "Reliability", x = "Models", y = "Performance (%)") +
-    coord_flip()
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
 
-ggarrange(accuracy_plot, reliability_plot, ncol = 1, nrow = 2)
+ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performance.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png")
 
 ```
 
