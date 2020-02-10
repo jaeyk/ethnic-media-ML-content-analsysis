@@ -80,24 +80,25 @@ https://www.alexpghayes.com/blog/implementing-the-super-learner-with-tidymodels/
 
 ## 1. Importing files 
 
-Importing data. I skipped the first column of all of these files because they are not informative.
+I skipped the first and second column (author) of all of these files because they are not informative. The original unlabeled data have linked progress and linked hurt columns (all NAs). I removed them too for the same reason.
 
 ```{r}
 
 # Labeled data 
 
-labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-1]
-labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-1]
+labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-c(1,2)]
+labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-c(1,2)]
 
 # Unlabeled data 
 
-unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-1]
-unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-1]
+unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-c(1,2,7,8)]
+unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-c(1,2,7,8)]
 
 # From content analysis: Correlation coefficients and Kappa statistics 
 
 irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1]
 
+names(unlabeled_asian)
 ```
 
 ## 2. Cleaning text
@@ -197,7 +198,7 @@ print(names(dataset))
 # Extract the response variable from the dataset by matching doc ID between them 
 
 train_joined <- tibble(doc_id = as.integer(rownames(train_matrix))) %>%
-  left_join(dataset[,c(measure,8)])
+  left_join(dataset[,c(measure,7)])
 
 train_response <- train_joined[2] == 1
 
@@ -206,7 +207,7 @@ train_response <- train_joined[2] == 1
 # Extract the response variable from the dataset by matching doc ID between them 
 
 test_joined <- tibble(doc_id = as.integer(rownames(test_matrix))) %>%
-  left_join(dataset[,c(measure,8)])
+  left_join(dataset[,c(measure,7)])
 
 # This is the target 
 
@@ -224,15 +225,15 @@ return(result)
 
 ```{r}
 
-# 6 is the index number of linked progress column and 7 is the index number of linked hurt.
+# 5 is the index number of linked progress column and 6 is the index number of linked hurt.
 
-asian_lp <- vectorize_train_test(labeled_asian, 6)
+asian_lp <- vectorize_train_test(labeled_asian, 5)
 
-asian_lh <- vectorize_train_test(labeled_asian, 7)
+asian_lh <- vectorize_train_test(labeled_asian, 6)
 
-black_lp <- vectorize_train_test(labeled_black, 6)
+black_lp <- vectorize_train_test(labeled_black, 5)
 
-black_lh <- vectorize_train_test(labeled_black, 7)
+black_lh <- vectorize_train_test(labeled_black, 6)
 
 ```
 
@@ -266,10 +267,7 @@ print("Data setup is okay.")
 
 set.seed(1234)
 
-trctrl <- trainControl(method = "repeatedcv", repeats = 5,
-                     classProbs = TRUE,
-                  #   summaryFunction = twoClassSummary, # I commented this out to use Accuracy as a metric 
-                     sampling = "smote") # Create artificial observations for the minority class
+trctrl <- trainControl(method = "cv", number = 10) # 10-fold CV
 
 print("Train control setup is okay.")
 
@@ -290,29 +288,27 @@ nb_cm <- confusionMatrix(nb_pred, test_response)
 
 print("Naive Bayes model works.")
 
+```
+
+```{r}
 ################# PENALIZED LOGIT ####################
 
-cv <- cv.glmnet(x = train_matrix,
-                y = train_response, 
-                alpha = 1, 
-                family = "binomial",
-                parallel = TRUE,
-                keep = TRUE)
-
-lasso_mod <- train(x = train_matrix,
-                  y = factor(train_response), 
-                  method = "glmnet",
-                  trControl = trctrl,
-                  tuneGrid = expand.grid(alpha = 1,
-                                       lambda = cv$lambda.min))
+lasso_mod <- train(x = data.matrix(train_matrix),
+                  y = train_response, 
+                  method = "plr",
+                  trControl = trctrl)
 
 lasso_pred <- predict(lasso_mod,
-                           newdata = test_matrix)
+                           newdata = data.matrix(test_matrix))
   
 lasso_cm <- confusionMatrix(lasso_pred, test_response)
 
 print("Lasso works.")
 
+
+```
+
+```{r}
 ################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = train_matrix,
