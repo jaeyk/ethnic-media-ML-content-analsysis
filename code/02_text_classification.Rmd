@@ -223,9 +223,7 @@ black_lh <- vectorize_train_test(labeled_black, 'linked_hurt')
 
 ```{r}
 
-dataset <- asian_lp
-
-# build_test <- function(dataset){
+build_test <- function(dataset){
     
 ################## DATA SETUP #######################
   
@@ -245,18 +243,12 @@ print("Data setup is okay.")
 
 set.seed(1234)
 
-trainControl(method = "repeatedcv", 
+trctrl <- trainControl(method = "repeatedcv", 
              number = 5, 
-             repeats = 5, 
-             summaryFunction = twoClassSummary, 
-             classProbs = T, 
-             savePredictions = "final")
+             repeats = 5)
                        
 print("Train control setup is okay.")
 
-```
-
-```{r}
 svm_mod <- train(x = train_matrix,
                  y = train_response,
                  method = "svmLinearWeights2",
@@ -266,12 +258,12 @@ svm_mod <- train(x = train_matrix,
                                        weight = 1))
 
 svm_pred <- predict(svm_mod,
-                    newdata = data_df_test)
+                    newdata = test_matrix)
 
 svm_cm <- confusionMatrix(svm_pred, meta[-trainIndex, ]$disaster)
-```
 
-```{r}
+print("SVM works.")
+
 ################# NAIVE BAYES ####################
 
 nb_mod <- train(x = train_matrix,
@@ -289,15 +281,11 @@ nb_cm <- confusionMatrix(nb_pred, test_response)
 
 print("Naive Bayes model works.")
 
-```
-
-```{r}
 ################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = train_matrix,
                         y = train_response,
                         method = "LogitBoost",
-                        metric="Sens", 
                         trControl = trctrl)
 
 logitboost_pred <- predict(logitboost_mod,
@@ -309,9 +297,7 @@ print("Logit boost works.")
 
 logitboost_cm
 
-```
 
-```{r}
 ################# RANDOM FOREST ####################
 
 rf_mod <- train(x = train_matrix, 
@@ -329,9 +315,7 @@ rf_cm <- confusionMatrix(rf_pred, test_response)
 
 print("Random forest works.")
 
-```
 
-```{r}
 ################# BINDING RESULTS ####################
 
 # Accuracy 
@@ -370,9 +354,6 @@ return(mod_results)}
 ### 3.2. Extracting and visualizing the model outcomes
 
 ```{r}
-
-# Using multiple cores 
-# doMC::registerDoMC(cores = 6)
 
 ##### Extract outcomes #####
 
@@ -513,6 +494,7 @@ asian_lh_preds <- predict(asian_lh_model[[1]][[3]], asian_dtm)
 #black_lh_preds <- predict(black_lh_model[[1]][[3]], black_dtm)
 
 sum(as.numeric(as.character(asian_lp_preds)))
+
 ```
 
 ## 5. Exporting results as a csv file 
