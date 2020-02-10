@@ -133,6 +133,7 @@ clean_text <- function(document){
 labeled_asian$text <- clean_text(labeled_asian$text) 
 labeled_black$text <- clean_text(labeled_black$text) 
 
+labeled_asian$text[5]
 ```
 
 ## 3. Feature engineering (bag of words)
@@ -140,7 +141,6 @@ labeled_black$text <- clean_text(labeled_black$text)
 ### 3.1. Creating my custom function for feature engineering
 
 ```{r}
-
 
 vectorize_train_test <- function(dataset, measure){
 
@@ -160,10 +160,10 @@ tidy_docs <- dataset %>%
   unnest_tokens(word, text) %>%
   anti_join(stopword, by = 'word') %>% # remove stopwords 
   group_by(word) %>% 
-  filter(n() > 10) %>% # remove words appeared less than 10 times
+  filter(n() >= 20) %>% # remove words appeared less than 20 times
   ungroup()
   
-# Create two random samples stratifying on year variable (the exactly same variable I used to create training samples for content anlysis)
+# Create two random samples (testing and training sets) stratifying on year variable (the exactly same variable I used to create a list of documents for content anlysis)
 
 set.seed(1234) # for reproducibility
 
@@ -181,38 +181,36 @@ train_matrix <- tidy_docs %>%
   inner_join(train_data, by = "doc_id") %>%
   cast_sparse(doc_id, word, n) 
 
-print(paste("N of observations:", dim(train_matrix)[1], "," , "N of features:", dim(train_matrix)[2]))
+print(paste("N of observations in the training set:", dim(train_matrix)[1], "," , "N of features in the training set:", dim(train_matrix)[2]))
 
 test_matrix <- tidy_docs %>%
   count(doc_id, word) %>%
   inner_join(test_data, by = "doc_id") %>%
   cast_sparse(doc_id, word, n) 
 
-print(paste("N of observations:", dim(test_matrix)[1], "," , "N of features:", dim(test_matrix)[2]))
+print(paste("N of observations in the testing set:", dim(test_matrix)[1], "," , "N of features in the testing set:", dim(test_matrix)[2]))
 
 ################### Set response variable of the training set ####################
+
+print(names(dataset))
 
 # Extract the response variable from the dataset by matching doc ID between them 
 
 train_joined <- tibble(doc_id = as.integer(rownames(train_matrix))) %>%
-  left_join(dataset %>%
-              dplyr::select(doc_id, measure))
+  left_join(dataset[,c(measure,8)])
 
-# This is the target 
-
-train_response <- train_joined$linked_progress == 1
+train_response <- train_joined[2] == 1
 
 ################### Set response variable of the testing set ####################
 
 # Extract the response variable from the dataset by matching doc ID between them 
 
 test_joined <- tibble(doc_id = as.integer(rownames(test_matrix))) %>%
-  left_join(dataset %>%
-              dplyr::select(doc_id, measure))
+  left_join(dataset[,c(measure,8)])
 
 # This is the target 
 
-test_response <- test_joined$measure == 1
+test_response <- test_joined[2] == 1
 
 result <- list(train_matrix, test_matrix, train_response, test_response)
 
@@ -226,10 +224,15 @@ return(result)
 
 ```{r}
 
-asian_lp <- vectorize_train_test(labeled_asian, linked_progress)
-asian_lh <- vectorize_train_test(labeled_asian, linked_hurt)
-black_lp <- vectorize_train_test(labeled_black, linked_progress)
-black_lh <- vectorize_train_test(labeled_black, linked_hurt)
+# 6 is the index number of linked progress column and 7 is the index number of linked hurt.
+
+asian_lp <- vectorize_train_test(labeled_asian, 6)
+
+asian_lh <- vectorize_train_test(labeled_asian, 7)
+
+black_lp <- vectorize_train_test(labeled_black, 6)
+
+black_lh <- vectorize_train_test(labeled_black, 7)
 
 ```
 
@@ -239,51 +242,60 @@ black_lh <- vectorize_train_test(labeled_black, linked_hurt)
 
 ```{r}
 
+dataset <- asian_lp
 
-build_test <- function(dataset){
-  
+#build_test <- function(dataset){
+    
 ################## DATA SETUP #######################
   
-train_matrix <- dataset[[1]] 
-test_matrix <- dataset[[2]]
-train_response <- dataset[[3]]
-target_response <- dataset[[4]]
+train_matrix <- dataset[[1]] %>% as.matrix() %>% as.data.frame() # Originally, it was a sparse matrix.
 
+test_matrix <- dataset[[2]] %>% as.matrix %>% as.data.frame() # Originally, it was a sparse matrix.
+
+train_response <- dataset[[3]] %>% as.factor() # Originally, it was matrix.
+
+test_response <- dataset[[4]] %>% as.factor() # Originally, it was matrix.
+
+```
+
+```{r}
 ################# TRAIN CONTROL SETUP ##################
 
 set.seed(1234)
 
-trctrl <- trainControl(method = "repeatedcv", 
-             repeats = 5) # five repeats of 10-fold CV 
-            # classProbs = FALSE,
-            # sampling = "down") # Down the size of the class to match wit hthe 
+trctrl <- trainControl(method = 'repeatedcv',
+                       number = 10,
+                       repeats = 3) 
 
+```
+
+```{r}
 ################# NAIVE BAYES ####################
 
 nb_mod <- train(x = train_matrix,
-                y = as.factor(train_response),
+                y = train_response,
                 method = "naive_bayes",
-                trControl = trctrl,
-                tuneGrid = data.frame(laplace = 0,
-                                      usekernel = FALSE,
-                                      adjust = FALSE))
+                trControl = trctrl)
 
 nb_pred <- predict(nb_mod,
                    newdata = test_matrix)
 
-nb_cm <- confusionMatrix(nb_pred, target_response)
+nb_cm <- confusionMatrix(nb_pred, test_response)
 
+```
+
+```{r}
 ################# PENALIZED LOGIT ####################
 
-cv <- cv.glmnet(x = as.matrix(train_matrix),
-                y = as.factor(train_response), 
+cv <- cv.glmnet(x = train_matrix,
+                y = train_response, 
                 alpha = 1, 
                 family = "binomial",
                 parallel = TRUE,
                 keep = TRUE)
 
 lasso_mod <- train(x = train_matrix,
-                  y = as.factor(train_response), 
+                  y = factor(train_response), 
                   method = "glmnet",
                   trControl = trctrl,
                   tuneGrid = expand.grid(alpha = 1,
@@ -292,24 +304,27 @@ lasso_mod <- train(x = train_matrix,
 lasso_pred <- predict(lasso_mod,
                            newdata = test_matrix)
   
-lasso_cm <- confusionMatrix(lasso_pred, target_response)
+lasso_cm <- confusionMatrix(lasso_pred, test_response)
 
+```
+
+```{r}
 ################# LOGIT BOOST ####################
 
 logitboost_mod <- train(x = train_matrix,
-                        y = as.factor(train_response),
+                        y = train_response,
                         method = "LogitBoost",
                         trControl = trctrl)
 
 logitboost_pred <- predict(logitboost_mod,
                            newdata = test_matrix)
 
-logitboost_cm <- confusionMatrix(logitboost_pred, target_response)
+logitboost_cm <- confusionMatrix(logitboost_pred, test_response)
 
 ################# RANDOM FOREST ####################
 
 rf_mod <- train(x = train_matrix, 
-                y = as.factor(train_response), 
+                y = train_response, 
                 method = "ranger",
                 trControl = trctrl,
                 tuneGrid = data.frame(mtry = floor(sqrt(dim(train_matrix)[2])),
@@ -319,8 +334,10 @@ rf_mod <- train(x = train_matrix,
 rf_pred <- predict(rf_mod,
                    newdata = test_matrix)
 
-rf_cm <- confusionMatrix(rf_pred, target_response)
+rf_cm <- confusionMatrix(rf_pred, test_response)
+```
 
+```{r}
 ################# BINDING RESULTS ####################
 
 # Accuracy 
@@ -336,10 +353,10 @@ acu_results <- rbind(
 # Balanced accuracy 
 
 balanced_acu_results <- c(
-  bal_accuracy_vec(nb_pred, target_response),
-  bal_accuracy_vec(lasso_pred, target_response),
-  bal_accuracy_vec(logitboost_pred, target_response),
-  bal_accuracy_vec(rf_pred, target_response))
+  bal_accuracy_vec(nb_pred, test_response),
+  bal_accuracy_vec(lasso_pred, test_response),
+  bal_accuracy_vec(logitboost_pred, test_response),
+  bal_accuracy_vec(rf_pred, test_response))
 
 # Putting all together as a dataframe
 
