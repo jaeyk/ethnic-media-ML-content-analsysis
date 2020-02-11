@@ -29,7 +29,7 @@ pacman::p_load(
         tidyverse, # for the tidyverse framework
         irr, # for calculating inter-coder reliability score
         corrplot, # for visualizing correlation coefficients
-        ggpubr, # for arranging ggplots 
+        ggpubr, # for arranging ggplots   
         ggthemes # for fancy ggplot themes
 )
 
@@ -225,20 +225,40 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ```{r}
 
-df %>%
-#  filter(linked_progress == 1 | linked_hurt == 1) %>%
+# Asian Americans
+train_asian_plot <- df %>%
+  filter(group == "Asian Americans") %>%
   gather(type, value, linked_progress, linked_hurt) %>%
-  group_by(group, type, topic) %>%
-  add_count() %>%
+  filter(value == 1) %>%
+  filter(topic != "Mismatch") %>%
+  group_by(type) %>%
+  count(topic) %>%
   ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
-    geom_col(position = "dodge") +     
-    labs(x = "Values", y = "Freq",
-         title = "N of Agreed Topics") +
-    theme_clean() +
+    geom_col(position = "dodge") +
     coord_flip() +
-    facet_wrap(~group)
+    theme_base() +
+    labs(x = "Topics", y = "N", title = "N of agreed topics",
+         subtitle = "Asian Americans")
+
+# African Americans
+train_black_plot <- df %>%
+  filter(group != "Asian Americans") %>%
+  gather(type, value, linked_progress, linked_hurt) %>%
+  filter(value == 1) %>%
+  filter(topic != "Mismatch") %>%
+  group_by(type) %>%
+  count(topic) %>%
+  ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
+    geom_col(position = "dodge") +
+    coord_flip() +
+    theme_base() +
+    labs(x = "Topics", y = "N", title = "N of agreed topics",
+         subtitle = "African Americans")
+
+ggarrange(train_asian_plot, train_black_plot, ncol = 2, nrow =1, common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png")
+
 ```
 
 ### 4.2. Visualizing correlation coefficients between the two concepts
