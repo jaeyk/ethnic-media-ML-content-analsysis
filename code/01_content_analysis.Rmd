@@ -233,11 +233,12 @@ train_asian_plot <- df %>%
   filter(topic != "Mismatch") %>%
   group_by(type) %>%
   count(topic) %>%
-  ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
+  mutate(freq = n/sum(n)) %>%
+  ggplot(aes(x = fct_reorder(topic, freq), y = freq, fill = type)) +
     geom_col(position = "dodge") +
     coord_flip() +
     theme_base() +
-    labs(x = "Topics", y = "N", title = "N of agreed topics",
+    labs(x = "Topics", y = "Frequency", title = "Frequency of agreed topics",
          subtitle = "Asian Americans")
 
 # African Americans
@@ -248,14 +249,15 @@ train_black_plot <- df %>%
   filter(topic != "Mismatch") %>%
   group_by(type) %>%
   count(topic) %>%
-  ggplot(aes(x = fct_reorder(topic, n), y = n, fill = type)) +
+  mutate(freq = n/sum(n)) %>%
+  ggplot(aes(x = fct_reorder(topic, freq), y = freq, fill = type)) +
     geom_col(position = "dodge") +
     coord_flip() +
     theme_base() +
-    labs(x = "Topics", y = "N", title = "N of agreed topics",
+    labs(x = "Topics", y = "Frequency", title = "Frequency of agreed topics",
          subtitle = "African Americans")
 
-ggarrange(train_asian_plot, train_black_plot, ncol = 2, nrow =1, common.legend = TRUE)
+ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png")
 
