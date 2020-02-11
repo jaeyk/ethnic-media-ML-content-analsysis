@@ -88,12 +88,23 @@ Figure 4 shows that resampling (to be precise, upsampling) makes a critical diff
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/ml_performances.png)
 Figure 4. ML performances with or without resampling
 
-Figure 5 shows that how machine learning algorithms performed when we used the inter-coder agreement rate as a benchmark (dashed line). As expected, machine learning algorithms performed either similarly or slightly less than human coders.
+Figure 5 shows that how machine learning algorithms performed when we used the inter-coder agreement rate as a benchmark (dashed line). As expected, machine learning algorithms performed either similarly (with resampling) or slightly less than human coders (without resampling).
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/ml_content.png)
 Figure 5. ML performances against the human benchmark 
 
 ### Data visualization [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/04_time_series_visualization.Rmd)]
 
-![https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/time_series_plot.png]
+I plotted the results (training data + predicted data) as two time-series plots. Two patterns stand out from these plots and they were expected by the content analysis.
+
+- There was less overlaps between the two binary labels in the African American case relative to the Asian American case. See the greater number of mixed articles on the African American side. These are articles classifed as both linked progress and hurt articles. We observed this pattern from the training data and we saw it again here.
+- Asian American data has a lot of noise. On the one hand, it is because their sample size is smaller (thus, wider confidence intervals). On the other hand, it is becuase this data is less reliable from the beginning. When we aggregate data (using a higher-level unit of analysis), data becomes less noisy. In contrasdt, when you disaggregate data (using a lower-level unit of analysis), data becomes more nosiy. In the bottom pattern (monthly observations), it is very difficult to read how the two labels relate to each other in the Asian American data. We can do a more fine-grained analysis using the African American data but not the Asian American data.
+
+![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/time_series_plot.png)
 Figure 6. Time series trends 
+
+
+## Conclusion
+
+Garbage in and garbaeg out is true. Machine learning is no exception. Knowing exactly how garbage the training data is useful to estimate how well machine learning will perform. In addition, it also helps investigators to have deeper understanding of the quality of the machince-predicted data. In [my another project](https://github.com/jaeyk/ITS-Text-Classification), I discussed how we can use machine learning to create data for causal inference. When using machine-predicted data for statistical and causal inferential problems, we should take this data quality problem seriously. Systematic efforts to document the data collection process is key to achieving this goal. 
+
