@@ -6,7 +6,7 @@
 
 - The main goal of machine learning is making predictions. But how do we know algorithms make good predictions? For supervised machine learning, the quality of predictions is evaluated by comparing predicted values with observed values. The assumption here is these observations reveal ground truth. 
 - However, this statement is often a very strong assumption. Raw data is an oxymoron ([Gitelman 2013](https://mitpress.mit.edu/books/raw-data-oxymoron)). Every data is a social construction. Thus, without examining how the training data was created, "garbage in and garbage out" is inevitable ([Geiger et al. 2019](https://stuartgeiger.com/papers/gigo-fat2020.pdf)). 
-- The content analysis helps understand how training data was created. That information provides reasonable base estimates to evaluate the performances of supervised machine learning algorithms. In this article, I document how I have carried out this project from end to end. If possible, I provide all the code and data (including the training but not the text data for copyright issues) used for this project. 
+- Content analysis helps understand how training data was created, providing reasonable base estimates to evaluate the performances of supervised machine learning algorithms. In this article, I document how I have carried out this project from beginning to end. When possible, I provide all the code and data used for this project (including the training but not the text data due to copyright issues). 
 
 ## Motivation 
 
@@ -15,23 +15,23 @@ This project is part of my dissertation research. I have mostly worked with surv
 
 ## Workflow 
 
-It took me around one semester (Fall 2018) to train my four undergraduate research assistants, collect around 80,000 newspaper articles, and systematically label them according to the two major issue areas (linked progress = collective gain issue, linked hurt = collective loss issue). For the sake of time, I skipped further discussions on the case selection strategy and data collection process. These details will be provided in the paper, which I plan to circulate before summer 2020. The earlier draft was presented at the 2019 Western Political Science Association annual meeting and was selected to receive [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/).
+I needed one semester (Fall 2018) to train my four undergraduate research assistants (RAs) to collect approximately 80,000 newspaper articles and to systematically label them according to the two major issue areas: linked progress (collective gain issue) and linked hurt (collective loss issue). For the sake of time, I have skipped further discussions on the case selection strategy and data collection process. These details will be provided in the paper, which I plan to circulate before summer 2020. The earlier draft was presented at the 2019​ Western Political Science Association annual meeting and was selected to receive [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/).
 
-The original data came from the [Ethnic NewsWatch](https://www.proquest.com/products-services/ethnicnewswatch_hist.html) database, which has compiled more than 2.5 million articles published in U.S. ethnic newspapers and magazines. Proquest created this database and it does not allow web scraping. One can still download their articles and save them as HTML files. I have developed a [simple HTML parser](https://github.com/jaeyk/proquest_parser) to turn the database search results into CSV files.
+The original data came from the [Ethnic NewsWatch](https://www.proquest.com/products-services/ethnicnewswatch_hist.html) database, which has compiled more than 2.5 million articles published in U.S. ethnic newspapers and magazines. ProQuest created this database and does not allow web scraping. However, one can still download their articles and save them as HTML files. I have developed a [simple HTML parser](https://github.com/jaeyk/proquest_parser) to turn the database search results into CSV files.
 
 In this article, I focus on the rest of the research process: **content analysis, text classification, model evaluation, and data visualization.** 
 
 
 ### Content analysis [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/01_content_analysis.Rmd)]
 
-- Four RAs were divided into two groups. 
-- Each group labeled 1,008 articles according to two binary categories (linked progress and linked hurt). These articles were randomly selected from the original corpus stratifying on publication years. 
-- These RAs were never informed about the research objective. Yet, they had plenty of training opportunities. They learned about the distribution of topics in these newspaper articles by participating in the topic modeling analysis. In the process, they also read 2,400 articles and discussed them in a group. (I ended up not using topic modeling but the process helped the RAs to learn more about the corpus.) Therefore, when they started labeling these articles, they had quite good knowledge about the articles they read. 
-- Content analysis is an attempt to confirm whether the data under investigation follows the **conceptual** framework a researcher proposed. A good measure should be an **accurate, and reliable** of a construct. Thus, we check whether the labels (measures) created by these RAs were accurate and reliable. 
+- The four RAs were divided into two groups. 
+- Each group labeled 1,008 articles according to two binary categories: linked progress and linked hurt. These articles were randomly selected from the original corpus stratifying on publication years. 
+- Although these RAs were never informed about the research objective, they had plenty of training opportunities. They learned about the distribution of topics in these newspaper articles by participating in topic modeling analysis. During this process, they also read 2,400 articles and discussed them in a group. (While I ended up not using topic modeling, the process helped the RAs to learn more about the corpus.) Therefore, when they started labeling these articles, the RAs had extensive knowledge about the articles they had read. 
+- Content analysis is an attempt to confirm whether the data under investigation follows the researcher’s proposed **conceptual** framework. A good measure should be an **accurate and reliable** construct. Thus, we checked whether the labels (measures) created by these RAs were accurate and reliable. 
 
 #### Accuracy 
 
-We looked at to what extent to two RAs (RA `A` and `B`) **agreed** with each other (`ifelse(A == B, 1,0)`). I created two new variables according to this condition and calculated their mean values (percent agreement). Figure 1 shows that these rates are between 80 (linked progress) and linked hurt 90 (linked hurt) percent. Knowing the agreement rate is useful as it provides a reasonable baseline estimate for machine learning performances. If my undergraduates, trained for several weeks, had difficult times to label these articles, then I don't guess that an algorithm will do a much better job. What an algorithm is mimicking and scaling up human behaviors. It also follows the bias and noise embedded in the training data. 
+We investigated the extent to which two RAs (RA `A` and RA `B`) **agreed** with each other (`ifelse[A == B, 1,0]`). I created two new variables according to this condition and calculated their mean values (percent agreement). Figure 1 shows that these rates are between 80 (linked progress) and 90 (linked hurt) percent. Knowing the agreement rate is useful, as it provides a reasonable baseline estimate for machine learning performances. If my undergraduates, who had trained for several weeks, had difficulty labelling these articles, then I would not predict that an algorithm would do a much better job. An algorithm is mimicking and scaling up human behaviors; thus, it also follows the bias and noise embedded in the training data. 
 
 ```{R}
 df <- bind_rows(
@@ -47,27 +47,27 @@ Figure 1. How two RAs agreed with each other.
 
 #### Reliability 
 
-The agreement rates look good. However, it is too early to celebrate. Every measure has true value plus bias and noise. Now, we should turn to noise. The two RAs could agree to each other by chance. To address this problem, I calculated Cohen's kappa coefficient (k). The statistic shows to what extent the outcome is systematic or stochastic. If k is 1, then there was perfect agreement. If k is 0, then the agreement is by chance. Figure 2 shows that k statistic is especially low for Asian American data. As I trained my RAs for weeks, I do not think that the problem lies in inadequate coder training. I assume that it has more to do with the relative difficulty of labeling Asian American newspaper articles. This test shows that Asian American data is much noisier. 
+The agreement rates looked good. However, it was too early to celebrate. Every measure has true value plus bias and noise. The two RAs could have agreed with each other by chance. Therefore, I calculated Cohen's kappa coefficient (k), which shows to what extent the outcome is systematic or stochastic. If k is 1, then there is perfect agreement. If k is 0, then the agreement is by chance. Figure 2 shows that the k statistic is particularly low for Asian American data. As I trained my RAs for weeks, I do not think that the problem lies in inadequate coder training. I assume that it has more to do with the relative difficulty of labeling Asian American newspaper articles. This test shows that Asian American data is much noisier. 
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/content_analysis_kappa.png)
 Figure 2. Inter-coder reliability score. 
 
 #### Correlation coefficients 
 
-The correlation coefficients between the two binary labels are neither about the accuracy or reliability. But it's worth checking out as it gives some ideas on how to think about the relationship between the two binary labels. The classification problem assumes that **these labels (or categories) are strictly different (or mutually exclusive)**. Yet, again, this is also an empirical question. The result shows that the strength of correlations is much weaker in the Asian American case compared to the African American case. This result shows that there more intersecting areas exist between the two categories in the African American case relative to the Asian American case.
+The correlation coefficients between the two binary labels are about neither the accuracy nor the reliability. However, they are worth checking, as they provide some ideas for how to think about the relationship between the two binary labels. The classification problem assumes that **these labels (or categories) are strictly different (or mutually exclusive)**. Yet, again, this is also an empirical question. The results show that the strength of correlations is much weaker in the Asian American case compared to the African American case, indicating there are more intersecting areas between the two categories in the African American case relative to the Asian American case.
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/corr_analysis.png)
 Figure 3. Correlation between the two binary categories. 
 
 ### Text classification [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/02_text_classification.ipynb)]
 
-I followed the standard procedure. I cleaned the text data, did feature engineering (turned the text data into a document-term matrix and reduced the number of features), trained various algorithms, and checked their performances using accuracy and balanced accuracy scores. 
+I followed the standard procedure: cleaned the text data, performed feature engineering (turned the text data into a document-term matrix and reduced the number of features), trained various algorithms, and checked their performances using accuracy and balanced accuracy scores. 
 
-Here the main challenge is doing this with two different datasets and two different response variables. Instead of creating one-size-fits-all model, I built and trained a model for each data and for each response variable. We have seen that the data genetring process for each data and each response variable is distinct from the content analysis above. Thus, it is reasonable to take this separation approach.  
+Here, the main challenge was doing this with two different datasets and two different response variables. Instead of creating a one-size-fits-all model, I built and trained a model for each data and each response variable. The content analysis showed that the data-generating process for each data and each response variable was distinct; thus, it is reasonable to take this separation approach.  
 
-Practically, taking this approach could make code lengthy and complicated. To avoid this problem, I created lots of custom functions that made applying the identical procedure to different data and different response variables easy. 
+From a practical perspective, taking this approach could make the code lengthy and complicated. To avoid this problem, I created numerous custom functions that made applying the identical procedure to different data and different response variables easier. 
 
-For example, the below is my custom function for testing multiple models. Making and utilizing these functions makes doing machine learning much easier, faster, and more interpretable.  
+For example, below is my custom function for testing multiple models. Making and utilizing these functions made the machine learning much easier, faster, and more interpretable.  
 
 ```{Python}
 def test_models(models, data):
@@ -77,28 +77,28 @@ def test_models(models, data):
     return(lasso, bayes, xgboost)
 ```
 
-The other important thing I did is resampling. I upsampled the minority class from the training data before feature engineering. It is because that class (positive value) is what I cared in this study and accuracy score could be misleading if the algorithm misses this class severely. After importing the training data, I checked the balance between the two classes and included resampling in the model training function. In the next section, I showed the performance of machine algorithms with or without resampling. 
+The other important thing I did was resampling. I upsampled the minority class from the training data before feature engineering. Since that class (positive value) is what I cared about in this study, the accuracy score could be misleading if the algorithm misses this class severely. After importing the training data, I checked the balance between the two classes and included resampling in the model training function. In the next section, I show the performance of the machine algorithms with or without resampling. 
 
 ### Model evaluation [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/03_model_evaluations.Rmd)]
 
-Accuracy score simply calculates the degree to which the model predicts both positive and negative values correctly. Balanced accuracy score adds up the accuracy score for each class and divide it by the number of classes. 
+The accuracy score simply calculates the degree to which the model correctly predicts both positive and negative values. The balanced accuracy score adds up the accuracy score for each class and divides it by the number of classes. 
 
-Figure 4 shows that resampling (to be precise, upsampling) makes a critical difference especially for the balanced accuracy scores of the three machine learning algorithms.
+Figure 4 shows that resampling (to be precise, upsampling) makes a critical difference, particularly for the balanced accuracy scores of the three machine learning algorithms.
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/ml_performances.png)
 Figure 4. ML performances with or without resampling
 
-Figure 5 shows that how machine learning algorithms performed when we used the inter-coder agreement rate as a benchmark (dashed line). As expected, machine learning algorithms performed either similarly (with resampling) or slightly less than human coders (without resampling).
+Figure 5 shows how the machine learning algorithms performed when we used the inter-coder agreement rate as a benchmark (dashed line). As expected, the machine learning algorithms performed either similarly (with resampling) or slightly less than human coders (without resampling).
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/ml_content.png)
 Figure 5. ML performances against the human benchmark 
 
 ### Data visualization [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/04_time_series_visualization.Rmd)]
 
-I plotted the results (training data + predicted data) as two time-series plots. Two patterns stand out from these plots and they were expected by the content analysis.
+I plotted the results (training data + predicted data) as two time-series plots. Two patterns stand out from these plots, and they were expected by the content analysis.
 
-- There was less overlaps between the two binary labels in the African American case relative to the Asian American case. See the greater number of mixed articles on the African American side. These are articles classifed as both linked progress and hurt articles. We observed this pattern from the training data and we saw it again here.
-- Asian American data has a lot of noise. On the one hand, it is because their sample size is smaller (thus, wider confidence intervals). On the other hand, it is becuase this data is less reliable from the beginning. When we aggregate data (using a higher-level unit of analysis), data becomes less noisy. In contrasdt, when you disaggregate data (using a lower-level unit of analysis), data becomes more nosiy. In the bottom pattern (monthly observations), it is very difficult to read how the two labels relate to each other in the Asian American data. We can do a more fine-grained analysis using the African American data but not the Asian American data.
+- There were fewer overlaps between the two binary labels in the African American case relative to the Asian American case. Note the greater number of mixed articles on the African American side. These are articles classified as both linked progress and linked hurt articles. We observed this pattern from the training data, and we saw it again here.
+- The Asian American data has extensive noise because the sample size was smaller (thus, wider confidence intervals). However, this data was also less reliable from the beginning. When aggregating data (using a higher-level unit of analysis), the data becomes less noisy. In contrast, when disaggregating data (using a lower-level unit of analysis), the data becomes noisier. In the bottom pattern (monthly observations), it is extremely difficult to read how the two labels relate to each other in the Asian American data. We can do a more fine-grained analysis using the African American data but not the Asian American data.
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/time_series_plot.png)
 Figure 6. Time series trends 
@@ -106,5 +106,4 @@ Figure 6. Time series trends
 
 ## Conclusion
 
-Garbage in and garbaeg out is true. Machine learning is no exception. Knowing exactly how garbage the training data is useful to estimate how well machine learning will perform. In addition, it also helps investigators to have deeper understanding of the quality of the machince-predicted data. In [my another project](https://github.com/jaeyk/ITS-Text-Classification), I discussed how we can use machine learning to create data for causal inference. When using machine-predicted data for statistical and causal inferential problems, we should take this data quality problem seriously. Systematic efforts to document the data collection process is key to achieving this goal. 
-
+Garbage in and garbage out is true, and machine learning is no exception. Knowing exactly how garbage the training data is enables estimating how well machine learning will perform. Furthermore, this knowledge also helps investigators have a deeper understanding of the quality of the machine-predicted data. In [my other project](https://github.com/jaeyk/ITS-Text-Classification), I discussed how we can use machine learning to create data for causal inference. When using machine-predicted data for statistical and causal inferential problems, we should take this data quality problem seriously. Systematic efforts to document the data collection process are key to achieving this goal. 
