@@ -138,12 +138,12 @@ full_articles$year_mon[1:10]
 
 ```{r}
 
-yearly_trends <- full_articles %>%
+year_trends <- full_articles %>%
   group_by(group, year) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   ggplot(aes(x = anytime::anydate(year), y = value, col = linked_fate)) +
-  stat_summary(fun.y = mean, geom = "point", alpha = 0.3) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.5) +
+  stat_summary(fun.y = mean, geom = "point", alpha = 0.4) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.2) +
   geom_smooth() +
   scale_x_date(date_labels = "%Y") +
   scale_y_continuous(labels = scales::percent) +
@@ -156,12 +156,12 @@ yearly_trends <- full_articles %>%
        y = "Proportion of articles", x = "Publication year") +
   theme_base()
 
-monthly_trends <- full_articles %>%
+month_trends <- full_articles %>%
   group_by(group, year_mon) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   ggplot(aes(x = anytime::anydate(year_mon), y = value, col = linked_fate)) +
-  stat_summary(fun.y = mean, geom = "point", alpha = 0.3) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.5) +
+  stat_summary(fun.y = mean, geom = "point", alpha = 0.4) +
+  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.2) +
   geom_smooth() +
   scale_x_date(date_labels = "%Y-%m") +
   scale_y_continuous(labels = scales::percent) +
@@ -174,7 +174,7 @@ monthly_trends <- full_articles %>%
        y = "Proportion of articles", x = "Publication month") +
   theme_base()
 
-ggarrange(yearly_trends, monthly_trends, nrow = 2, ncol = 1, common.legend = TRUE)
+ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 8)
 

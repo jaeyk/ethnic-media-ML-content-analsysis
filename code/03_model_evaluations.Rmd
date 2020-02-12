@@ -142,7 +142,7 @@ resampling_plot <- merged_model %>%
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances.png", height = 10, width = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances.png", height = 10, width = 12)
 
 ```
 
@@ -174,6 +174,6 @@ resampling_plot <- merged_model %>%
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png", height = 10, width = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png", height = 10, width = 12)
 ```
 
