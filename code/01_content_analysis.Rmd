@@ -141,14 +141,6 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ### 3.1. Creating functions
 
-agreement = accuracy 
-
-precision = kappa 
-
-http://web2.cs.columbia.edu/~julia/courses/CS6998/Interrater_agreement.Kappa_statistic.pdf
-
-https://stats.stackexchange.com/questions/82162/cohens-kappa-in-plain-english
-
 ```{r}
 
 extract_kappa <- function(data){
@@ -273,7 +265,7 @@ df %>%
   summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
   ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
     geom_col() +
-    labs(title = "Correlation Coefficients between Linked Progress and Linked Hurt",
+    labs(title = "Correlation Coefficients",
          y = "Pearson Correlation coefficient",
          x = "Group",
          caption = "Ethnic NewsWatch") +
