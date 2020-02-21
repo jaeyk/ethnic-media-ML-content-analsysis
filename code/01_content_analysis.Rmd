@@ -189,7 +189,7 @@ mutate(
           training_black %>%
   extract_agreement()), group = "African Americans"))
 
-write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")
+write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")
 ```
 
 ### 3.3. Visualizing agreement and Kappa  

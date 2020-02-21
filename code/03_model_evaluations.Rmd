@@ -57,7 +57,7 @@ black_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-
 
 # From content analysis: Correlation coefficients and Kappa statistics 
 
-irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/irr_summary.csv")[,-1]
+irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")[,-1]
 
 ```
 
