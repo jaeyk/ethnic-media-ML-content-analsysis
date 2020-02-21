@@ -1,0 +1,318 @@
+---
+title: "Text classification"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+Resources 
+- https://www.hvitfeldt.me/blog/text-classification-with-tidymodels/#introduction
+- https://juliasilge.com/blog/tidy-text-classification/
+- http://www.rebeccabarter.com/blog/2019-06-06_pre_processing/
+- https://www.benjaminsorensen.me/post/modeling-with-parsnip-and-tidymodels/
+- https://towardsdatascience.com/modelling-with-tidymodels-and-parsnip-bae2c01c131c
+- https://www.hvitfeldt.me/blog/authorship-classification-with-tidymodels-and-textrecipes/
+- https://cran.r-project.org/web/packages/text2vec/vignettes/text-vectorization.html
+- https://stackoverflow.com/questions/43744399/can-i-get-classification-accuracy-and-cohens-kappa-from-glm-results
+- http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
+- http://fisher.stats.uwo.ca/faculty/aim/2019/9850/RNotebooks/21_CaravanRevisited_Apr7.html
+- https://fderyckel.github.io/2016-12-07-Texts_Classification_in_R/
+- https://cfss.uchicago.edu/notes/supervised-text-classification/
+
+## 0. Setup 
+
+I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8, 
+                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
+```
+
+```{r}
+
+# Clean up the environment
+
+# rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        tidymodels, # for tidy modeling  
+        caret, # for ML
+        pROC, # for ROC
+        parsnip, # for modeling
+        tidytext, # for text analysis in a tidy way
+        lubridate, # for date manipulation
+        textrecipes, # for preprocessing text data
+        text2vec, # for preprocessing text data
+        stopwords, # for stopwords
+        tokenizers, # for tokenizing
+        textclean, # for cleaning text
+        hunspell, # for cleaning text 
+        textshape, # for cleaning text 
+        tm, # for cleaning text 
+        tidyr, # for creating tidy data
+        furrr, # for applying mapping functions 
+        ggthemes, # for fancy ggplot themes
+        glmnet, # for logistic regression classifier
+        randomForest, # for random forest classifier
+        rpart, # for recursive partitioning
+        caTools, # for ML
+        splitstackshape, # for stratified random sampling
+        DMwR, # for daealing with imbalanced classes 
+        imbalance, # for dealing wiht imbalanced classes 
+        yardstick # for ML measures
+)
+
+```
+
+https://www.alexpghayes.com/blog/implementing-the-super-learner-with-tidymodels/
+
+## 1. Importing files 
+
+
+```{r}
+
+# Labeled data 
+
+labeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")[,-2] 
+labeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")[,-2]
+
+# Unlabeled data 
+
+unlabeled_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")[,-2]
+unlabeled_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")[,-2]
+
+# rename the missing col name 
+
+colnames(labeled_asian)[1] <- "id"
+colnames(labeled_black)[1] <- "id"
+colnames(unlabeled_asian)[1] <- "id"
+colnames(unlabeled_black)[1] <- "id"
+
+```
+
+## 2. Cleaning text
+
+### 2.1. Creating my custom text clean function 
+
+```{r}
+
+clean_text <- function(document){
+  document %>% 
+    replace_non_ascii() %>%
+    replace_contraction() %>%
+    add_comma_space() %>%
+    removePunctuation() %>%                
+    tolower() %>% # low key 
+    str_trim() %>% # remove whitespace 
+    gsub("[\r?\n]", "", .) %>% # remove \n
+    gsub("  ", " ", .)
+}
+
+```
+
+### 2.2 Applying the function to each data 
+
+```{r}
+
+labeled_asian$text <- clean_text(labeled_asian$text) 
+labeled_black$text <- clean_text(labeled_black$text) 
+
+data_clean <- labeled_asian 
+```
+
+### 2.3. Checking the balance 
+
+```{r}
+data_clean %>%
+  ggplot(aes(linked_progress)) +
+  geom_bar()
+
+data_counts <- map_df(1:2,
+                      ~ unnest_tokens(data_clean, word, text, 
+                                      token = "ngrams", n = .x)) %>%
+  anti_join(stop_words, by = "word") %>%
+  count(id, word, sort = TRUE)
+
+words_10 <- data_counts %>%
+  group_by(word) %>%
+  summarise(n = n()) %>% 
+  filter(n >= 10) %>%
+  select(word)
+
+data_dtm <- data_counts %>%
+  right_join(words_10, by = "word") %>%
+  bind_tf_idf(word, id, n) %>%
+  cast_dtm(id, word, tf_idf)
+
+meta <- tibble(id = as.numeric(dimnames(data_dtm)[[1]])) %>%
+  left_join(data_clean[!duplicated(data_clean$id), ], by = "id")
+
+trainIndex <- createDataPartition(meta$linked_progress, p = 0.8, list = FALSE, times = 1)
+
+data_df_train <- data_dtm[trainIndex, ] %>% as.matrix() %>% as.data.frame()
+data_df_test <- data_dtm[-trainIndex, ] %>% as.matrix() %>% as.data.frame()
+
+response_train <- meta$linked_progress[trainIndex]
+
+```
+
+## 3. Model building and testing  
+
+### 3.1. Creating a function for model building and testing 
+
+```{r}
+
+ctrl <- trainControl(method = "none")
+
+svm_mod <- train(x = data_df_train,
+                 y = as.factor(response_train),
+                 method = "svmLinearWeights2",
+                 trControl = ctrl,
+                 tuneGrid = data.frame(cost = 1, 
+                                       Loss = 0, 
+                                       weight = 1))
+
+svm_pred <- predict(svm_mod,
+                    newdata = data_df_test)
+
+svm_cm <- confusionMatrix(svm_pred, factor(meta[-trainIndex, ]$linked_progress))
+
+nb_mod <- train(x = data_df_train,
+                y = as.factor(response_train),
+                method = "naive_bayes",
+                trControl = trctrl,
+                tuneGrid = data.frame(laplace = 0,
+                                      usekernel = FALSE,
+                                      adjust = FALSE))
+
+nb_pred <- predict(nb_mod,
+                   newdata = data_df_test)
+
+nb_cm <- confusionMatrix(nb_pred, factor(meta[-trainIndex, ]$linked_progress))
+
+logitboost_mod <- train(x = data_df_train,
+                        y = as.factor(response_train),
+                        method = "LogitBoost",
+                        trControl = trctrl)
+
+logitboost_pred <- predict(logitboost_mod,
+                           newdata = data_df_test)
+
+logitboost_cm <- confusionMatrix(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress))
+
+rf_mod <- train(x = data_df_train, 
+                y = as.factor(response_train), 
+                method = "ranger",
+                trControl = trctrl,
+                tuneGrid = data.frame(mtry = floor(sqrt(dim(data_df_train)[2])),
+                                      splitrule = "gini",
+                                      min.node.size = 1))
+
+rf_pred <- predict(rf_mod,
+                   newdata = data_df_test)
+
+rf_cm <- confusionMatrix(rf_pred, factor(meta[-trainIndex, ]$linked_progress))
+
+acu_results <- rbind(
+  svm_cm$overall, 
+  nb_cm$overall,
+  logitboost_cm$overall,
+  rf_cm$overall
+  ) %>%
+  as.data.frame() %>%
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest"))
+
+balanced_acu_results <- c(
+  bal_accuracy_vec(svm_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(nb_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(logitboost_pred, factor(meta[-trainIndex, ]$linked_progress)),
+  bal_accuracy_vec(rf_pred, factor(meta[-trainIndex, ]$linked_progress))) 
+
+
+mod_results <- data.frame(acu = acu_results$Accuracy,
+                          kappa = acu_results$Kappa,
+                          balanced_acu = balanced_acu_results) %>%
+  mutate(model = c("SVM", "Naive-Bayes", "LogitBoost", "Random forest")) 
+
+mod_results %>%
+  gather(metrices, value, c("acu", "kappa", "balanced_acu")) %>%
+  ggplot(aes(fct_reorder(model, value), value, fill = metrices)) +
+    geom_col(position = "dodge") +
+    labs(x = "Model type", 
+         y = "Performance rate",
+         title = "ML performances")
+    theme_clean()
+```
+
+## 3. Model building and testing  
+
+
+
+## 4. Predictions 
+
+```{r}
+
+def test_text(text, model):   
+      
+    features = vectorizer.fit_transform(text).todense()
+    
+#    features = transformer.fit_transform(features)
+    
+    predictions = model.predict(features)
+    return predictions
+```
+
+```{r}
+# asian
+## unlabeled
+asian_lp_full = test_text(asian_unlabeled['text'], asian_lp)
+asian_lh_full = test_text(asian_unlabeled['text'], asian_lh)
+
+# black
+## unlabeled 
+black_lp_full = test_text(black_unlabeled['text'], black_lp)
+black_lh_full = test_text(black_unlabeled['text'], black_lh)
+```
+
+```{r}
+# The original 
+
+print("asian linked progress:", sum(asian_sample['linked_progress']),
+      "asian linked hurt:", sum(asian_sample['linked_hurt']),
+      "black linked progress:", sum(black_sample['linked_progress']),
+      "blakc linked hurt:", sum(black_sample['linked_hurt']))
+```
+
+```{r}
+# The machine coded
+
+print("asian linked progress:", sum(test_text(asian_sample['text'], asian_lp)),
+      "asian linked hurt:", sum(test_text(asian_sample['text'], asian_lh)),
+      "black linked progress:", sum(test_text(black_sample['text'], black_lp)),
+      "blakc linked hurt:", sum(test_text(black_sample['text'], black_lh)))
+```
+
+## 5. Exporting results as a csv file 
+
+```{r}
+
+# Asian
+asian_lp_data = pd.DataFrame(asian_lp_full).rename(columns = {0:'labeled_linked_progress'})
+asian_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lp_data.csv")
+
+asian_lh_data = pd.DataFrame(asian_lh_full).rename(columns = {0:'labeled_linked_hurt'})
+asian_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/asian_lh_data.csv")
+
+# Black
+black_lp_data = pd.DataFrame(black_lp_full).rename(columns = {0:'labeled_linked_progress'})
+black_lp_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lp_data.csv")
+
+black_lh_data = pd.DataFrame(black_lh_full).rename(columns = {0:'labeled_linked_hurt'})
+black_lh_data.to_csv("/home/jae/linked_fate_evolution/Output/black_lh_data.csv")
+```
