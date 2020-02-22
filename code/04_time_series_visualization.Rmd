@@ -127,7 +127,6 @@ names(full_articles)
 
 ### 3.1. Time serieds trends 
 
-
 ```{r}
 # Extract year-month
 full_articles$year_mon <- format(as.Date(full_articles$date), "%Y-%m")
@@ -201,6 +200,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matche
 ```
 
 ## 4. Export the merged file  
+
 ```{r}
 
 write.csv(full_articles, 
