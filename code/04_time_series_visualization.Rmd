@@ -33,6 +33,10 @@ pacman::p_load(
         ggthemes # for fancy ggplot themes
 )
 
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
+
 ```
 
 ## 1. Import files 
@@ -152,8 +156,7 @@ year_trends <- full_articles %>%
   labs(title = "Time series trends (Yearly)", 
        subtitle = "All newspaper sources are located in West Coast",
        caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication year") +
-  theme_base()
+       y = "Proportion of articles", x = "Publication year")
 
 month_trends <- full_articles %>%
   group_by(group, year_mon) %>%
@@ -170,8 +173,7 @@ month_trends <- full_articles %>%
   labs(title = "Time series trends (Monthly)", 
        subtitle = "All newspaper sources are located in West Coast",
        caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication month") +
-  theme_base()
+       y = "Proportion of articles", x = "Publication month")
 
 ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
@@ -190,7 +192,6 @@ full_articles %>%
     stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", size = 2) +
     stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
 #  ylim(c(0,17)) +
-  theme_base() +
   labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
   scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
   scale_y_continuous(labels = scales::percent) +
