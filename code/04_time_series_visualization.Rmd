@@ -196,7 +196,7 @@ full_articles %>%
   scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
   scale_y_continuous(labels = scales::percent) +
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
 ```
 
