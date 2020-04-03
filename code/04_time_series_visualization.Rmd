@@ -146,7 +146,7 @@ year_trends <- full_articles %>%
   facet_wrap(~group) +
   labs(title = "Time series trends (Yearly)", 
        caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication year")
+       y = "Proportion of articles", x = "Publication year") 
 
 month_trends <- full_articles %>%
   group_by(group, year_mon) %>%
@@ -161,7 +161,8 @@ month_trends <- full_articles %>%
   facet_wrap(~group) +
   labs(title = "Time series trends (Monthly)", 
        caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication month")
+       y = "Proportion of articles", x = "Publication month") +
+  ylim(0,0.80)
 
 ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
@@ -186,6 +187,12 @@ full_articles %>%
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
+
+full_articles %>%
+  filter(year >= 1976 & year <= 1981 ) %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  group_by(group, linked_fate) %>%
+  summarize(mean = mean(value))
 ```
 
 ## 4. Export the merged file  

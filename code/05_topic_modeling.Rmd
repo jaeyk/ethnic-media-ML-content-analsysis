@@ -11,13 +11,6 @@ html_document:
 
 ## 0. Setup
 
-I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
-
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width = 12, fig.height = 8,
-                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
-```
-
 ```{r}
 
 # Clean up the environment
@@ -40,6 +33,8 @@ pacman::p_load(
         patchwork # for arranging images
 )
 
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+
 ```
 
 ## 1. Import files
@@ -47,6 +42,7 @@ pacman::p_load(
 ```{r}
 
 full_articles <- read_csv( "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+
 ```
 
 ## 2. Clean and wrangle data
@@ -68,6 +64,7 @@ full_articles <- full_articles %>%
 ## Select the articles classified either exclusive linked progress or linked hurt articles
 lp_articles <- subset(full_articles, lp_exclusive == 1)
 lh_articles <- subset(full_articles, lh_exclusive == 1)
+
 ```
 
 ## 3. Structural topic modeling
@@ -78,54 +75,23 @@ I adapted the code from Julia Silge's [amazing STM tutotial](https://juliasilge.
 
 ```{r}
 
-# Clean text function
-
-clean_text <- function(data){
-
-  data <- data %>%
-    mutate(text = tolower(text),
-    text = str_replace_all(text, '[\r?\n]',''),
-    text = str_replace_all(text, '[^\\w\\s]',''),
-    text = str_replace_all(text, '\\d+', ''),
-    text = trimws(text),
-    postID = row_number())
-
-  return(data)
-}
-
-# Apply to each data
+# Apply clean text function to each data
 
 lp_articles <- clean_text(lp_articles)
 lh_articles <- clean_text(lh_articles)
 
 # Create a document-term matrix
 
-lp_articles_sparse <- lp_articles %>%
-  unnest_tokens(word, text) %>%
-  anti_join(get_stopwords()) %>%
-  filter(!str_detect(word, "[0-9]+")) %>%
-  add_count(word) %>%
-  filter(n > 100) %>%
-  select(-n) %>%
-  count(postID, word) %>%
-  cast_sparse(postID, word, n)
-
-lh_articles_sparse <- lh_articles %>%
-  unnest_tokens(word, text) %>%
-  anti_join(get_stopwords()) %>%
-  filter(!str_detect(word, "[0-9]+")) %>%
-  add_count(word) %>%
-  filter(n > 100) %>%
-  select(-n) %>%
-  count(postID, word) %>%
-  cast_sparse(postID, word, n)
+lp_articles_sparse <- create_sparse_matrix(lp_articles)
+lh_articles_sparse <- create_sparse_matrix(lh_articles)
+  
 ```
 
 ### 3.2. Train and evaluate a topic model
 
 #### 3.2.1. Train many models
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 plan(multiprocess)
 
@@ -141,7 +107,7 @@ lh_many_models <- data_frame(K = c(5, 10, 15)) %>%
 
 #### 3.2.2. Visualize diagnostics
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 visualize_diagnostics <- function(sparse_matrix, many_models){
 
@@ -183,7 +149,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_
 
 ### 3.3. Adding covariates
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 lp_stm <- stm(documents = lp_articles_sparse,
               data = lp_articles,
@@ -205,6 +171,10 @@ write_rds(lh_stm, "/home/jae/content-analysis-for-evaluating-ML-performances/pro
 ### 3.4. Estimating effects
 
 ```{r}
+
+# Read files 
+lp_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lp_stm.rds")
+lh_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lh_stm.rds")
 
 # Prep
 lp_predict_topics <- estimateEffect(formula = 1:10 ~ group, stmobj = lp_stm, metadata = lp_articles, uncertainty = "Global")
@@ -243,3 +213,17 @@ lp_predict_group + lh_predict_group
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_predict_estimates_plot.png", width = 12)
 
 ```
+### 3.5. Content analysis
+
+- Linked progress (Asian American > African Americans): 4, 10 
+- Linked hurt (African American > Asian Americans): 3, 8
+
+```{r}
+
+lp_thoughts <- findThoughts(lp_stm, texts = lp_articles$text, topics = c(4, 10), n = 20)
+
+lh_thoughts <- findThoughts(lh_stm, texts = lh_articles$text, topics = c(3, 8), n = 20)
+
+lh_thoughts
+```
+
