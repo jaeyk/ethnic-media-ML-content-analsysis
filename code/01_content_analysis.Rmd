@@ -56,7 +56,7 @@ names(training_asian) == names(training_black)
 
 ## 2. Descriptive statistics 
 
-### 2.1. Data wrangling
+### 2.1. Merging
 
 ```{r}
 
@@ -64,10 +64,7 @@ names(training_asian) == names(training_black)
 
 df <- bind_rows(
   mutate(training_asian, group = "Asian Americans"),
-  mutate(training_black, group = "African Americans")
-) %>%
-  mutate(linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
+  mutate(training_black, group = "African Americans"))
  
 
 ```
@@ -276,3 +273,51 @@ df %>%
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis.png")
 
 ```
+
+
+## 5. Reading texts 
+
+- Merging the text files with the content analysis 
+
+```{r}
+
+sample_asian <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.rds")
+sample_black <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.rds")
+
+sample_asian <- bind_cols(sample_asian, training_asian %>% select(linked_progress, linked_hurt, Topics_C))
+sample_black <- bind_cols(sample_black, training_black %>% select(linked_progress, linked_hurt, Topics_C))
+
+```
+
+- Reading extreme cases 
+
+```{r}
+
+sample_asian_text <- sample_asian %>%
+  filter(Topics_C == "Political representation" & linked_progress == 1 & linked_hurt == 0) %>%
+  select(date, source, text) 
+
+sample_black_text <- sample_black %>%
+  filter(Topics_C == "Criminal justice" & linked_hurt == 1 & linked_progress == 0) %>%
+  select(date, source, text) 
+
+```
+
+## 6. Exporting non-duplicated files 
+
+```{r}
+
+# Non-duplicated 
+sample_asian <- sample_asian[!duplicated(sample_asian$text),]
+sample_black <- sample_black[!duplicated(sample_black$text),]
+
+# Check 
+1008 - nrow(sample_asian)
+1008 - nrow(sample_black)
+
+# Export 
+write.csv(sample_asian, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")
+write.csv(sample_black, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")
+
+```
+

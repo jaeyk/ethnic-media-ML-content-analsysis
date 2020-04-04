@@ -108,7 +108,6 @@ sum(black_unlabeled$nopolitical)
 
 ```
 
-
 ## 4. Export the data 
 
 ```{r}
@@ -131,4 +130,3 @@ table(asian_selected$source)
 table(black_selected$source)
 
 ```
-

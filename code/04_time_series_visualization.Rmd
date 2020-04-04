@@ -175,6 +175,13 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_s
 
 ```
 
+```{r}
+
+year_trends + facet_wrap(~source)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_source.png")
+
+```
+
 ### 3.2. Matched comparison
 
 ```{r}
@@ -182,13 +189,14 @@ full_articles %>%
   filter(year >= 1976 & year <= 1981 ) %>%
   group_by(group) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  mutate(linked_fate == factor(linked_fate, levels = c("lh_exclusive", "lf_mixed", "lp_exclusive"))) %>%
   ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
     stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", size = 2) +
     stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
 #  ylim(c(0,17)) +
-  labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
-  scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-  scale_y_continuous(labels = scales::percent) +
+    labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_y_continuous(labels = scales::percent)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
