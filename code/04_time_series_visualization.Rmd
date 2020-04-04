@@ -125,11 +125,13 @@ names(full_articles)
 ### 3.1. Time serieds trends 
 
 ```{r}
+
 # Extract year-month
 full_articles$year_mon <- format(as.Date(full_articles$date), "%Y-%m")
 
 # Check
 full_articles$year_mon[1:10]
+
 ```
 
 ```{r}
@@ -147,6 +149,10 @@ year_trends <- full_articles %>%
   labs(title = "Time series trends (Yearly)", 
        caption = "Source: Ethnic Newswatch",
        y = "Proportion of articles", x = "Publication year") 
+
+```
+
+```{r}
 
 month_trends <- full_articles %>%
   group_by(group, year_mon) %>%

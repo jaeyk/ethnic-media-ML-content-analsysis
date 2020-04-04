@@ -13,7 +13,7 @@ html_document:
 
 # Clean up the environment
 
-# rm(list = ls())
+rm(list = ls())
 
 # Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
 
@@ -26,6 +26,10 @@ pacman::p_load(
         ggthemes # for fancy ggplot themes
 )
 
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
+
 ```
 
 ## 1. Importing files 
@@ -34,10 +38,12 @@ pacman::p_load(
 ```{r}
 
 # Training data for classifying articles from Asian American newspapers 
-training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")
+training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv") %>%
+  dplyr::select(-contains("Notes")) 
 
 # Training data for classifying articles from African American newspapers
-training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")
+training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv") %>%
+  dplyr::select(-contains("Notes")) 
 
 # Dimensions 
 dim(training_asian)
@@ -50,34 +56,25 @@ names(training_asian) == names(training_black)
 
 ## 2. Descriptive statistics 
 
-### 2.1. Data cleaning 
+### 2.1. Data wrangling
 
 ```{r}
 
-# Checking NAs
-
-mean(is.na(training_asian))
-mean(is.na(training_black))
-
-# Replacing NAs with 0s
-
-training_asian[is.na(training_asian)] <- 0
-
-```
-
-### 2.2. Data visualization 
-
-#### 2.2.1. Percentages of agreement 
-
-```{r}
+# Wrangling 
 
 df <- bind_rows(
   mutate(training_asian, group = "Asian Americans"),
   mutate(training_black, group = "African Americans")
 ) %>%
   mutate(linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0),
-         topic = ifelse(Topics_A == Topics_B, Topics_A, "Mismatched"))
+         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
+ 
+
+```
+
+### 2.2. Data visualization 
+
+```{r}
 
 df %>%
   gather(type, value, linked_progress, linked_hurt) %>%
@@ -95,7 +92,8 @@ df %>%
     labs(y= "Percentages of Agreement", x = "Linked Fate Type",
          title = "Percentages of Agreement",
          subtitle = "1: Perfect agreement, 0: Zero agreement",
-         caption = "Ethnic NewsWatch") +
+         caption = "Ethnic NewsWatch",
+         col = "Group") +
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
@@ -114,7 +112,8 @@ df %>%
     geom_col(position = "dodge") +
     labs(x = "Values", y = "N",
          title = "Linked Progress",
-         subtitle = "Yes = 1, No = 0") +
+         subtitle = "Yes = 1, No = 0",
+         fill = "Group") +
     theme_clean(),
 
 df %>%
@@ -124,7 +123,8 @@ df %>%
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
          title = "Linked Hurt",
-         subtitle = "Yes = 1, No = 0") +
+         subtitle = "Yes = 1, No = 0",
+         fill = "Group") +
     theme_clean(), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
@@ -183,6 +183,7 @@ mutate(
   extract_agreement()), group = "African Americans"))
 
 write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")
+
 ```
 
 ### 3.3. Visualizing agreement and Kappa  
@@ -197,11 +198,13 @@ irr_summary %>%
     labs(y= "Intercorder Reliability Scores", x = "Linked Fate Type",
          title = "Content Analysis Results",
          subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
-         caption = "Ethnic NewsWatch") +
+         caption = "Ethnic NewsWatch",
+         fill = "Group") +
     theme_clean() + # five thirty eight theme 
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
+
 ```
 
 ## 4. Additional exploratory data analyses 
@@ -211,40 +214,44 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ```{r}
 
 # Asian Americans
-train_asian_plot <- df %>%
-  filter(group == "Asian Americans") %>%
-  gather(type, value, linked_progress, linked_hurt) %>%
+train_asian_plot <- training_asian %>%
+  rename(Linked_progress = linked_progress) %>%
+  rename(Linked_hurt = linked_hurt) %>%
+  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
   filter(value == 1) %>%
-  filter(topic != "Mismatch") %>%
-  group_by(type) %>%
-  count(topic) %>%
-  mutate(freq = n/sum(n)) %>%
-  ggplot(aes(x = fct_reorder(topic, freq), y = freq, fill = type)) +
+  filter(Topics_C != "Mismatch") %>%
+  group_by(linked_fate) %>%
+  count(Topics_C) %>%
+  spread(linked_fate, n) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress)) %>%
+  mutate(difference = Linked_progress - Linked_hurt) %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    theme_base() +
-    labs(x = "Topics", y = "Frequency", title = "Frequency of agreed topics",
-         subtitle = "Asian Americans")
+    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "Asian Americans") +
+    ylim(c(-30,20))
 
 # African Americans
-train_black_plot <- df %>%
-  filter(group != "Asian Americans") %>%
-  gather(type, value, linked_progress, linked_hurt) %>%
+train_black_plot <- training_black %>%
+  rename(Linked_progress = linked_progress) %>%
+  rename(Linked_hurt = linked_hurt) %>%
+  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
   filter(value == 1) %>%
-  filter(topic != "Mismatch") %>%
-  group_by(type) %>%
-  count(topic) %>%
-  mutate(freq = n/sum(n)) %>%
-  ggplot(aes(x = fct_reorder(topic, freq), y = freq, fill = type)) +
+  filter(Topics_C != "Mismatch") %>%
+  group_by(linked_fate) %>%
+  count(Topics_C) %>%
+  spread(linked_fate, n) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress)) %>%
+  mutate(difference = Linked_progress - Linked_hurt) %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    theme_base() +
-    labs(x = "Topics", y = "Frequency", title = "Frequency of agreed topics",
-         subtitle = "African Americans")
+    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "African Americans")+
+    ylim(c(-30,20))
 
 ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png", height = 10)
 
 ```
 
