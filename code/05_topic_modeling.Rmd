@@ -30,16 +30,20 @@ pacman::p_load(
         stm, # for structural topic modeling
         tidystm, # for extracting estimated effects from stm
         furrr, # for multiprocessing
-        patchwork # for arranging images
+        patchwork, # for arranging images
+        scales # for scales 
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
 
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
 ```
 
 ## 1. Import files
 
-```{r}
+```{r include=FALSE}
 
 full_articles <- read_csv( "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
 
@@ -54,16 +58,14 @@ full_articles$source <- str_trim(gsub(".*:", "", full_articles$source))
 
 # Dropping columns
 full_articles <- full_articles %>%
-  dplyr::select(-c(X1, author, linked_progress, linked_hurt, date))
+  dplyr::select(-c(X1, author, linked_progress, linked_hurt, date)) 
 
-# Subset data
-## Only matched years
-full_articles <- full_articles %>%
-  filter(year >= 1976 & year <= 1981 )
+# Subsetting
+lp_articles <- full_articles %>%
+  filter(lp_exclusive == 1)
 
-## Select the articles classified either exclusive linked progress or linked hurt articles
-lp_articles <- subset(full_articles, lp_exclusive == 1)
-lh_articles <- subset(full_articles, lh_exclusive == 1)
+lh_articles <- full_articles %>%
+  filter(lh_exclusive == 1)
 
 ```
 
@@ -84,91 +86,69 @@ lh_articles <- clean_text(lh_articles)
 
 lp_articles_sparse <- create_sparse_matrix(lp_articles)
 lh_articles_sparse <- create_sparse_matrix(lh_articles)
-  
+
+# Check (both numbers should be identical)
+
+paste(dim(lp_articles_sparse)[1], dim(lp_articles)[1])
+paste(dim(lh_articles_sparse)[1], dim(lh_articles)[1])
+
 ```
 
 ### 3.2. Train and evaluate a topic model
 
 #### 3.2.1. Train many models
 
-```{r eval=FALSE, include=FALSE}
+```{r include=FALSE}
 
 plan(multiprocess)
 
-lp_many_models <- data_frame(K = c(5, 10, 15)) %>%
-  mutate(topic_model = future_map(K, ~stm(lp_articles_sparse, K = .,
-                                          verbose = TRUE)))
+lp_many_models <- data_frame(K = c(10:15)) %>%
+  mutate(topic_model = future_map(K, ~stm(lp_articles_sparse, K = .)))
 
-lh_many_models <- data_frame(K = c(5, 10, 15)) %>%
-  mutate(topic_model = future_map(K, ~stm(lh_articles_sparse, K = .,
-                                          verbose = TRUE)))
+lh_many_models <- data_frame(K = c(10:15)) %>%
+  mutate(topic_model = future_map(K, ~stm(lh_articles_sparse, K = .)))
 
 ```
 
 #### 3.2.2. Visualize diagnostics
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 
-visualize_diagnostics <- function(sparse_matrix, many_models){
+lp_diag <- visualize_diagnostics(asian_lp_articles_sparse, lp_many_models) + labs(subtitle = "Linked progress articles") 
+lh_diag <- visualize_diagnostics(black_lh_articles_sparse, lh_many_models) + labs(subtitle = "Linked hurt articles") 
 
-heldout <- make.heldout(sparse_matrix)
-
-k_result <- many_models %>%
-  mutate(exclusivity = map(topic_model, exclusivity),
-         semantic_coherence = map(topic_model, semanticCoherence, sparse_matrix),
-         eval_heldout = map(topic_model, eval.heldout, heldout$missing),
-         residual = map(topic_model, checkResiduals, sparse_matrix),
-         bound =  map_dbl(topic_model, function(x) max(x$convergence$bound)),
-         lfact = map_dbl(topic_model, function(x) lfactorial(x$settings$dim$K)),
-         lbound = bound + lfact,
-         iterations = map_dbl(topic_model, function(x) length(x$convergence$bound)))
-
-k_result %>%
-  transmute(K,
-            `Lower bound` = lbound,
-            Residuals = map_dbl(residual, "dispersion"),
-            `Semantic coherence` = map_dbl(semantic_coherence, mean),
-            `Held-out likelihood` = map_dbl(eval_heldout, "expected.heldout")) %>%
-  gather(Metric, Value, -K) %>%
-  ggplot(aes(K, Value, color = Metric)) +
-  geom_line(size = 1.5, alpha = 0.7, show.legend = FALSE) +
-  facet_wrap(~Metric, scales = "free_y") +
-  labs(x = "K (number of topics)",
-       y = NULL,
-       title = "Model diagnostics by number of topics")}
-
-lp_diag <- visualize_diagnostics(lp_articles_sparse, lp_many_models) + labs(subtitle = "Linked progress articles") + theme_base()
-lh_diag <- visualize_diagnostics(lh_articles_sparse, lh_many_models) + labs(subtitle = "Linked hurt articles") + theme_base()
-
-lp_diag /
-lh_diag
+lp_diag / lh_diag
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_modeling_diagnosis_plot.png", height = 10)
-```
 
+```
 
 ### 3.3. Adding covariates
 
+12, 10, 11, 10
+
 ```{r eval=FALSE, include=FALSE}
+
+# Construct STM
 
 lp_stm <- stm(documents = lp_articles_sparse,
               data = lp_articles,
-              K = 10,
-              prevalence =~ group,
-              verbose = TRUE)
+              prevalence = ~group,
+              K = 14)
 
 lh_stm <- stm(documents = lh_articles_sparse,
               data = lh_articles,
-              K = 10,
-              prevalence =~ group,
-              verbose = TRUE)
+              prevalence = ~group,
+              K = 13)
 
 # Save these heavy files
+
 write_rds(lp_stm, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lp_stm.rds")
 write_rds(lh_stm, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lh_stm.rds")
+
 ```
 
-### 3.4. Estimating effects
+### 3.4. Plotting topic modeling results 
 
 ```{r}
 
@@ -177,15 +157,15 @@ lp_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/pr
 lh_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lh_stm.rds")
 
 # Prep
-lp_predict_topics <- estimateEffect(formula = 1:10 ~ group, stmobj = lp_stm, metadata = lp_articles, uncertainty = "Global")
-
-lh_predict_topics <- estimateEffect(formula = 1:10 ~ group, stmobj = lh_stm, metadata = lh_articles, uncertainty = "Global")
+lp_predict_topics <- estimateEffect(formula = 1:14 ~ group, stmobj = lp_stm, metadata = lp_articles, uncertainty = "Global")
+lh_predict_topics <- estimateEffect(formula = 1:13 ~ group, stmobj = lh_stm, metadata = lh_articles, uncertainty = "Global")
 
 # Plotting estimated effects
+
 lp_predict_group <- extract.estimateEffect(lp_predict_topics, "group",
                        model = lp_stm,
                        method = "pointestimate") %>%
-  ggplot(aes(x = fct_reorder(factor(as.character(topic)), estimate), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
+  ggplot(aes(x = factor(topic), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
   geom_pointrange() + theme_base() +
   labs(x = "Topics",
        y = "Estimated effects",
@@ -198,7 +178,7 @@ lp_predict_group <- extract.estimateEffect(lp_predict_topics, "group",
 lh_predict_group <- extract.estimateEffect(lh_predict_topics, "group",
                        model = lh_stm,
                        method = "pointestimate") %>%
-  ggplot(aes(x = fct_reorder(factor(as.character(topic)), estimate), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
+  ggplot(aes(x = factor(topic), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
   geom_pointrange() + theme_base() +
   labs(x = "Topics",
        y = "Estimated effects",
@@ -215,15 +195,12 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_
 ```
 ### 3.5. Content analysis
 
-- Linked progress (Asian American > African Americans): 4, 10 
-- Linked hurt (African American > Asian Americans): 3, 8
-
 ```{r}
 
-lp_thoughts <- findThoughts(lp_stm, texts = lp_articles$text, topics = c(4, 10), n = 20)
+asian_thoughts <- findThoughts(lp_stm, texts = lp_articles$text, topics = c(6, 8, 13), n = 10)
 
-lh_thoughts <- findThoughts(lh_stm, texts = lh_articles$text, topics = c(3, 8), n = 20)
+black_thoughts <- findThoughts(lh_stm, texts = lh_articles$text, topics = c(4, 13), n = 10)
 
-lh_thoughts
+black_thoughts
 ```
 

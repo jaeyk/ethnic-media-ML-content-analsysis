@@ -66,7 +66,7 @@ length(asian_unlabeled$text) + length(black_unlabeled$text)
 
 # NA dictionary 
 
-NA_dictionary <- dictionary(list(sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes"),
+NA_dictionary <- dictionary(list(sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes", "soccer"),
                                  cars = c("engine", "powersteering", "windshields", "gasoline", "motors", "subcompact", "showrooms", "fuel prices"),
                                  arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "beautiful", "violin", "lion dance"),
                                  food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried"),
