@@ -40,6 +40,9 @@ setwd("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/")
 asian_unlabeled <- read_csv("asian_full.csv")
 black_unlabeled<- read_csv("black_full.csv")
 
+asian_unlabeled <- asian_unlabeled[!duplicated(asian_unlabeled$text),]
+black_unlabeled <- black_unlabeled[!duplicated(black_unlabeled$text),]
+
 ```
 
 
@@ -48,13 +51,13 @@ black_unlabeled<- read_csv("black_full.csv")
 ```{r}
 # Cross tabulations
 
-table(asian_full$source)
+table(asian_unlabeled$source)
 
-table(black_full$source)
+table(black_unlabeled$source)
 
 # Calculating the total number of observations 
 
-length(asian_full$text) + length(black_full$text)
+length(asian_unlabeled$text) + length(black_unlabeled$text)
   
 ```
 ## 3. Create a set of dictionaries to remove non-political issues 
@@ -65,8 +68,9 @@ length(asian_full$text) + length(black_full$text)
 
 NA_dictionary <- dictionary(list(sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes"),
                                  cars = c("engine", "powersteering", "windshields", "gasoline", "motors", "subcompact", "showrooms", "fuel prices"),
-                                 arts = c("art","arts","film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "beautiful", "violin"),
-                                 food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried")))
+                                 arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "beautiful", "violin", "lion dance"),
+                                 food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried"),
+                                 religion = c("baptist", "church", "evangelism", "salvation", "crucified", "christ")))
 
 # DFM
 
@@ -83,10 +87,9 @@ binary_outcome <- function(data, order){
 
 asian_unlabeled <- asian_unlabeled %>%
   mutate(sports = binary_outcome(dic_asian, 2),
-         cars = binary_outcome(dic_asian, 3),
          arts = binary_outcome(dic_asian, 4),
          food = binary_outcome(dic_asian, 5)) %>%
-  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
+  mutate(nopolitical = ifelse(sports == 1 | arts == 1 | food == 1, 1, 0))
 
 ## African Americans
 
@@ -94,8 +97,9 @@ black_unlabeled <- black_unlabeled %>%
   mutate(sports = binary_outcome(dic_black, 2),
          cars = binary_outcome(dic_black, 3),
          arts = binary_outcome(dic_black, 4),
-         food = binary_outcome(dic_black, 5)) %>%
-  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
+         food = binary_outcome(dic_black, 5),
+         religion = binary_outcome(dic_black, 6)) %>%
+  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1 | religion == 1, 1, 0))
 
 # Check the counts 
 

@@ -9,13 +9,6 @@ html_document:
 
 ## 0. Setup 
 
-I tweaked the global option of the R Markdown to enlarge figures produced by ggplot2.
-
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width = 12, fig.height = 8, 
-                      echo = FALSE, warning = FALSE, message = FALSE) # global setting for enlarging image size
-```
-
 ```{r}
 
 # Clean up the environment

@@ -161,8 +161,7 @@ month_trends <- full_articles %>%
   facet_wrap(~group) +
   labs(title = "Time series trends (Monthly)", 
        caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication month") +
-  ylim(0,0.80)
+       y = "Proportion of articles", x = "Publication month") 
 
 ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
@@ -177,7 +176,7 @@ full_articles %>%
   filter(year >= 1976 & year <= 1981 ) %>%
   group_by(group) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  ggplot(aes(x = group, y = value, fill = linked_fate)) +
+  ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
     stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", size = 2) +
     stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
 #  ylim(c(0,17)) +
@@ -187,9 +186,8 @@ full_articles %>%
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
-
 full_articles %>%
-  filter(year >= 1976 & year <= 1981 ) %>%
+  filter(year >= 1976 & year <= 1981) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   group_by(group, linked_fate) %>%
   summarize(mean = mean(value))
@@ -199,7 +197,6 @@ full_articles %>%
 
 ```{r}
 
-write.csv(full_articles, 
-          "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+write.csv(full_articles, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
 
 ```
