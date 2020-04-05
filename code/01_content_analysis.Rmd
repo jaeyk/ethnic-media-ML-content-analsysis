@@ -39,11 +39,19 @@ theme_set(theme_Publication(14))
 
 # Training data for classifying articles from Asian American newspapers 
 training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv") %>%
-  dplyr::select(-contains("Notes")) 
+  dplyr::select(-contains("Notes")) %>%
+  mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
+         linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
+         linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
+         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
 
 # Training data for classifying articles from African American newspapers
 training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv") %>%
-  dplyr::select(-contains("Notes")) 
+  dplyr::select(-contains("Notes")) %>%
+  mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
+         linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
+         linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
+         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
 
 # Dimensions 
 dim(training_asian)
@@ -65,7 +73,6 @@ names(training_asian) == names(training_black)
 df <- bind_rows(
   mutate(training_asian, group = "Asian Americans"),
   mutate(training_black, group = "African Americans"))
- 
 
 ```
 
@@ -83,12 +90,12 @@ df %>%
          lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = group)) +
-    geom_pointrange(size = 0.7) + # point estimates plus confidence intervals 
+    geom_pointrange() + # point estimates plus confidence intervals 
     theme_clean() +
     coord_flip() +
-    labs(y= "Percentages of Agreement", x = "Linked Fate Type",
+    labs(y= "Percentages of Agreement", x = "Type",
          title = "Percentages of Agreement",
-         subtitle = "1: Perfect agreement, 0: Zero agreement",
+         subtitle = "1: Perfect/Half agreement, 0: Zero agreement",
          caption = "Ethnic NewsWatch",
          col = "Group") +
     theme(text = element_text(size = 15)) # large font size 
@@ -212,15 +219,17 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 # Asian Americans
 train_asian_plot <- training_asian %>%
-  rename(Linked_progress = linked_progress) %>%
-  rename(Linked_hurt = linked_hurt) %>%
+  rename(Linked_progress = linked_progress_gran) %>%
+  rename(Linked_hurt = linked_hurt_gran) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
   filter(value == 1) %>%
   filter(Topics_C != "Mismatch") %>%
+  filter(Topics_C != "Others") %>%
   group_by(linked_fate) %>%
   count(Topics_C) %>%
   spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress)) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
+         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
@@ -230,15 +239,16 @@ train_asian_plot <- training_asian %>%
 
 # African Americans
 train_black_plot <- training_black %>%
-  rename(Linked_progress = linked_progress) %>%
-  rename(Linked_hurt = linked_hurt) %>%
+  rename(Linked_progress = linked_progress_gran) %>%
+  rename(Linked_hurt = linked_hurt_gran) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
   filter(value == 1) %>%
   filter(Topics_C != "Mismatch") %>%
   group_by(linked_fate) %>%
   count(Topics_C) %>%
   spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress)) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
+         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
@@ -257,7 +267,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ```{r}
 
 df %>%
-  dplyr::select(linked_progress, linked_hurt, group) %>%
+  select(linked_progress, linked_hurt, group) %>%
   group_by(group) %>%
   summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
   ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
@@ -284,8 +294,8 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_a
 sample_asian <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.rds")
 sample_black <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.rds")
 
-sample_asian <- bind_cols(sample_asian, training_asian %>% select(linked_progress, linked_hurt, Topics_C))
-sample_black <- bind_cols(sample_black, training_black %>% select(linked_progress, linked_hurt, Topics_C))
+sample_asian <- bind_cols(sample_asian, training_asian %>% select(linked_progress, linked_hurt, linked_progress_gran, linked_hurt_gran, Topics_C))
+sample_black <- bind_cols(sample_black, training_black %>% select(linked_progress, linked_hurt, linked_progress_gran, linked_hurt_gran, Topics_C))
 
 ```
 
@@ -294,11 +304,11 @@ sample_black <- bind_cols(sample_black, training_black %>% select(linked_progres
 ```{r}
 
 sample_asian_text <- sample_asian %>%
-  filter(Topics_C == "Political representation" & linked_progress == 1 & linked_hurt == 0) %>%
+  filter(Topics_C == "Political representation" & linked_progress_gran == 1 & linked_hurt_gran == 0) %>%
   select(date, source, text) 
 
 sample_black_text <- sample_black %>%
-  filter(Topics_C == "Criminal justice" & linked_hurt == 1 & linked_progress == 0) %>%
+  filter(Topics_C == "Criminal justice" & linked_hurt_gran == 1 & linked_progress_gran == 0) %>%
   select(date, source, text) 
 
 ```
