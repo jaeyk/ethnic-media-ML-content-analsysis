@@ -23,7 +23,8 @@ pacman::p_load(
         irr, # for calculating inter-coder reliability score
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots   
-        ggthemes # for fancy ggplot themes
+        ggthemes, # for fancy ggplot themes
+        gmodels # quick summaries 
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
@@ -42,16 +43,16 @@ training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perform
   dplyr::select(-contains("Notes")) %>%
   mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
          linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
-         linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
+         linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
+         linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0))
 
 # Training data for classifying articles from African American newspapers
 training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv") %>%
   dplyr::select(-contains("Notes")) %>%
   mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
          linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
-         linked_progress = ifelse(Promoting_collective_gains_A == Promoting_collective_gains_B, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A == Preventing_collective_losses_B, 1, 0))
+         linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
+         linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0))
 
 # Dimensions 
 dim(training_asian)
@@ -59,6 +60,15 @@ dim(training_black)
 
 # Variable names
 names(training_asian) == names(training_black)
+
+```
+
+```{r}
+# Cross Tabs
+CrossTable(training_asian$linked_progress, training_asian$linked_progress_gran)
+CrossTable(training_asian$linked_hurt, training_asian$linked_hurt_gran)
+CrossTable(training_black$linked_progress, training_black$linked_progress_gran)
+CrossTable(training_black$linked_hurt, training_black$linked_hurt_gran)
 
 ```
 
@@ -219,6 +229,53 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 # Asian Americans
 train_asian_plot <- training_asian %>%
+  rename(Linked_progress = linked_progress) %>%
+  rename(Linked_hurt = linked_hurt) %>%
+  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
+  filter(value == 1) %>%
+  filter(Topics_C != "Mismatch") %>%
+  filter(Topics_C != "Others") %>%
+  group_by(linked_fate) %>%
+  count(Topics_C) %>%
+  spread(linked_fate, n) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
+         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
+  mutate(difference = Linked_progress - Linked_hurt) %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
+    geom_col(position = "dodge") +
+    coord_flip() +
+    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "Asian Americans") +
+    ylim(c(-30,20))
+
+# African Americans
+train_black_plot <- training_black %>%
+  rename(Linked_progress = linked_progress) %>%
+  rename(Linked_hurt = linked_hurt) %>%
+  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
+  filter(value == 1) %>%
+  filter(Topics_C != "Mismatch") %>%
+  group_by(linked_fate) %>%
+  count(Topics_C) %>%
+  spread(linked_fate, n) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
+         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
+  mutate(difference = Linked_progress - Linked_hurt) %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
+    geom_col(position = "dodge") +
+    coord_flip() +
+    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "African Americans")+
+    ylim(c(-30,20))
+
+ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png", height = 10)
+
+```
+
+```{r}
+
+# Asian Americans
+train_asian_plot_gran <- training_asian %>%
   rename(Linked_progress = linked_progress_gran) %>%
   rename(Linked_hurt = linked_hurt_gran) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
@@ -238,7 +295,7 @@ train_asian_plot <- training_asian %>%
     ylim(c(-30,20))
 
 # African Americans
-train_black_plot <- training_black %>%
+train_black_plot_gran <- training_black %>%
   rename(Linked_progress = linked_progress_gran) %>%
   rename(Linked_hurt = linked_hurt_gran) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
@@ -256,9 +313,9 @@ train_black_plot <- training_black %>%
     labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "African Americans")+
     ylim(c(-30,20))
 
-ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
+ggarrange(train_asian_plot_gran, train_black_plot_gran, ncol = 1, nrow = 2, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png", height = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10)
 
 ```
 

@@ -68,9 +68,8 @@ length(asian_unlabeled$text) + length(black_unlabeled$text)
 
 NA_dictionary <- dictionary(list(sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes", "soccer"),
                                  cars = c("engine", "powersteering", "windshields", "gasoline", "motors", "subcompact", "showrooms", "fuel prices"),
-                                 arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "beautiful", "violin", "lion dance"),
-                                 food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried"),
-                                 religion = c("baptist", "church", "evangelism", "salvation", "crucified", "christ")))
+                                 arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "violin", "lion dance"),
+                                 food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried")))
 
 # DFM
 
@@ -87,9 +86,10 @@ binary_outcome <- function(data, order){
 
 asian_unlabeled <- asian_unlabeled %>%
   mutate(sports = binary_outcome(dic_asian, 2),
+         cars = binary_outcome(dic_asian, 3),
          arts = binary_outcome(dic_asian, 4),
          food = binary_outcome(dic_asian, 5)) %>%
-  mutate(nopolitical = ifelse(sports == 1 | arts == 1 | food == 1, 1, 0))
+  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
 
 ## African Americans
 
@@ -97,9 +97,8 @@ black_unlabeled <- black_unlabeled %>%
   mutate(sports = binary_outcome(dic_black, 2),
          cars = binary_outcome(dic_black, 3),
          arts = binary_outcome(dic_black, 4),
-         food = binary_outcome(dic_black, 5),
-         religion = binary_outcome(dic_black, 6)) %>%
-  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1 | religion == 1, 1, 0))
+         food = binary_outcome(dic_black, 5)) %>%
+  mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
 
 # Check the counts 
 

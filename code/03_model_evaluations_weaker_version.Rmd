@@ -1,0 +1,176 @@
+---
+title: "Model evaluations"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+## 0. Setup 
+
+```{r}
+
+# Clean up the environment
+
+rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        ggpubr, # for arranging ggplot2 
+        ggthemes, # for fancy ggplot themes
+        broom # for visualizing coefficients
+)
+```
+
+## 1. Importing files 
+
+```{r}
+
+# From ML models 
+
+# None 
+
+asian_lp_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models_gran.csv")[,-1]
+asian_lh_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models_gran.csv")[,-1]
+
+black_lp_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models_gran.csv")[,-1]
+black_lh_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models_gran.csv")[,-1]
+
+# Resampled 
+
+asian_lp_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models_resample_gran.csv")[,-1]
+asian_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models_resample_gran.csv")[,-1]
+
+black_lp_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models_resample_gran.csv")[,-1]
+black_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models_resample_gran.csv")[,-1]
+
+# From content analysis: Correlation coefficients and Kappa statistics 
+
+irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")[,-1]
+
+```
+
+## 2. Wrangling data
+
+### 2.1. Putting all ML evals together
+
+```{r}
+  
+# Put all 
+all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian_Americans", measure = "Linked_progress", resampling = "None"),
+          mutate(asian_lh_models, group = "Asian_Americans", measure = "Linked_hurt", resampling = "None"),
+          mutate(black_lp_models, group = "African_Americans", measure = "Linked_progress", resampling = "None"),
+          mutate(black_lh_models, group = "African_Americans", measure = "Linked_hurt", resampling = "None"),
+          mutate(asian_lp_models_resample, group = "Asian_Americans", measure = "Linked_progress", resampling = "Upsampling"),
+          mutate(asian_lh_models_resample, group = "Asian_Americans", measure = "Linked_hurt", resampling = "Upsampling"),
+          mutate(black_lp_models_resample, group = "African_Americans", measure = "Linked_progress", resampling = "Upsampling"),
+          mutate(black_lh_models_resample, group = "African_Americans", measure = "Linked_hurt", resampling = "Upsampling")
+          )
+
+# Gather all the models 
+all_evals <- all_evals %>%
+  gather(metrices, rate, c("Accuracy", "Balanced Accuracy"))
+
+```
+
+### 2.2. Extracting correlation coefficients and Cohen's Kappa from the content analysis
+
+```{r}
+
+numerify <- function(data){
+  data %>% unlist() %>% as.numeric()
+}
+
+irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 1]), numerify(irr_summary[1:2, 2])),
+                            content_agreement = c(numerify(irr_summary[1:2, 3]), numerify(irr_summary[1:2, 4])),
+                            measure = c("Linked_progress", "Linked_hurt", "Linked_progress", "Linked_hurt"),
+                            group = c("Asian_Americans", "Asian_Americans", "African_Americans", "African_Americans")
+)
+
+```
+
+### 2.3. Merging them together 
+
+```{r}
+
+# Merging 
+merged_model <- all_evals %>% right_join(irr_resummary) 
+
+# Upper casing col names 
+names(merged_model) <- tolower(names(merged_model))
+
+```
+
+## 3. Visualizing data 
+
+### 3.1. Resampling effect  
+
+```{r}
+
+no_resampling_plot <- merged_model %>%
+  filter(resampling == "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    facet_grid(measure ~ group) +
+    theme_base() +
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
+         fill = "Metrics") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
+
+resampling_plot <- merged_model %>%
+  filter(resampling != "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    facet_grid(measure ~ group) +
+    theme_base() +
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
+         fill = "Metrics") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
+
+ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_gran.png", height = 10, width = 12)
+
+```
+
+```{r}
+
+no_resampling_plot <- merged_model %>%
+  filter(resampling == "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
+    facet_grid(measure ~ group) +
+    theme_base() +
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
+         fill = "Metrics") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
+
+resampling_plot <- merged_model %>%
+  filter(resampling != "None") %>%
+  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+    geom_col(position = "dodge") +
+    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
+    facet_grid(measure ~ group) +
+    theme_base() +
+    ylim(c(0, 1)) +
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
+         fill = "Metrics") +
+    coord_flip() +
+    scale_y_continuous(labels = scales::percent)
+
+ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_gran.png", height = 10, width = 12)
+```
+
