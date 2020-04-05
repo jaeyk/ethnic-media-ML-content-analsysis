@@ -191,7 +191,7 @@ full_articles %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   mutate(linked_fate == factor(linked_fate, levels = c("lh_exclusive", "lf_mixed", "lp_exclusive"))) %>%
   ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
-    stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", size = 2) +
+    stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", color = "black") +
     stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
 #  ylim(c(0,17)) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
@@ -205,6 +205,7 @@ full_articles %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   group_by(group, linked_fate) %>%
   summarize(mean = mean(value))
+
 ```
 
 ## 4. Export the merged file  

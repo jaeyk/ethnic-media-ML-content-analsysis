@@ -1,0 +1,78 @@
+---
+title: "Comparing the results"
+author: "Jae Yeon Kim"
+output:
+html_document: 
+  toc: true
+  theme: united
+---
+
+## 0. Setup 
+
+```{r}
+
+# Clean up the environment
+
+rm(list = ls())
+
+# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        irr, # for calculating inter-coder reliability score
+        corrplot, # for visualizing correlation coefficients
+        ggpubr, # for arranging ggplots 
+        ggthemes # for fancy ggplot themes
+)
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
+
+```
+
+## 1. Import files 
+
+```{r include=FALSE}
+
+full_articles <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+full_articles_gran <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv")
+
+```
+
+### 2. Merge data 
+
+```{r}
+
+df <- bind_rows(mutate(full_articles, type = "100%"),
+          mutate(full_articles_gran, type = "50%"))
+
+```
+
+### 3. Visualize data 
+
+```{r}
+
+df %>%
+  filter(year >= 1976 & year <= 1981) %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  group_by(group, linked_fate, type) %>%
+  summarize(mean = mean(value),
+            sd  = sd(value),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+  ggplot(aes(x = fct_reorder(group, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                   position=position_dodge(.9)) +
+    facet_wrap(~type) +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") 
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png")
+```

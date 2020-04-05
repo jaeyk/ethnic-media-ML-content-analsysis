@@ -24,7 +24,8 @@ pacman::p_load(
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots   
         ggthemes, # for fancy ggplot themes
-        gmodels # quick summaries 
+        gmodels, # quick summaries 
+        patchwork # for arranging ggplots 
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
@@ -101,7 +102,6 @@ df %>%
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = group)) +
     geom_pointrange() + # point estimates plus confidence intervals 
-    theme_clean() +
     coord_flip() +
     labs(y= "Percentages of Agreement", x = "Type",
          title = "Percentages of Agreement",
@@ -127,8 +127,7 @@ df %>%
     labs(x = "Values", y = "N",
          title = "Linked Progress",
          subtitle = "Yes = 1, No = 0",
-         fill = "Group") +
-    theme_clean(),
+         fill = "Group"),
 
 df %>%
   group_by(group, linked_hurt) %>%
@@ -138,8 +137,7 @@ df %>%
     labs(x = "Values", y = "Freq",
          title = "Linked Hurt",
          subtitle = "Yes = 1, No = 0",
-         fill = "Group") +
-    theme_clean(), common.legend = TRUE)
+         fill = "Group"), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
 ```
@@ -213,8 +211,7 @@ irr_summary %>%
          title = "Content Analysis Results",
          subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
          caption = "Ethnic NewsWatch",
-         fill = "Group") +
-    theme_clean() + # five thirty eight theme 
+         fill = "Group") + # five thirty eight theme 
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
@@ -224,6 +221,8 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ## 4. Additional exploratory data analyses 
 
 ### 4.1. Visualizing the frequency of agreed topics 
+
+- 100%
 
 ```{r}
 
@@ -272,6 +271,8 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ```
 
+- 50%
+
 ```{r}
 
 # Asian Americans
@@ -318,6 +319,16 @@ ggarrange(train_asian_plot_gran, train_black_plot_gran, ncol = 1, nrow = 2, comm
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10)
 
 ```
+- Comparison 
+
+```{r}
+  
+(train_asian_plot + labs(subtitle = "100% agreement") + train_black_plot + labs(subtitle = "100% agreement")) /
+(train_asian_plot_gran + labs(subtitle = "50% agreement") + train_black_plot_gran + labs(subtitle = "50% agreement"))
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10, width = 15)
+
+```
 
 ### 4.2. Visualizing correlation coefficients between the two concepts
 
@@ -333,7 +344,6 @@ df %>%
          y = "Pearson Correlation coefficient",
          x = "Group",
          caption = "Ethnic NewsWatch") +
-    theme_clean() +
     geom_col() +
     coord_flip()
 
