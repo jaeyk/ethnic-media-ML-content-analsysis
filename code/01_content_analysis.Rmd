@@ -195,11 +195,11 @@ write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performance
 ```{r}
 
 irr_summary %>%
-  gather(type, value, kappa_progress:agreement_hurt) %>% 
+  gather(type, value, c(kappa_progress, kappa_hurt)) %>% 
   ggplot(aes(x = fct_reorder(type, value), y = value, fill = group)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(y= "Intercorder Reliability Scores", x = "Linked Fate Type",
+    labs(y= "Intercorder Reliability Scores", x = "Type",
          title = "Content Analysis Results",
          subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
          caption = "Ethnic NewsWatch",
