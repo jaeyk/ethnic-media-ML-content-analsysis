@@ -122,12 +122,12 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 ```{r}
 
 ggarrange(
-df %>%
+df %>%fg/f./fflgbbgg ghbhg h  h h                      cvv vgxcdc
   group_by(group, linked_progress) %>%
   add_count() %>%
   ggplot(aes(x = as.factor(linked_progress), y = n, fill = group)) +
     geom_col(position = "dodge") +
-    labs(x = "Values", y = "N",
+    labs(x = "Values", y = "Frequency",
          title = "Linked progress",
          subtitle = "Yes = 1, No = 0",
          fill = "Group"),
@@ -137,7 +137,7 @@ df %>%
   add_count() %>%
   ggplot(aes(x = as.factor(linked_hurt), y = n, fill = group)) +
     geom_col(position = "dodge") +     
-    labs(x = "Values", y = "Freq",
+    labs(x = "Values", y = "Frequency",
          title = "Linked hurt",
          subtitle = "Yes = 1, No = 0",
          fill = "Group"), common.legend = TRUE)

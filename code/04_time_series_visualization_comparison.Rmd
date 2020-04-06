@@ -27,8 +27,9 @@ pacman::p_load(
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
-
 theme_set(theme_Publication(14))
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
 
 ```
 
@@ -52,6 +53,8 @@ df <- bind_rows(mutate(full_articles, type = "100%"),
 
 ### 3. Visualize data 
 
+- Year 
+
 ```{r}
 
 df %>%
@@ -74,5 +77,30 @@ df %>%
     scale_y_continuous(labels = scales::percent) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png")
 ```
+
+- Source
+
+```{r}
+
+plot_asian <- df %>%
+  filter(group == "Asian Americans") %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  group_by(linked_fate, type, source) %>%
+  visualize_aggregated() +
+    labs(title = "Aggregated differences", subtitle = "Asian Americans", y = "Proportion of articles", x = "Group") 
+
+plot_black <- df %>%
+  filter(group != "Asian Americans") %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  group_by(linked_fate, type, source) %>%
+  visualize_aggregated() +
+    labs(title = "", subtitle = "African Americans", y = "Proportion of articles", x = "Group") 
+
+ggarrange(plot_asian, plot_black, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_source.png", width = 13)
+
+```
+

@@ -148,9 +148,9 @@ month_trends <- full_articles %>%
   group_by(group, year_mon) %>%
   visualize_month_trends()
 
-ggarrange(year_trends, month_trends, nrow = 1, ncol = 2, common.legend = TRUE)
+ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 7, width = 15)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 10, width = 13)
 
 ```
 
@@ -158,7 +158,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_s
 
 time_series_asian <- full_articles %>% filter(group == "Asian Americans") %>% group_by(year_mon) %>% visualize_month_trends() + facet_wrap(~source, ncol = 1) + labs(title = "Monthly trends by group and source", subtitle = "Asian Americans")
 
-time_series_black <- full_articles %>% filter(group == "African Americans") %>% group_by(year_mon) %>% visualize_month_trends() + facet_wrap(~source, ncol = 1) + labs(title = "", subtitle = "African Americans", caption = "")
+time_series_black <- full_articles %>% filter(group == "African Americans") %>% group_by(year_mon) %>% visualize_month_trends() + facet_wrap(~source, ncol = 1) + labs(title = "", subtitle = "African Americans")
 
 ggarrange(time_series_asian, time_series_black, common.legend = TRUE, ncol = 2)
 
