@@ -92,6 +92,18 @@ visualize_aggregated <- function(data){
 
 }
 
+visualize_performance <- function(data){
+  
+  data %>%
+    ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+      geom_col(position = "dodge") +
+      facet_grid(measure ~ group) +
+      ylim(c(0, 1)) +
+      coord_flip() +
+      scale_y_continuous(labels = scales::percent) 
+  
+}
+
 visualize_diagnostics <- function(sparse_matrix, many_models){
   
   heldout <- make.heldout(sparse_matrix)

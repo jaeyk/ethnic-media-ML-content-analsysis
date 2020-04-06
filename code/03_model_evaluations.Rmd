@@ -24,11 +24,18 @@ pacman::p_load(
         ggthemes, # for fancy ggplot themes
         broom # for visualizing coefficients
 )
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+
 ```
 
 ## 1. Importing files 
 
-```{r}
+```{r include=FALSE}
 
 # From ML models 
 
@@ -103,6 +110,7 @@ merged_model <- all_evals %>% right_join(irr_resummary)
 # Upper casing col names 
 names(merged_model) <- tolower(names(merged_model))
 
+write.csv(merged_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv")
 ```
 
 ## 3. Visualizing data 
@@ -116,7 +124,6 @@ no_resampling_plot <- merged_model %>%
   ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     facet_grid(measure ~ group) +
-    theme_base() +
     ylim(c(0, 1)) +
     labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
          fill = "Metrics") +
@@ -128,7 +135,6 @@ resampling_plot <- merged_model %>%
   ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     facet_grid(measure ~ group) +
-    theme_base() +
     ylim(c(0, 1)) +
     labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
          fill = "Metrics") +
@@ -149,7 +155,6 @@ no_resampling_plot <- merged_model %>%
     geom_col(position = "dodge") +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
     facet_grid(measure ~ group) +
-    theme_base() +
     ylim(c(0, 1)) +
     labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
          fill = "Metrics") +
@@ -162,7 +167,6 @@ resampling_plot <- merged_model %>%
     geom_col(position = "dodge") +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
     facet_grid(measure ~ group) +
-    theme_base() +
     ylim(c(0, 1)) +
     labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
          fill = "Metrics") +

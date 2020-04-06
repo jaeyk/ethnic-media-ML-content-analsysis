@@ -24,6 +24,13 @@ pacman::p_load(
         ggthemes, # for fancy ggplot themes
         broom # for visualizing coefficients
 )
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+
+theme_set(theme_Publication(14))
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+
 ```
 
 ## 1. Importing files 
@@ -32,90 +39,18 @@ pacman::p_load(
 
 setwd("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/")
 
-# From ML models 
+merged_model50 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model50.csv")
 
-# None 
-
-asian_lp_models <- read_csv("asian_lp_models.csv")[,-1]
-asian_lh_models <- read_csv("asian_lh_models.csv")[,-1]
-
-black_lp_models <- read_csv("black_lp_models.csv")[,-1]
-black_lh_models <- read_csv("black_lh_models.csv")[,-1]
-
-asian_lp_models_gran <- read_csv("asian_lp_models_gran.csv")[,-1]
-asian_lh_models_gran <- read_csv("asian_lh_models_gran.csv")[,-1]
-
-black_lp_models_gran <- read_csv("black_lp_models_gran.csv")[,-1]
-black_lh_models_gran <- read_csv("black_lh_models_gran.csv")[,-1]
-
-# Resampled 
-
-asian_lp_models_resample <- read_csv("asian_lp_models_resample.csv")[,-1]
-asian_lh_models_resample <- read_csv("asian_lh_models_resample.csv")[,-1]
-
-black_lp_models_resample <- read_csv("black_lp_models_resample.csv")[,-1]
-black_lh_models_resample <- read_csv("black_lh_models_resample.csv")[,-1]
-
-asian_lp_models_resample_gran <- read_csv("asian_lp_models_resample_gran.csv")[,-1]
-asian_lh_models_resample_gran <- read_csv("asian_lh_models_resample_gran.csv")[,-1]
-
-black_lp_models_resample_gran <- read_csv("black_lp_models_resample_gran.csv")[,-1]
-black_lh_models_resample_gran <- read_csv("black_lh_models_resample_gran.csv")[,-1]
-
-# From content analysis: Correlation coefficients and Kappa statistics 
-
-irr_summary <- read_csv("irr_summary.csv")[,-1]
+merged_model100 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv")
 
 ```
 
-## 2. Wrangling data
-
-### 2.1. Putting all ML evals together
-
-```{r}
-  
-# Put all 
-all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measure = "Linked progress", resampling = "None"),
-          mutate(asian_lh_models, group = "Asian Americans", measure = "Linked hurt", resampling = "None"),
-          mutate(black_lp_models, group = "African Americans", measure = "Linked progress", resampling = "None"),
-          mutate(black_lh_models, group = "African Americans", measure = "Linked hurt", resampling = "None"),
-          mutate(asian_lp_models_resample, group = "Asian Americans", measure = "Linked progress", resampling = "Upsampling"),
-          mutate(asian_lh_models_resample, group = "Asian Americans", measure = "Linked hurt", resampling = "Upsampling"),
-          mutate(black_lp_models_resample, group = "African Americans", measure = "Linked progress", resampling = "Upsampling"),
-          mutate(black_lh_models_resample, group = "African Americans", measure = "Linked hurt", resampling = "Upsampling")
-          )
-
-# Gather all the models 
-all_evals <- all_evals %>%
-  gather(metrices, rate, c("Accuracy", "Balanced Accuracy"))
-
-```
-
-### 2.2. Extracting correlation coefficients and Cohen's Kappa from the content analysis
+## 2. Merging them together 
 
 ```{r}
 
-numerify <- function(data){
-  data %>% unlist() %>% as.numeric()
-}
-
-irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 1]), numerify(irr_summary[1:2, 2])),
-                            content_agreement = c(numerify(irr_summary[1:2, 3]), numerify(irr_summary[1:2, 4])),
-                            measure = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
-                            group = c("Asian Americans", "Asian Americans", "African Americans", "African Americans")
-)
-
-```
-
-### 2.3. Merging them together 
-
-```{r}
-
-# Merging 
-merged_model <- all_evals %>% right_join(irr_resummary) 
-
-# Upper casing col names 
-names(merged_model) <- tolower(names(merged_model))
+merged_model <- bind_rows(mutate(merged_model50, type = "50%"),
+                          mutate(merged_model100, type = "100%"))
 
 ```
 
@@ -125,66 +60,95 @@ names(merged_model) <- tolower(names(merged_model))
 
 ```{r}
 
-no_resampling_plot <- merged_model %>%
-  filter(resampling == "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
-    geom_col(position = "dodge") +
-    facet_grid(measure ~ group) +
-    theme_base() +
-    ylim(c(0, 1)) +
-    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
-         fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+no_resampling_plot100 <- merged_model %>%
+  filter(resampling == "None" & type == "100%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (without resampling)",
+       subtitle = "100%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") 
 
-resampling_plot <- merged_model %>%
-  filter(resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
-    geom_col(position = "dodge") +
-    facet_grid(measure ~ group) +
-    theme_base() +
-    ylim(c(0, 1)) +
-    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
-         fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+no_resampling_plot50 <- merged_model %>%
+  filter(resampling == "None" & type == "50%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (without resampling)",
+       subtitle = "50%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") 
 
-ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
+resampling_plot100 <- merged_model %>%
+  filter(resampling != "None" & type == "100%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (resampling)",
+       subtitle = "100%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_gran.png", height = 10, width = 12)
+resampling_plot50 <- merged_model %>%
+  filter(resampling != "None" & type == "50%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (resampling)",
+       subtitle = "50%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") 
+
+ggarrange(no_resampling_plot100, resampling_plot100, 
+          no_resampling_plot50, resampling_plot50, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", height = 10, width = 15)
 
 ```
 
 ```{r}
 
-no_resampling_plot <- merged_model %>%
-  filter(resampling == "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
-    geom_col(position = "dodge") +
-    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
-    facet_grid(measure ~ group) +
-    theme_base() +
-    ylim(c(0, 1)) +
-    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
-         fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+no_resampling_plot100 <- merged_model %>%
+  filter(resampling == "None" & type == "100%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (without resampling)",
+       subtitle = "100%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") +
+       geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
-resampling_plot <- merged_model %>%
-  filter(resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
-    geom_col(position = "dodge") +
-    geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
-    facet_grid(measure ~ group) +
-    theme_base() +
-    ylim(c(0, 1)) +
-    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
-         fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+no_resampling_plot50 <- merged_model %>%
+  filter(resampling == "None" & type == "50%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (without resampling)",
+       subtitle = "50%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") +
+       geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
-ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
+resampling_plot100 <- merged_model %>%
+  filter(resampling != "None" & type == "100%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (resampling)",
+       subtitle = "100%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") +
+       geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_gran.png", height = 10, width = 12)
+resampling_plot50 <- merged_model %>%
+  filter(resampling != "None" & type == "50%") %>%
+  visualize_performance() +
+  labs(title = "ML performances (resampling)",
+       subtitle = "50%",
+       x = "Models", 
+       y = "Performance (%)",
+       fill = "Metrics") +
+       geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
+
+ggarrange(no_resampling_plot100, resampling_plot100, 
+          no_resampling_plot50, resampling_plot50, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 10, width = 15)
+
 ```
 
