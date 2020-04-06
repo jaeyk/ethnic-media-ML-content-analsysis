@@ -86,7 +86,7 @@ Figure 4. ML performances against the human benchmark
 
 ### Data visualization [[Code](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/code/04_time_series_visualization.Rmd)]
 
-I plotted the results (training data + predicted data) as two time-series plots. The Asian American data has extensive noise because the sample size was smaller (thus, wider confidence intervals). However, this data was also less reliable from the beginning. When aggregating data (using a higher-level unit of analysis), the data becomes less noisy. In contrast, when disaggregating data (using a lower-level unit of analysis), the data becomes noisier. In the bottom pattern (monthly observations), it is extremely difficult to read how the two labels relate to each other in the Asian American data. We can do a more fine-grained analysis using the African American data but not the Asian American data.
+I plotted the results (training data + predicted data) as two time-series plots. The Asian American data has extensive noise because the sample size was smaller (thus, wider confidence intervals). However, this data was also less reliable from the beginning. When aggregating data (using a higher-level unit of analysis), the data becomes less noisy. In contrast, when disaggregating data (using a lower-level unit of analysis), the data becomes noisier. In the bottom pattern (monthly observations), it is extremely difficult to read how the two labels relate to each other in the Asian American data.
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/time_series_plot.png)
 Figure 5. Time series trends
