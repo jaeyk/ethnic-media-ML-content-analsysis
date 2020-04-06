@@ -33,7 +33,6 @@ visualize_year_trends <- function(data){
     stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
     scale_y_continuous(labels = scales::percent) +
     scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    facet_wrap(~group) +
     labs(title = "Yearly trends", 
          caption = "Source: Ethnic Newswatch",
          y = "Proportion of articles", x = "Publication year") 
@@ -51,7 +50,6 @@ visualize_month_trends <- function(data){
     scale_x_date(date_labels = "%Y-%m") +
     scale_y_continuous(labels = scales::percent) +
     scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    facet_wrap(~group) +
     labs(title = "Monthly trends", 
          caption = "Source: Ethnic Newswatch",
          y = "Proportion of articles", x = "Publication month") 
