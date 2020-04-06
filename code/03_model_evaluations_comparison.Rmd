@@ -49,8 +49,8 @@ merged_model100 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perfor
 
 ```{r}
 
-merged_model <- bind_rows(mutate(merged_model50, type = "50%"),
-                          mutate(merged_model100, type = "100%"))
+merged_model <- bind_rows(mutate(merged_model50, type = "Minimum"),
+                          mutate(merged_model100, type = "Maximum"))
 
 ```
 
@@ -61,37 +61,41 @@ merged_model <- bind_rows(mutate(merged_model50, type = "50%"),
 ```{r}
 
 no_resampling_plot100 <- merged_model %>%
-  filter(resampling == "None" & type == "100%") %>%
+  filter(resampling == "None" & type == "Maximum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
-       subtitle = "100%",
+       subtitle = "Maximum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") 
 
 no_resampling_plot50 <- merged_model %>%
-  filter(resampling == "None" & type == "50%") %>%
+  filter(resampling == "None" & type == "Minimum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
-       subtitle = "50%",
+       subtitle = "Minimum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") 
 
 resampling_plot100 <- merged_model %>%
-  filter(resampling != "None" & type == "100%") %>%
+  filter(resampling != "None" & type == "Maximum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
-       subtitle = "100%",
+       subtitle = "Maximum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") 
 
 resampling_plot50 <- merged_model %>%
-  filter(resampling != "None" & type == "50%") %>%
+  filter(resampling != "None" & type == "Minimum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
-       subtitle = "50%",
+       subtitle = "Minimum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") 
@@ -106,40 +110,44 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 ```{r}
 
 no_resampling_plot100 <- merged_model %>%
-  filter(resampling == "None" & type == "100%") %>%
+  filter(resampling == "None" & type == "Maximum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
-       subtitle = "100%",
+       subtitle = "Maximum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 no_resampling_plot50 <- merged_model %>%
-  filter(resampling == "None" & type == "50%") %>%
+  filter(resampling == "None" & type == "Minimum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
-       subtitle = "50%",
+       subtitle = "Minimum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 resampling_plot100 <- merged_model %>%
-  filter(resampling != "None" & type == "100%") %>%
+  filter(resampling != "None" & type == "Maximum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
-       subtitle = "100%",
+       subtitle = "Maximum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 resampling_plot50 <- merged_model %>%
-  filter(resampling != "None" & type == "50%") %>%
+  filter(resampling != "None" & type == "Minimum") %>%
   visualize_performance() +
+  scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
-       subtitle = "50%",
+       subtitle = "Minimum",
        x = "Models", 
        y = "Performance (%)",
        fill = "Metrics") +

@@ -71,6 +71,51 @@ visualize_matched <- function(data){
   
 }
 
+visualize_ratio <- function(data){
+  data %>%
+    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+    group_by(group, linked_fate, type) %>%
+    summarize(mean = mean(value)) %>%
+    spread(linked_fate, mean) %>%
+    mutate(lp_ratio = lp_exclusive / lh_exclusive,
+           lh_ratio = lh_exclusive / lp_exclusive) %>%
+    select(group, type, lp_ratio, lh_ratio) %>%
+    gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
+    ggplot(aes(group, value, fill = ratio)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    facet_wrap(~type) +
+    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) 
+}
+
+visualize_ratio_source <- function(data){
+  data %>%
+    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+    group_by(source, linked_fate, type) %>%
+    summarize(mean = mean(value)) %>%
+    spread(linked_fate, mean) %>%
+    mutate(lp_ratio = lp_exclusive / lh_exclusive,
+           lh_ratio = lh_exclusive / lp_exclusive) %>%
+    select(source, type, lp_ratio, lh_ratio) %>%
+    gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
+    ggplot(aes(type, value, fill = ratio)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    facet_wrap(~source) +
+    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) 
+}
+
+summarize_content <- function(data){
+  
+  data %>%
+    summarize(mean = mean(value),
+              sd  = sd(value),
+              n = n()) %>%
+    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se)
+  
+}
 
 visualize_aggregated <- function(data){
 
@@ -90,6 +135,25 @@ visualize_aggregated <- function(data){
     scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
     scale_y_continuous(labels = scales::percent)
 
+}
+
+visualize_comp <- function(data){
+  
+  data %>%  
+    summarize(mean = mean(value),
+              sd  = sd(value),
+              n = n()) %>%
+    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+    ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    facet_wrap(~source) +
+    scale_y_continuous(labels = scales::percent)
+  
 }
 
 visualize_performance <- function(data){

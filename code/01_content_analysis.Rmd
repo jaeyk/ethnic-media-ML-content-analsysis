@@ -29,15 +29,15 @@ pacman::p_load(
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
-
 theme_set(theme_Publication(14))
 
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
 ```
 
 ## 1. Importing files 
 
 
-```{r}
+```{r include=FALSE}
 
 # Training data for classifying articles from Asian American newspapers 
 training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv") %>%
@@ -61,15 +61,6 @@ dim(training_black)
 
 # Variable names
 names(training_asian) == names(training_black)
-
-```
-
-```{r}
-# Cross Tabs
-CrossTable(training_asian$linked_progress, training_asian$linked_progress_gran)
-CrossTable(training_asian$linked_hurt, training_asian$linked_hurt_gran)
-CrossTable(training_black$linked_progress, training_black$linked_progress_gran)
-CrossTable(training_black$linked_hurt, training_black$linked_hurt_gran)
 
 ```
 
@@ -106,9 +97,10 @@ df %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = group)) +
     geom_pointrange() + # point estimates plus confidence intervals 
     coord_flip() +
-    labs(y= "Percentages of Agreement", x = "Type",
-         title = "Percentages of Agreement",
-         subtitle = "1: 100% agreement, 0: Zero agreement",
+    scale_color_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
+    labs(y= "Percentages of agreement", x = "Type",
+         title = "Percentages of agreement",
+         subtitle = "1: Perfect agreement, 0: Zero agreement",
          caption = "Ethnic NewsWatch",
          col = "Group") +
     theme(text = element_text(size = 15)) # large font size 
@@ -117,16 +109,17 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ```
 
-#### 2.2.2. Checking the data balance 
+#### 2.2.1. Checking the data balance 
 
 ```{r}
 
 ggarrange(
-df %>%fg/f./fflgbbgg ghbhg h  h h                      cvv vgxcdc
+df %>%              
   group_by(group, linked_progress) %>%
   add_count() %>%
   ggplot(aes(x = as.factor(linked_progress), y = n, fill = group)) +
     geom_col(position = "dodge") +
+    scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
     labs(x = "Values", y = "Frequency",
          title = "Linked progress",
          subtitle = "Yes = 1, No = 0",
@@ -137,6 +130,7 @@ df %>%
   add_count() %>%
   ggplot(aes(x = as.factor(linked_hurt), y = n, fill = group)) +
     geom_col(position = "dodge") +     
+    scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
     labs(x = "Values", y = "Frequency",
          title = "Linked hurt",
          subtitle = "Yes = 1, No = 0",
@@ -144,6 +138,7 @@ df %>%
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
 ```
+
 
 ## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
 
@@ -210,8 +205,9 @@ irr_summary %>%
   ggplot(aes(x = fct_reorder(type, value), y = value, fill = group)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(y= "Intercorder Reliability Scores", x = "Type",
-         title = "Content Analysis Results",
+    scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
+    labs(y= "Intercorder reliability scores", x = "Type",
+         title = "Content analysis results",
          subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
          caption = "Ethnic NewsWatch",
          fill = "Group") + # five thirty eight theme 
@@ -322,12 +318,13 @@ ggarrange(train_asian_plot_gran, train_black_plot_gran, ncol = 1, nrow = 2, comm
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10)
 
 ```
+
 - Comparison 
 
 ```{r}
   
-(train_asian_plot + labs(subtitle = "100% agreement") + train_black_plot + labs(subtitle = "100% agreement")) /
-(train_asian_plot_gran + labs(subtitle = "50% agreement") + train_black_plot_gran + labs(subtitle = "50% agreement"))
+(train_asian_plot + labs(subtitle = "Maximum") + train_black_plot + labs(subtitle = "Maximum")) /
+(train_asian_plot_gran + labs(subtitle = "Minimum") + train_black_plot_gran + labs(subtitle = "Minimum"))
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10, width = 15)
 
@@ -352,6 +349,20 @@ df %>%
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis.png")
 
+df %>%
+  select(linked_progress_gran, linked_hurt_gran, group) %>%
+  group_by(group) %>%
+  summarize(corr = cor(linked_progress_gran, linked_hurt_gran), method = "Pearson") %>%
+  ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
+    geom_col() +
+    labs(title = "Correlation Coefficients",
+         y = "Pearson Correlation coefficient",
+         x = "Group",
+         caption = "Ethnic NewsWatch") +
+    geom_col() +
+    coord_flip()
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis_gran.png")
 ```
 
 
@@ -369,18 +380,131 @@ sample_black <- bind_cols(sample_black, training_black %>% select(linked_progres
 
 ```
 
-- Reading extreme cases 
+- Comparing 100% and 50% data 
 
 ```{r}
 
-sample_asian_text <- sample_asian %>%
-  filter(Topics_C == "Political representation" & linked_progress_gran == 1 & linked_hurt_gran == 0) %>%
-  select(date, source, text) 
+# Merge 
 
-sample_black_text <- sample_black %>%
-  filter(Topics_C == "Criminal justice" & linked_hurt_gran == 1 & linked_progress_gran == 0) %>%
-  select(date, source, text) 
+df <- bind_rows(mutate(sample_asian, group = "Asian Americans"),
+          mutate(sample_black, group = "African Americans"))
 
+# Select 
+
+df <- df %>% select(source, year, group, linked_progress, linked_progress_gran, 
+              linked_hurt, linked_hurt_gran)
+
+# Mutate 
+
+df <- df %>% 
+  mutate(lp_exclusive = ifelse(linked_progress == 1 & linked_hurt == 0, 1, 0),
+         lh_exclusive = ifelse(linked_progress == 0 & linked_hurt == 1, 1, 0),
+         lf_mixed = ifelse(linked_progress == 1 & linked_hurt == 1, 1, 0)) %>%
+  mutate(lp_exclusive_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 0, 1, 0),
+         lh_exclusive_gran= ifelse(linked_progress_gran == 0 & linked_hurt_gran == 1, 1, 0),
+         lf_mixed_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 1, 1, 0))
+
+# Remove numbers and special characters in the source titles 
+
+df$source <- gsub('[[:digit:]]', '', df$source) 
+df$source <- gsub('[[:punct:]]+', '', df$source) %>% trimws()
+
+```
+
+- Non-excluded 
+
+```{r}
+
+# Gather, group by and summary, and mutate
+
+df_source <- df %>% 
+  gather(linked_fate, value, c(lp_exclusive, lh_exclusive, lf_mixed, lp_exclusive_gran, lh_exclusive_gran, lf_mixed_gran)) %>%
+  group_by(linked_fate, group, source) %>%
+  summarize_content()
+
+# Create two additional columns for sorting 
+
+df_source$type <- ifelse(str_detect(df_source$linked_fate, "gran"), "Minimum", "Maximum")
+df_source$linked_fate <- str_replace(df_source$linked_fate, "_gran", "")
+
+```
+
+```{r}
+
+# Visualize 
+
+plot_asian <- df_source %>%
+ filter(group == "Asian Americans") %>%
+ ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    facet_wrap(~source) +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(subtitle = "Asian Americans", y = "Proportion", x = "Measurement")
+
+plot_black <- df_source %>%
+ filter(group != "Asian Americans") %>%
+ ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    facet_wrap(~source) +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_y_continuous(labels = scales::percent) +
+    labs(subtitle = "African Americans", y = "Proportion", x = "Measurement")
+
+ggarrange(plot_asian, plot_black, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources.png", width = 15)
+```
+- Compare moderate and extreme cases 
+
+```{r}
+
+df_ratio <- df %>%
+  mutate(extreme = lp_exclusive + lh_exclusive,
+         extreme_gran = lp_exclusive_gran + lh_exclusive_gran,
+         moderate = lf_mixed, 
+         moderate_gran = lf_mixed_gran) %>%
+  gather(linked_fate, value, c(extreme, extreme_gran, moderate, moderate_gran)) %>%
+  group_by(linked_fate, group, source) %>%
+  summarize_content()
+
+df_ratio$type <- ifelse(str_detect(df_ratio$linked_fate, "gran"), "Minimum", "Maximum")
+df_ratio$linked_fate <- str_replace(df_ratio$linked_fate, "_gran", "")
+  
+ggarrange(
+  df_ratio %>%
+  filter(group == "Asian Americans") %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
+    facet_wrap(~source) +
+    ylim(c(0, 0.7)) +    
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "", subtitle = "Asian Americans", y = "Proportion", x = "Measurement"),
+
+  df_ratio %>%
+  filter(group != "Asian Americans") %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
+    facet_wrap(~source) +
+    ylim(c(0, 0.7)) +   
+    scale_y_continuous(labels = scales::percent) +
+    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Measurement"), common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 15)
 ```
 
 ## 6. Exporting non-duplicated files 

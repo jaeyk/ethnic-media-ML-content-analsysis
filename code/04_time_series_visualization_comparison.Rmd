@@ -46,8 +46,9 @@ full_articles_gran <- read_csv("/home/jae/content-analysis-for-evaluating-ML-per
 
 ```{r}
 
-df <- bind_rows(mutate(full_articles, type = "100%"),
-          mutate(full_articles_gran, type = "50%"))
+df <- bind_rows(mutate(full_articles, type = "Maximum"),
+          mutate(full_articles_gran, type = "Minimum")) %>%
+     mutate(group = factor(group, levels = c("Asian Americans", "African Americans")))
 
 ```
 
@@ -103,4 +104,69 @@ ggarrange(plot_asian, plot_black, common.legend = TRUE)
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_source.png", width = 13)
 
 ```
+- Extreme versus moderate cases 
 
+```{r}
+
+plot_asian <- df %>%
+  filter(group == "Asian Americans") %>%
+  mutate(extreme = lp_exclusive + lh_exclusive) %>%
+  gather(linked_fate, value, extreme, lf_mixed) %>%
+  group_by(linked_fate, type, source) %>%
+  visualize_comp() +
+    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
+    labs(title = "Aggregated differences", subtitle = "Asian Americans", y = "Proportion of articles", x = "Group") 
+
+plot_black <- df %>%
+  filter(group != "Asian Americans") %>%
+  mutate(extreme = lp_exclusive + lh_exclusive) %>%
+  gather(linked_fate, value, extreme, lf_mixed) %>%
+  group_by(linked_fate, type, source) %>%
+  visualize_comp() +
+    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
+    labs(title = "", subtitle = "African Americans", y = "Proportion of articles", x = "Group") 
+
+ggarrange(plot_asian, plot_black, common.legend = TRUE)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_comp.png", width = 13)
+
+```
+
+- Ratio 
+
+```{r}
+
+matched_ratio <- df %>%
+  filter(year >= 1976 & year <= 1981) %>%
+  visualize_ratio() +
+    labs(title = "Matched", y = "Ratio", x = "Group") + ylim(c(0,16))
+            
+unmatched_ratio <- df %>%
+ visualize_ratio() +
+    labs(title = "Unmatched", y = "Ratio", x = "Group") + ylim(c(0,16))
+
+ggarrange(matched_ratio, unmatched_ratio, common.legend = TRUE, ncol = 1) 
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_ratio.png", height = 10)
+
+```
+
+- Ratio + Source 
+
+```{r}
+
+plot_asian_ratio <- df %>%
+  filter(group == "Asian Americans") %>%
+  visualize_ratio_source() +
+    labs(subtitle = "Asian Americans", y = "Ratio", x = "Measurement") 
+
+plot_black_ratio <- df %>%
+  filter(group != "Asian Americans") %>%
+  visualize_ratio_source() +
+    labs(subtitle = "African Americans", y = "Ratio", x = "Measurement") 
+
+ggarrange(plot_asian_ratio, plot_black_ratio, common.legend = TRUE, ncol = 1)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_ratio_year.png", height = 10)
+
+```
