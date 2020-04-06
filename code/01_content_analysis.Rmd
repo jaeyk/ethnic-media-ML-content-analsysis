@@ -93,6 +93,9 @@ df <- bind_rows(
 
 df %>%
   gather(type, value, linked_progress, linked_hurt) %>%
+  mutate(type = recode(type,
+                       `linked_progress` = "Linked progress",
+                       `linked_hurt` = "Linked hurt")) %>%
   group_by(group, type) %>%
   summarise(mean = mean(value), # summarize mean, standard deviation, and n 
             sd = sd(value),
@@ -105,7 +108,7 @@ df %>%
     coord_flip() +
     labs(y= "Percentages of Agreement", x = "Type",
          title = "Percentages of Agreement",
-         subtitle = "1: Perfect/Half agreement, 0: Zero agreement",
+         subtitle = "1: 100% agreement, 0: Zero agreement",
          caption = "Ethnic NewsWatch",
          col = "Group") +
     theme(text = element_text(size = 15)) # large font size 
@@ -125,7 +128,7 @@ df %>%
   ggplot(aes(x = as.factor(linked_progress), y = n, fill = group)) +
     geom_col(position = "dodge") +
     labs(x = "Values", y = "N",
-         title = "Linked Progress",
+         title = "Linked progress",
          subtitle = "Yes = 1, No = 0",
          fill = "Group"),
 
@@ -135,7 +138,7 @@ df %>%
   ggplot(aes(x = as.factor(linked_hurt), y = n, fill = group)) +
     geom_col(position = "dodge") +     
     labs(x = "Values", y = "Freq",
-         title = "Linked Hurt",
+         title = "Linked hurt",
          subtitle = "Yes = 1, No = 0",
          fill = "Group"), common.legend = TRUE)
 
@@ -243,7 +246,7 @@ train_asian_plot <- training_asian %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "Asian Americans") +
+    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
     ylim(c(-30,20))
 
 # African Americans
@@ -262,7 +265,7 @@ train_black_plot <- training_black %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "African Americans")+
+    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
     ylim(c(-30,20))
 
 ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
@@ -292,7 +295,7 @@ train_asian_plot_gran <- training_asian %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "Asian Americans") +
+    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
     ylim(c(-30,20))
 
 # African Americans
@@ -311,7 +314,7 @@ train_black_plot_gran <- training_black %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
     geom_col(position = "dodge") +
     coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked Progress - N of Linked Hurt", title = "African Americans")+
+    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
     ylim(c(-30,20))
 
 ggarrange(train_asian_plot_gran, train_black_plot_gran, ncol = 1, nrow = 2, common.legend = TRUE)

@@ -61,14 +61,14 @@ irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performanc
 ```{r}
   
 # Put all 
-all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian_Americans", measure = "Linked_progress", resampling = "None"),
-          mutate(asian_lh_models, group = "Asian_Americans", measure = "Linked_hurt", resampling = "None"),
-          mutate(black_lp_models, group = "African_Americans", measure = "Linked_progress", resampling = "None"),
-          mutate(black_lh_models, group = "African_Americans", measure = "Linked_hurt", resampling = "None"),
-          mutate(asian_lp_models_resample, group = "Asian_Americans", measure = "Linked_progress", resampling = "Upsampling"),
-          mutate(asian_lh_models_resample, group = "Asian_Americans", measure = "Linked_hurt", resampling = "Upsampling"),
-          mutate(black_lp_models_resample, group = "African_Americans", measure = "Linked_progress", resampling = "Upsampling"),
-          mutate(black_lh_models_resample, group = "African_Americans", measure = "Linked_hurt", resampling = "Upsampling")
+all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measure = "Linked progress", resampling = "None"),
+          mutate(asian_lh_models, group = "Asian Americans", measure = "Linked hurt", resampling = "None"),
+          mutate(black_lp_models, group = "African Americans", measure = "Linked progress", resampling = "None"),
+          mutate(black_lh_models, group = "African Americans", measure = "Linked hurt", resampling = "None"),
+          mutate(asian_lp_models_resample, group = "Asian Americans", measure = "Linked progress", resampling = "Upsampling"),
+          mutate(asian_lh_models_resample, group = "Asian Americans", measure = "Linked hurt", resampling = "Upsampling"),
+          mutate(black_lp_models_resample, group = "African Americans", measure = "Linked progress", resampling = "Upsampling"),
+          mutate(black_lh_models_resample, group = "African Americans", measure = "Linked hurt", resampling = "Upsampling")
           )
 
 # Gather all the models 
@@ -87,8 +87,8 @@ numerify <- function(data){
 
 irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 1]), numerify(irr_summary[1:2, 2])),
                             content_agreement = c(numerify(irr_summary[1:2, 3]), numerify(irr_summary[1:2, 4])),
-                            measure = c("Linked_progress", "Linked_hurt", "Linked_progress", "Linked_hurt"),
-                            group = c("Asian_Americans", "Asian_Americans", "African_Americans", "African_Americans")
+                            measure = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
+                            group = c("Asian Americans", "Asian Americans", "African Americans", "African Americans")
 )
 
 ```

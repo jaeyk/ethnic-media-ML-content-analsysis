@@ -23,12 +23,15 @@ pacman::p_load(
         irr, # for calculating inter-coder reliability score
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots 
-        ggthemes # for fancy ggplot themes
+        ggthemes, # for fancy ggplot themes
+        patchwork # for arranging ggplots 
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
 
 theme_set(theme_Publication(14))
+
+source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
 
 ```
 
@@ -67,13 +70,9 @@ black_unlabeled$linked_hurt <- black_lh_data$labeled_linked_hurt
 
 ```
 
-### 2.2. Joining labeled and unlabled articles 
+### 2.2. Joining labeled and unlabeled articles 
 
 ```{r}
-
-# These should return all TRUEs to bind them by rows 
-names(asian_sample) == names(asian_unlabeled)
-names(black_sample) == names(black_unlabeled)
 
 # Bind them by rows 
 asian_full_labeled <- bind_rows(asian_sample, asian_unlabeled)
@@ -82,6 +81,11 @@ black_full_labeled <- bind_rows(black_sample, black_unlabeled)
 # Drop the first column
 asian_full_labeled <- asian_full_labeled[,-1]
 black_full_labeled <- black_full_labeled[,-1]
+
+# Remove numbers and special characters in the source titles 
+black_full_labeled$source <- gsub('[[:digit:]]', '', black_full_labeled$source) 
+black_full_labeled$source <- gsub('[[:punct:]]+', '', black_full_labeled$source) %>% trimws()
+
 ```
 
 ### 2.3. Joining Asian American and African American data 
@@ -138,47 +142,27 @@ full_articles$year_mon[1:10]
 
 year_trends <- full_articles %>%
   group_by(group, year) %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  ggplot(aes(x = year, y = value, col = linked_fate)) +
-  stat_summary(fun.y = mean, geom = "point", alpha = 0.8, size = 1.5) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.4) +
-  scale_y_continuous(labels = scales::percent) +
-  scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-  coord_flip() +
-  facet_wrap(~group) +
-  labs(title = "Time series trends (Yearly)", 
-       caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication year") 
-
-```
-
-```{r}
+  visualize_year_trends()
 
 month_trends <- full_articles %>%
   group_by(group, year_mon) %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  ggplot(aes(x = anytime::anydate(year_mon), y = value, col = linked_fate)) +
-  stat_summary(fun.y = mean, geom = "point", alpha = 0.8, size = 1.5) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", fun.args = list(mult= 1.96), alpha = 0.4) +
-  scale_x_date(date_labels = "%Y-%m") +
-  scale_y_continuous(labels = scales::percent) +
-  scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-  coord_flip() +
-  facet_wrap(~group) +
-  labs(title = "Time series trends (Monthly)", 
-       caption = "Source: Ethnic Newswatch",
-       y = "Proportion of articles", x = "Publication month") 
+  visualize_month_trends()
 
-ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
+ggarrange(year_trends, month_trends, nrow = 1, ncol = 2, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot.png", height = 7, width = 15)
 
 ```
 
 ```{r}
 
-year_trends + facet_wrap(~source)
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_source.png")
+time_series_asian <- full_articles %>% filter(group == "Asian Americans") %>% group_by(year_mon) %>% visualize_month_trends() + facet_wrap(~source, ncol = 1) + labs(title = "Monthly trends by group and source", subtitle = "Asian Americans")
+
+time_series_black <- full_articles %>% filter(group == "African Americans") %>% group_by(year_mon) %>% visualize_month_trends() + facet_wrap(~source, ncol = 1) + labs(title = "", subtitle = "African Americans", caption = "")
+
+ggarrange(time_series_asian, time_series_black, common.legend = TRUE, ncol = 2)
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_source.png", height = 13, width = 15)
 
 ```
 
@@ -188,15 +172,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_s
 full_articles %>%
   filter(year >= 1976 & year <= 1981 ) %>%
   group_by(group) %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  mutate(linked_fate == factor(linked_fate, levels = c("lh_exclusive", "lf_mixed", "lp_exclusive"))) %>%
-  ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
-    stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", color = "black") +
-    stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
-#  ylim(c(0,17)) +
-    labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent)
+  visualize_matched()
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
