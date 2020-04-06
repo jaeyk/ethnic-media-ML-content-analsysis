@@ -1,3 +1,4 @@
+
 clean_text <- function(data){
   
   data <- data %>%
@@ -21,6 +22,76 @@ create_sparse_matrix <- function(data){
     select(-n) %>%
     count(postID, word) %>%
     cast_sparse(postID, word, n)
+}
+
+visualize_year_trends <- function(data){
+  
+  data %>%
+    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+    ggplot(aes(x = year, y = value, col = linked_fate)) +
+    stat_summary(fun.y = mean, geom = "line") +
+    stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
+    scale_y_continuous(labels = scales::percent) +
+    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    facet_wrap(~group) +
+    labs(title = "Yearly trends", 
+         caption = "Source: Ethnic Newswatch",
+         y = "Proportion of articles", x = "Publication year") 
+  
+}
+
+
+visualize_month_trends <- function(data){
+  
+  data %>%
+    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+    ggplot(aes(x = anytime::anydate(year_mon), y = value, col = linked_fate)) +
+    stat_summary(fun.y = mean, geom = "line") +
+    stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
+    scale_x_date(date_labels = "%Y-%m") +
+    scale_y_continuous(labels = scales::percent) +
+    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    facet_wrap(~group) +
+    labs(title = "Monthly trends", 
+         caption = "Source: Ethnic Newswatch",
+         y = "Proportion of articles", x = "Publication month") 
+  
+}
+
+visualize_matched <- function(data){
+  
+  data %>%
+    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+      mutate(linked_fate == factor(linked_fate, levels = c("lh_exclusive", "lf_mixed", "lp_exclusive"))) %>%
+      ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
+      stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", color = "black") +
+      stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
+      #  ylim(c(0,17)) +
+      labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
+      scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+      scale_y_continuous(labels = scales::percent)
+  
+}
+
+
+visualize_aggregated <- function(data){
+
+  data %>%  
+    summarize(mean = mean(value),
+              sd  = sd(value),
+              n = n()) %>%
+    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+    ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
+    facet_wrap(~source) +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_y_continuous(labels = scales::percent)
+
 }
 
 visualize_diagnostics <- function(sparse_matrix, many_models){
