@@ -140,15 +140,32 @@ full_articles$year_mon[1:10]
 
 ```{r}
 
-year_trends <- full_articles %>%
-  group_by(group, year) %>%
-  visualize_year_trends()
+year_trends_asian <- full_articles %>%
+  filter(group == "Asian Americans") %>%
+  group_by(year) %>%
+  visualize_year_trends() +
+  labs(subtitle = "Asian Americans")
 
-month_trends <- full_articles %>%
-  group_by(group, year_mon) %>%
-  visualize_month_trends()
+year_trends_black <- full_articles %>%
+  filter(group != "Asian Americans") %>%
+  group_by(year) %>%
+  visualize_year_trends() +
+  labs(subtitle = "African Americans")
 
-ggarrange(year_trends, month_trends, nrow = 2, ncol = 1, common.legend = TRUE)
+month_trends_asian <- full_articles %>%
+  filter(group == "Asian Americans") %>%
+  group_by(year_mon) %>%
+  visualize_month_trends() +
+  labs(subtitle = "Asian Americans")
+
+month_trends_black <- full_articles %>%
+  filter(group != "Asian Americans") %>%
+  group_by(year_mon) %>%
+  visualize_month_trends() +
+  labs(subtitle = "African Americans")
+
+ggarrange(year_trends_asian, year_trends_black,
+          month_trends_asian, month_trends_black, common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot_gran.png", height = 10, width = 13)
 
