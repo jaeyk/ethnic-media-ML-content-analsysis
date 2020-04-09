@@ -22,7 +22,8 @@ pacman::p_load(
         tidyverse, # for the tidyverse framework
         ggpubr, # for arranging ggplot2 
         ggthemes, # for fancy ggplot themes
-        broom # for visualizing coefficients
+        broom, # for visualizing coefficients
+        kableExtra # for nice tables in R markdown
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
@@ -51,6 +52,14 @@ merged_model100 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perfor
 
 merged_model <- bind_rows(mutate(merged_model50, type = "Minimum"),
                           mutate(merged_model100, type = "Maximum"))
+
+merged_model %>%
+  select(-c(content_kappa, content_agreement, X1)) %>%
+  filter(resampling == "Upsampling") %>%
+  filter(metrices == "Balanced Accuracy") %>%
+  filter(models == "Lasso") %>%
+  kable() %>%
+  kable_styling()
 
 ```
 
