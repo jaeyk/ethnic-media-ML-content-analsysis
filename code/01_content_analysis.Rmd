@@ -80,30 +80,41 @@ df <- bind_rows(
 
 ### 2.2. Data visualization 
 
+
 ```{r}
 
-df %>%
-  gather(type, value, linked_progress, linked_hurt) %>%
-  mutate(type = recode(type,
-                       `linked_progress` = "Linked progress",
-                       `linked_hurt` = "Linked hurt")) %>%
-  group_by(group, type) %>%
-  summarise(mean = mean(value), # summarize mean, standard deviation, and n 
-            sd = sd(value),
-            n = n()) %>%
-  mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
-         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
-         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, ymax = upper.ci, ymin = lower.ci, col = group)) +
-    geom_pointrange() + # point estimates plus confidence intervals 
-    coord_flip() +
-    scale_color_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
-    labs(y= "Percentages of agreement", x = "Type",
-         title = "Percentages of agreement",
-         subtitle = "1: Perfect agreement, 0: Zero agreement",
-         caption = "Ethnic NewsWatch",
-         col = "Group") +
-    theme(text = element_text(size = 15)) # large font size 
+# Extract percent agreement 
+
+extract_percent_agreement <- function(data){
+  # Calculatign the percent agreement 
+  test <- agree(data, tolerance = 0) %>% as.numeric()
+  # Extracting the number
+  percent_agreement <- test[5]
+  # Return the number
+  percent_agreement
+}
+
+# Calculate the percent agreements and then put them with the other information into a dataframe 
+df_agree <- data.frame("percent_agreement" = c(
+extract_percent_agreement(subset(df, group = "Asian Americans")[,c(3,6)]),
+extract_percent_agreement(subset(df, group = "Asian Americans")[,c(4,7)]),
+extract_percent_agreement(subset(df, group != "Asian Americans")[,c(3,6)]),
+extract_percent_agreement(subset(df, group != "Asian Americans")[,c(4,7)])),
+           "type" = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
+           "group" = c(rep("Asian Americans", 2), rep("African Americans", 2)))
+           
+# Visualize 
+df_agree %>%
+  mutate(percent_agreement = round(percent_agreement, 0)) %>%
+  ggplot(aes(x = group, y = percent_agreement/100, fill = type)) +
+  geom_col(position = "dodge", color="black") +
+  geom_text(aes(label = paste(percent_agreement, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+  labs(title = "Percentage agreement",
+       y = "Agreement rate",
+       x = "Group",
+       fill = "Type") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
 
@@ -117,23 +128,23 @@ ggarrange(
 df %>%              
   group_by(group, linked_progress) %>%
   add_count() %>%
-  ggplot(aes(x = as.factor(linked_progress), y = n, fill = group)) +
-    geom_col(position = "dodge") +
-    scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
-    labs(x = "Values", y = "Frequency",
+  ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_progress))) +
+    geom_col(position = "dodge", color="black") +
+    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values=c("red","blue")) +
+    geom_text(aes(label = n), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(x = "Group", y = "Frequency",
          title = "Linked progress",
-         subtitle = "Yes = 1, No = 0",
          fill = "Group"),
 
 df %>%
   group_by(group, linked_hurt) %>%
   add_count() %>%
-  ggplot(aes(x = as.factor(linked_hurt), y = n, fill = group)) +
-    geom_col(position = "dodge") +     
-    scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
-    labs(x = "Values", y = "Frequency",
+  ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_hurt))) +
+    geom_col(position = "dodge", color="black") +     
+    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values=c("red","blue")) +
+    geom_text(aes(label = n), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(x = "Group", y = "Frequency",
          title = "Linked hurt",
-         subtitle = "Yes = 1, No = 0",
          fill = "Group"), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
@@ -164,11 +175,11 @@ extract_agreement <- function(data){
   
  agreement_progress  <- data %>%
       dplyr::select(contains("gains")) %>%
-      agree()
+      agree() 
  
  agreement_hurt <- data %>%
       dplyr::select(contains("losses")) %>%
-      agree()
+      agree() 
  
  data.frame("agreement_progress" = agreement_progress$value/100, 
             "agreement_hurt" = agreement_hurt$value/100)
@@ -202,15 +213,15 @@ write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performance
 
 irr_summary %>%
   gather(type, value, c(kappa_progress, kappa_hurt)) %>% 
+  mutate(value = round(value, 2)) %>%
   ggplot(aes(x = fct_reorder(type, value), y = value, fill = group)) +
-    geom_col(position = "dodge") +
-    coord_flip() +
+    geom_col(position = "dodge", color="black") +
     scale_fill_manual(name = "Group", labels = c("African Americans", "Asian Americans"), values=c("red","blue")) +
-    labs(y= "Intercorder reliability scores", x = "Type",
-         title = "Content analysis results",
-         subtitle = "Kappa = Cohen's Kappa. Inter-coder reliability score.",
+    labs(y= "Cohen's Kappa scores", x = "Type",
+         title = "Inter-coder reliablity test results",
          caption = "Ethnic NewsWatch",
          fill = "Group") + # five thirty eight theme 
+    geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) +
     theme(text = element_text(size = 15)) # large font size 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
@@ -240,7 +251,7 @@ train_asian_plot <- training_asian %>%
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge") +
+    geom_col(position = "dodge", color="black") +
     coord_flip() +
     labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
     ylim(c(-30,20))
@@ -259,7 +270,7 @@ train_black_plot <- training_black %>%
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge") +
+    geom_col(position = "dodge", color="black") +
     coord_flip() +
     labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
     ylim(c(-30,20))
@@ -289,7 +300,7 @@ train_asian_plot_gran <- training_asian %>%
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge") +
+    geom_col(position = "dodge", color="black") +
     coord_flip() +
     labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
     ylim(c(-30,20))
@@ -308,7 +319,7 @@ train_black_plot_gran <- training_black %>%
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
   mutate(difference = Linked_progress - Linked_hurt) %>%
   ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge") +
+    geom_col(position = "dodge", color="black") +
     coord_flip() +
     labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
     ylim(c(-30,20))
@@ -338,14 +349,15 @@ df %>%
   select(linked_progress, linked_hurt, group) %>%
   group_by(group) %>%
   summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
+  mutate(corr = round(corr, 2)) %>%
   ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
     geom_col() +
     labs(title = "Correlation Coefficients",
+         subtitle = "Maximum",
          y = "Pearson Correlation coefficient",
          x = "Group",
          caption = "Ethnic NewsWatch") +
-    geom_col() +
-    coord_flip()
+    geom_text(aes(label = corr)) 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis.png")
 
@@ -353,14 +365,15 @@ df %>%
   select(linked_progress_gran, linked_hurt_gran, group) %>%
   group_by(group) %>%
   summarize(corr = cor(linked_progress_gran, linked_hurt_gran), method = "Pearson") %>%
+  mutate(corr = round(corr, 2)) %>%
   ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
     geom_col() +
-    labs(title = "Correlation Coefficients",
-         y = "Pearson Correlation coefficient",
+    labs(title = "Correlation coefficients",
+         subtitle = "Minimum",
+         y = "Pearson correlation coefficient",
          x = "Group",
          caption = "Ethnic NewsWatch") +
-    geom_col() +
-    coord_flip()
+    geom_text(aes(label = corr)) 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis_gran.png")
 ```
@@ -435,6 +448,7 @@ df_source$linked_fate <- str_replace(df_source$linked_fate, "_gran", "")
 
 plot_asian <- df_source %>%
  filter(group == "Asian Americans") %>%
+ mutate(mean = round(mean , 1)) %>%
  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
@@ -442,11 +456,13 @@ plot_asian <- df_source %>%
                   position=position_dodge(.9)) +
     facet_wrap(~source) +
     scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent) +
-    labs(subtitle = "Asian Americans", y = "Proportion", x = "Measurement")
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(subtitle = "Asian Americans", y = "Proportion", x = "Threshold")
 
 plot_black <- df_source %>%
  filter(group != "Asian Americans") %>%
+ mutate(mean = round(mean , 1)) %>%
  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
@@ -454,8 +470,9 @@ plot_black <- df_source %>%
                   position=position_dodge(.9)) +
     facet_wrap(~source) +
     scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent) +
-    labs(subtitle = "African Americans", y = "Proportion", x = "Measurement")
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(subtitle = "African Americans", y = "Proportion", x = "Threshold")
 
 ggarrange(plot_asian, plot_black, common.legend = TRUE)
 
@@ -480,6 +497,7 @@ df_ratio$linked_fate <- str_replace(df_ratio$linked_fate, "_gran", "")
 ggarrange(
   df_ratio %>%
   filter(group == "Asian Americans") %>%
+  mutate(mean = round(mean, 1)) %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
@@ -488,11 +506,13 @@ ggarrange(
     scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +    
-    scale_y_continuous(labels = scales::percent) +
-    labs(title = "", subtitle = "Asian Americans", y = "Proportion", x = "Measurement"),
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(title = "", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
 
   df_ratio %>%
-  filter(group != "Asian Americans") %>%
+  filter(group != "Asian Americans")  %>%
+  mutate(mean = round(mean, 1)) %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
@@ -501,8 +521,9 @@ ggarrange(
     scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +   
-    scale_y_continuous(labels = scales::percent) +
-    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Measurement"), common.legend = TRUE)
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 15)
 ```
