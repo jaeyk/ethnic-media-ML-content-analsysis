@@ -81,11 +81,13 @@ visualize_ratio <- function(data){
            lh_ratio = lh_exclusive / lp_exclusive) %>%
     select(group, type, lp_ratio, lh_ratio) %>%
     gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
+    mutate(value = round(value, 2)) %>%
     ggplot(aes(group, value, fill = ratio)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     facet_wrap(~type) +
-    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) 
+    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) +
+    geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) 
 }
 
 visualize_ratio_source <- function(data){
@@ -98,11 +100,13 @@ visualize_ratio_source <- function(data){
            lh_ratio = lh_exclusive / lp_exclusive) %>%
     select(source, type, lp_ratio, lh_ratio) %>%
     gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
+    mutate(value = round(value, 2)) %>%
     ggplot(aes(type, value, fill = ratio)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     facet_wrap(~source) +
-    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) 
+    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) +
+    geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) 
 }
 
 summarize_content <- function(data){
@@ -120,7 +124,7 @@ summarize_content <- function(data){
 visualize_aggregated <- function(data){
 
   data %>%  
-    summarize(mean = mean(value),
+    summarize(mean = round(mean(value), 3),
               sd  = sd(value),
               n = n()) %>%
     mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
@@ -133,14 +137,14 @@ visualize_aggregated <- function(data){
                   position=position_dodge(.9)) +
     facet_wrap(~source) +
     scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent)
-
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) 
 }
 
 visualize_comp <- function(data){
   
   data %>%  
-    summarize(mean = mean(value),
+    summarize(mean = round(mean(value),3),
               sd  = sd(value),
               n = n()) %>%
     mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
@@ -152,8 +156,8 @@ visualize_comp <- function(data){
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                   position=position_dodge(.9)) +
     facet_wrap(~source) +
-    scale_y_continuous(labels = scales::percent)
-  
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) 
 }
 
 visualize_performance <- function(data){
@@ -161,10 +165,10 @@ visualize_performance <- function(data){
   data %>%
     ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
       geom_col(position = "dodge") +
+      ylim(c(0,1)) +
       facet_grid(measure ~ group) +
-      ylim(c(0, 1)) +
-      coord_flip() +
-      scale_y_continuous(labels = scales::percent) 
+      scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+      geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
   
 }
 

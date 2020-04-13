@@ -60,7 +60,6 @@ black_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-
 irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")[,-1]
 
 ```
-
 ## 2. Wrangling data
 
 ### 2.1. Putting all ML evals together
@@ -84,19 +83,14 @@ all_evals <- all_evals %>%
 
 ```
 
-### 2.2. Extracting correlation coefficients and Cohen's Kappa from the content analysis
+### 2.2. Renaming the columns in the content analysis 
 
 ```{r}
 
-numerify <- function(data){
-  data %>% unlist() %>% as.numeric()
-}
-
-irr_resummary <- data.frame(content_kappa = c(numerify(irr_summary[1:2, 1]), numerify(irr_summary[1:2, 2])),
-                            content_agreement = c(numerify(irr_summary[1:2, 3]), numerify(irr_summary[1:2, 4])),
-                            measure = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
-                            group = c("Asian Americans", "Asian Americans", "African Americans", "African Americans")
-)
+irr_resummary <- irr_summary %>%
+  rename(measure = type, 
+         content_agreement = percent_agreement, 
+         content_kappa = kappa)
 
 ```
 
@@ -121,31 +115,33 @@ write.csv(merged_model, "/home/jae/content-analysis-for-evaluating-ML-performanc
 
 no_resampling_plot <- merged_model %>%
   filter(resampling == "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+  mutate(rate = round(rate, 3)) %>%
+  ggplot(aes(x = models, y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
+    labs(title = "ML performances (without resampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
 
 resampling_plot <- merged_model %>%
   filter(resampling != "None") %>%
-  ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
+  mutate(rate = round(rate, 3)) %>%
+  ggplot(aes(x = models, y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_gran.png", height = 10, width = 12)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_gran.png", height = 17, width = 10)
 
 ```
 
@@ -153,32 +149,35 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 
 no_resampling_plot <- merged_model %>%
   filter(resampling == "None") %>%
+  mutate(rate = round(rate, 3)) %>%
   ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (without resampling)", x = "Models", y = "Performance (%)",
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+
 
 resampling_plot <- merged_model %>%
-  filter(resampling != "None") %>%
+  filter(resampling != "None")  %>%
+  mutate(rate = round(rate, 3)) %>%
   ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
     geom_col(position = "dodge") +
     scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (with upsampling)", x = "Models", y = "Performance (%)",
+    labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_gran.png", height = 10, width = 12)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_gran.png", height = 17, width = 10)
 ```
 

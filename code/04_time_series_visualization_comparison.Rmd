@@ -62,7 +62,7 @@ df %>%
   filter(year >= 1976 & year <= 1981) %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
   group_by(group, linked_fate, type) %>%
-  summarize(mean = mean(value),
+  summarize(mean = round(mean(value),2),
             sd  = sd(value),
             n = n()) %>%
   mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
@@ -75,10 +75,11 @@ df %>%
                    position=position_dodge(.9)) +
     facet_wrap(~type) +
     scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png", height = 7)
 ```
 
 - Source
@@ -101,7 +102,7 @@ plot_black <- df %>%
 
 ggarrange(plot_asian, plot_black, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_source.png", width = 13)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_source.png", width = 13, height = 7)
 
 ```
 - Extreme versus moderate cases 

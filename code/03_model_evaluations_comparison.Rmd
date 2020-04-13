@@ -71,48 +71,52 @@ merged_model %>%
 
 no_resampling_plot100 <- merged_model %>%
   filter(resampling == "None" & type == "Maximum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
        subtitle = "Maximum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") 
 
 no_resampling_plot50 <- merged_model %>%
   filter(resampling == "None" & type == "Minimum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
        subtitle = "Minimum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") 
 
 resampling_plot100 <- merged_model %>%
   filter(resampling != "None" & type == "Maximum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
        subtitle = "Maximum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") 
 
 resampling_plot50 <- merged_model %>%
   filter(resampling != "None" & type == "Minimum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
        subtitle = "Minimum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") 
 
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", height = 10, width = 15)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", height = 17, width = 10)
 
 ```
 
@@ -120,52 +124,56 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_per
 
 no_resampling_plot100 <- merged_model %>%
   filter(resampling == "None" & type == "Maximum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
        subtitle = "Maximum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 no_resampling_plot50 <- merged_model %>%
   filter(resampling == "None" & type == "Minimum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (without resampling)",
        subtitle = "Minimum",
        x = "Models", 
-       y = "Performance (%)",
-       fill = "Metrics") +
+       y = "Rate",
+       fill = "Metrics")  +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 resampling_plot100 <- merged_model %>%
   filter(resampling != "None" & type == "Maximum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
        subtitle = "Maximum",
        x = "Models", 
-       y = "Performance (%)",
+       y = "Rate",
        fill = "Metrics") +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 resampling_plot50 <- merged_model %>%
   filter(resampling != "None" & type == "Minimum") %>%
+  mutate(rate = round(rate, 3)) %>%
   visualize_performance() +
   scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
   labs(title = "ML performances (resampling)",
        subtitle = "Minimum",
        x = "Models", 
-       y = "Performance (%)",
-       fill = "Metrics") +
+       y = "Rate",
+       fill = "Metrics")  +
        geom_hline(aes(yintercept = content_agreement), linetype = "dashed") 
 
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 10, width = 15)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 17, width = 17)
 
 ```
 
