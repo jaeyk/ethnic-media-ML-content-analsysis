@@ -116,7 +116,7 @@ df_agree %>%
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png", height = 7)
 
 ```
 
@@ -147,7 +147,7 @@ df %>%
          title = "Linked hurt",
          fill = "Group"), common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png", height = 7)
 ```
 
 
@@ -224,7 +224,7 @@ irr_summary %>%
     geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) +
     theme(text = element_text(size = 15)) # large font size 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png", height = 7)
 
 ```
 
