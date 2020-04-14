@@ -20,7 +20,8 @@ rm(list = ls())
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
-        irr, # for calculating inter-coder reliability score
+        irr, # for calculating inter-coder reliability scores
+        vcd, # for kappa statistics 
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots   
         ggthemes, # for fancy ggplot themes
@@ -59,7 +60,7 @@ training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perform
 dim(training_asian)
 dim(training_black)
 
-# Variable names
+# Rename variables
 names(training_asian) == names(training_black)
 
 ```
@@ -151,43 +152,96 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/conten
 
 ```
 
-### 3.2. Inter-coder reliablity scores 
+### 3.2. Kappa statistics 
+
+### 3.2.1. Original
  
 ```{r}
 
-# Extract percent agreement 
+# Extract kappa statistics 
 
 extract_kappa <- function(data){
-  # Calculatign the percent agreement 
-  test <- kappa2(data, "squared") %>% as.numeric()
-  # Extracting the number
-  kappa <- test[5]
-  # Return the number
-  kappa
-}
+  # Calculatign the kappa statistic 
+  test <- Kappa(table(data))
+  
+  # Extracting the kappa statistic
+  kappa <- test$Unweighted[1] %>% as.numeric()
+  
+  # Extracting confidence intervals
+  lwr <- confint(test)[1,1]
+  upr <- confint(test)[1,2]
 
-# Calculate the percent agreements and then put them with the other information into a dataframe 
-df_kappa <- data.frame("kappa" = c(
-extract_kappa(subset(df, group = "Asian Americans")[,c(3,6)]),
-extract_kappa(subset(df, group = "Asian Americans")[,c(4,7)]),
-extract_kappa(subset(df, group != "Asian Americans")[,c(3,6)]),
-extract_kappa(subset(df, group != "Asian Americans")[,c(4,7)])),
-           "type" = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
-           "group" = c(rep("Asian Americans", 2), rep("African Americans", 2)))
+  # Return the number
+  data.frame("kappa" = kappa, 
+                "lwr" = lwr, 
+                "upr" = upr)}
+
+df_kappa <- rbind(extract_kappa(subset(df, group = "Asian Americans")[,c(3,6)]),
+      extract_kappa(subset(df, group = "Asian Americans")[,c(4,7)]),
+      extract_kappa(subset(df, group != "Asian Americans")[,c(3,6)]),
+      extract_kappa(subset(df, group != "Asian Americans")[,c(4,7)]))
+
+df_kappa$type <- c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt")
+
+df_kappa$group <- c(rep("Asian Americans", 2), rep("African Americans", 2))
            
 # Visualize 
-df_kappa %>%
+
+df_kappa_plot <- df_kappa %>%
   mutate(kappa = round(kappa, 2)) %>%
-  ggplot(aes(x = group, y = kappa, fill = type)) +
-  geom_col(position = "dodge", color="black") +
+  ggplot(aes(x = group, y = kappa, color = type)) +
+  geom_pointrange(aes(ymax = upr, ymin = lwr)) +
   geom_text(aes(label = kappa), position=position_dodge(width=0.9), vjust=-0.25) +
   labs(title = "Inter-coder reliability test",
+       subtitle = "Including all topics",
        y = "Kappa coefficient",
        x = "Group",
        fill = "Type") +
-  scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
+  scale_color_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) +
+  coord_flip() +
+  ylim(c(0,1))
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa.png", height = 7)
+```
+
+### 3.2.2. Original
+
+The `Negate` trick comes from [this stackoverflow post](https://stackoverflow.com/questions/5831794/opposite-of-in).
+
+```{r}
+
+'%ni%' <- Negate('%in%')
+
+dfn <- df %>%
+  filter(Topics_C %ni% c("Mismatch", "Others", "Arts", "Recipes", "OTHERS", "Articles in Spanish", "Christian advice"))
+
+dfn_kappa <- rbind(extract_kappa(subset(dfn, group = "Asian Americans")[,c(3,6)]),
+      extract_kappa(subset(dfn, group = "Asian Americans")[,c(4,7)]),
+      extract_kappa(subset(dfn, group != "Asian Americans")[,c(3,6)]),
+      extract_kappa(subset(dfn, group != "Asian Americans")[,c(4,7)]))
+
+dfn_kappa$type <- c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt")
+
+dfn_kappa$group <- c(rep("Asian Americans", 2), rep("African Americans", 2))
+           
+# Visualize 
+
+dfn_kappa_plot <- dfn_kappa %>%
+  mutate(kappa = round(kappa, 2)) %>%
+  ggplot(aes(x = group, y = kappa, color = type)) +
+  geom_pointrange(aes(ymax = upr, ymin = lwr)) +
+  geom_text(aes(label = kappa), position=position_dodge(width=0.9), vjust=-0.25) +
+  labs(title = "",
+       subtitle = "Excluding non-political topics",
+       y = "Kappa coefficient",
+       x = "Group",
+       fill = "Type") +
+  scale_color_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) +
+  coord_flip() +
+  ylim(c(0,1))
+
+df_kappa_plot + dfn_kappa_plot
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa_comp.png", width = 10, height = 7)
 
 ```
 
