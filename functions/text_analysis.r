@@ -12,18 +12,6 @@ clean_text <- function(data){
   return(data)
 }
 
-create_sparse_matrix <- function(data){
-  data <- data %>%
-    unnest_tokens(word, text) %>%
-    anti_join(get_stopwords()) %>%
-    filter(!str_detect(word, "[0-9]+")) %>%
-    add_count(word) %>%
-    filter(n > 100) %>%
-    select(-n) %>%
-    count(postID, word) %>%
-    cast_sparse(postID, word, n)
-}
-
 visualize_year_trends <- function(data){
   
   data %>%
@@ -67,7 +55,7 @@ visualize_matched <- function(data){
       #  ylim(c(0,17)) +
       labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
       scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-      scale_y_continuous(labels = scales::percent)
+      scale_y_continuous(labels = scales::percent) 
   
 }
 

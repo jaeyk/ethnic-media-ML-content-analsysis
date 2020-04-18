@@ -31,7 +31,8 @@ pacman::p_load(
         tidystm, # for extracting estimated effects from stm
         furrr, # for multiprocessing
         patchwork, # for arranging images
-        scales # for scales 
+        scales, # for scales 
+        readr # for importing and exporting files 
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
@@ -45,7 +46,17 @@ theme_set(theme_Publication(14))
 
 ```{r include=FALSE}
 
-full_articles <- read_csv( "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+setwd("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/")
+
+asian_unlabeled <- read_csv("asian_full.csv") %>%
+  mutate(group = c("Asian Americans"))
+black_unlabeled<- read_csv("black_full.csv") %>%
+  mutate(group = c("African Americans"))
+
+# Merge them 
+full_articles <- rbind(asian_unlabeled, black_unlabeled)
+
+glimpse(full_articles)
 
 ```
 
@@ -54,18 +65,8 @@ full_articles <- read_csv( "/home/jae/content-analysis-for-evaluating-ML-perform
 ```{r}
 
 # Manipulate strings
-full_articles$source <- str_trim(gsub(".*:", "", full_articles$source))
-
-# Dropping columns
-full_articles <- full_articles %>%
-  dplyr::select(-c(X1, author, linked_progress, linked_hurt, date)) 
-
-# Subsetting
-lp_articles <- full_articles %>%
-  filter(lp_exclusive == 1)
-
-lh_articles <- full_articles %>%
-  filter(lh_exclusive == 1)
+full_articles$source <- gsub('[[:digit:]]', '', full_articles$source) 
+full_articles$source <- gsub('[[:punct:]]+', '', full_articles$source) %>% trimws()
 
 ```
 
@@ -77,130 +78,87 @@ I adapted the code from Julia Silge's [amazing STM tutotial](https://juliasilge.
 
 ```{r}
 
-# Apply clean text function to each data
+# Divide five newspapers 
 
-lp_articles <- clean_text(lp_articles)
-lh_articles <- clean_text(lh_articles)
+asian <- full_articles %>% filter(group == "Asian Americans")
+black <- full_articles %>% filter(group != "Asian Americans")
 
-# Create a document-term matrix
+# Clean and create a document-term matrix
 
-lp_articles_sparse <- create_sparse_matrix(lp_articles)
-lh_articles_sparse <- create_sparse_matrix(lh_articles)
+cleaned_dtm <- function(corpus, meta){
+  
+      processed <- textProcessor(documents = corpus, 
+                                 metadata = meta,
+                                 removenumbers = TRUE,
+                                 removestopwords = TRUE, 
+                                 removepunctuation = TRUE, 
+                                 lowercase = TRUE, 
+                                 stem = TRUE, 
+                                 verbose = TRUE)
 
-# Check (both numbers should be identical)
+      out <- prepDocuments(processed$documents, 
+                           processed$vocab, 
+                           processed$meta)
+      
+      out}
 
-paste(dim(lp_articles_sparse)[1], dim(lp_articles)[1])
-paste(dim(lh_articles_sparse)[1], dim(lh_articles)[1])
+# Apply to each file 
 
+asian_out <- cleaned_dtm(asian$text, asian)
+
+Sys.sleep(10)
+```
+
+```{r}
+
+black_out <- cleaned_dtm(black$text, black)
+
+```
+
+```{r}
+
+write_rds(asian_out, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_out.rds")
+
+write_rds(black_out, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_out.rds")
+
+Sys.sleep(10)
 ```
 
 ### 3.2. Train and evaluate a topic model
 
 #### 3.2.1. Train many models
 
+For the parallel processing, I referred the code from [this site](https://byuistats.github.io/M335/parallel_furrr.html).
+
 ```{r include=FALSE}
 
-plan(multiprocess)
+no_cores <- availableCores() - 1
 
-lp_many_models <- data_frame(K = c(10:15)) %>%
-  mutate(topic_model = future_map(K, ~stm(lp_articles_sparse, K = .)))
+plan(multicore, workers = no_cores)
 
-lh_many_models <- data_frame(K = c(10:15)) %>%
-  mutate(topic_model = future_map(K, ~stm(lh_articles_sparse, K = .)))
+asian_many_models <- data_frame(K = c(10:15)) %>%
+  mutate(topic_model = future_map(K, ~stm(asian_out$documents, asian_out$vocab, K = .)))
+  
+Sys.sleep(10)
+
+```
+
+```{r}
+  
+black_many_models <- data_frame(K = c(10:15)) %>%
+  mutate(topic_model = future_map(K, ~stm(black_out$documents, black_out$vocab, K = .)))
 
 ```
 
 #### 3.2.2. Visualize diagnostics
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
-lp_diag <- visualize_diagnostics(asian_lp_articles_sparse, lp_many_models) + labs(subtitle = "Linked progress articles") 
-lh_diag <- visualize_diagnostics(black_lh_articles_sparse, lh_many_models) + labs(subtitle = "Linked hurt articles") 
+asian_diag <- visualize_diagnostics(asian_out, asian_many_models) + labs(subtitle = "Linked progress articles") 
+lh_diag <- visualize_diagnostics(black_lh_articles_sparse, black_many_models) + labs(subtitle = "Linked hurt articles") 
 
 lp_diag / lh_diag
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_modeling_diagnosis_plot.png", height = 10)
 
 ```
-
-### 3.3. Adding covariates
-
-12, 10, 11, 10
-
-```{r eval=FALSE, include=FALSE}
-
-# Construct STM
-
-lp_stm <- stm(documents = lp_articles_sparse,
-              data = lp_articles,
-              prevalence = ~group,
-              K = 14)
-
-lh_stm <- stm(documents = lh_articles_sparse,
-              data = lh_articles,
-              prevalence = ~group,
-              K = 13)
-
-# Save these heavy files
-
-write_rds(lp_stm, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lp_stm.rds")
-write_rds(lh_stm, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lh_stm.rds")
-
-```
-
-### 3.4. Plotting topic modeling results 
-
-```{r}
-
-# Read files 
-lp_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lp_stm.rds")
-lh_stm <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/lh_stm.rds")
-
-# Prep
-lp_predict_topics <- estimateEffect(formula = 1:14 ~ group, stmobj = lp_stm, metadata = lp_articles, uncertainty = "Global")
-lh_predict_topics <- estimateEffect(formula = 1:13 ~ group, stmobj = lh_stm, metadata = lh_articles, uncertainty = "Global")
-
-# Plotting estimated effects
-
-lp_predict_group <- extract.estimateEffect(lp_predict_topics, "group",
-                       model = lp_stm,
-                       method = "pointestimate") %>%
-  ggplot(aes(x = factor(topic), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
-  geom_pointrange() + theme_base() +
-  labs(x = "Topics",
-       y = "Estimated effects",
-       col = "Group",
-       title = "Structural topic modeling results",
-       subtitle = "Linked progress articles") +
-       theme(legend.position = 'bottom') +
-       ylim(c(0, 0.4))
-
-lh_predict_group <- extract.estimateEffect(lh_predict_topics, "group",
-                       model = lh_stm,
-                       method = "pointestimate") %>%
-  ggplot(aes(x = factor(topic), y = estimate, ymax = ci.upper, ymin = ci.lower, col = covariate.value)) +
-  geom_pointrange() + theme_base() +
-  labs(x = "Topics",
-       y = "Estimated effects",
-       col = "Group",
-       title = "Structural topic modeling results",
-       subtitle = "Linked hurt articles") +
-       theme(legend.position = 'bottom') +
-       ylim(c(0, 0.4))
-
-lp_predict_group + lh_predict_group
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/topic_predict_estimates_plot.png", width = 12)
-
-```
-### 3.5. Content analysis
-
-```{r}
-
-asian_thoughts <- findThoughts(lp_stm, texts = lp_articles$text, topics = c(6, 8, 13), n = 10)
-
-black_thoughts <- findThoughts(lh_stm, texts = lh_articles$text, topics = c(4, 13), n = 10)
-
-black_thoughts
-```
-

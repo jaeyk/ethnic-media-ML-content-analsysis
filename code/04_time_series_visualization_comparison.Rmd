@@ -129,7 +129,7 @@ plot_black <- df %>%
 
 ggarrange(plot_asian, plot_black, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_comp.png", width = 13)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_comp.png", width = 16, height = 7)
 
 ```
 

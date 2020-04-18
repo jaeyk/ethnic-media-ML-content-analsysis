@@ -121,7 +121,7 @@ no_resampling_plot <- merged_model %>%
     scale_fill_manual(name = "Metrics", labels = c("Accuracy","Balanced accuracy"), values=c("red","blue")) +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (without resampling)", x = "Models", y = "Rate",
+    labs(title = "ML performances (without upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
@@ -156,7 +156,7 @@ no_resampling_plot <- merged_model %>%
     geom_hline(aes(yintercept = content_agreement), linetype = "dashed") +
     facet_grid(measure ~ group) +
     ylim(c(0, 1)) +
-    labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
+    labs(title = "ML performances (without upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 

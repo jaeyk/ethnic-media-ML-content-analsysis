@@ -254,7 +254,7 @@ irr_summary <- merge(df_agree, df_kappa)
 irr_summary <- irr_summary %>%
   mutate(percent_agreement = percent_agreement / 100)
 
-write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")
+write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv") 
 
 ```
 
@@ -506,7 +506,7 @@ plot_black <- df_source %>%
 
 ggarrange(plot_asian, plot_black, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources.png", width = 15)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources.png", width = 17)
 ```
 - Compare moderate and extreme cases 
 

@@ -189,7 +189,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_s
 full_articles %>%
   filter(year >= 1976 & year <= 1981 ) %>%
   group_by(group) %>%
-  visualize_matched()
+  visualize_matched() 
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
