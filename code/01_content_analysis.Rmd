@@ -531,8 +531,6 @@ ggarrange(
   ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +    
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
@@ -545,15 +543,13 @@ ggarrange(
   ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +   
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
     labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 12)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 12, height = 6)
 ```
 
 ```{r}
