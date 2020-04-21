@@ -148,7 +148,7 @@ df_agree %>%
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png", height = 7)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
 
 ```
 
@@ -526,36 +526,85 @@ df_ratio$linked_fate <- str_replace(df_ratio$linked_fate, "_gran", "")
   
 ggarrange(
   df_ratio %>%
-  filter(group == "Asian Americans") %>%
+  filter(group == "Asian Americans" & linked_fate == "extreme") %>%
   mutate(mean = round(mean, 1)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+  ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                   position=position_dodge(.9)) +
-    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +    
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
+    labs(title = "The proportion of extreme cases", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
 
   df_ratio %>%
-  filter(group != "Asian Americans")  %>%
+  filter(group != "Asian Americans" & linked_fate == "extreme")  %>%
   mutate(mean = round(mean, 1)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+  ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                   position=position_dodge(.9)) +
-    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
     facet_wrap(~source) +
     ylim(c(0, 0.7)) +   
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
     labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 15)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 12)
+```
+
+```{r}
+
+# Summarize and bind them together
+
+df_ratio_sub <- bind_rows(mutate(
+  df %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive) %>%
+  group_by(linked_fate, group, source) %>%
+  summarize_content(), type = "Maximum"),
+          mutate(
+  df %>%
+  gather(linked_fate, value, lp_exclusive_gran, lh_exclusive_gran) %>%
+  group_by(linked_fate, group, source) %>%
+  summarize_content(), type = "Minimum"))
+
+df_ratio_sub$linked_fate <- str_replace(df_ratio_sub$linked_fate, "_gran", "")
+
+ggarrange(
+df_ratio_sub %>%
+  filter(group == "Asian Americans") %>%
+  mutate(mean = round(mean, 1)) %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    facet_wrap(~source) +
+    ylim(c(0, 0.7)) +    
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linked progress"), values=c("red","blue")) +
+    labs(title = "The proportion of extreme cases in each category", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
+
+
+df_ratio_sub %>%
+  filter(group != "Asian Americans")  %>%
+  mutate(mean = round(mean, 1)) %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    facet_wrap(~source) +
+    ylim(c(0, 0.7)) +   
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linked progress"), values=c("red","blue")) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), 
+common.legend = TRUE) +
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png", width = 13, height = 6)
+
+
 ```
 
 ## 6. Exporting non-duplicated files 
