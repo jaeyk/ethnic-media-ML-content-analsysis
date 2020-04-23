@@ -60,6 +60,15 @@ merged_model %>%
   filter(models == "Lasso") %>%
   kable() %>%
   kable_styling()
+# Summary stat 
+
+merged_model %>% 
+  select(models, group, measure, resampling, metrices, rate, type) %>%
+  filter(resampling == "None" & type == "Minimum") %>%
+  group_by(metrices) %>%
+  summarize(min = min(rate),
+            max = max(rate),
+            mean = mean(rate))
 
 ```
 
@@ -112,7 +121,7 @@ resampling_plot50 <- merged_model %>%
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", width = 12, height = 8)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", width = 14, height = 8)
 
 ```
 
@@ -169,6 +178,6 @@ resampling_plot50 <- merged_model %>%
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 8, width = 12)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 8, width = 14)
 
 ```

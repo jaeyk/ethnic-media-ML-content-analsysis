@@ -140,15 +140,19 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matche
 matched_ratio <- df %>%
   filter(year >= 1976 & year <= 1981) %>%
   visualize_ratio() +
-    labs(title = "Matched", y = "Ratio", x = "Group") + ylim(c(0,16))
+    labs(title = "Matched (1976-1981)", y = "Ratio", x = "Group") + ylim(c(0,16))
             
 unmatched_ratio <- df %>%
  visualize_ratio() +
-    labs(title = "Unmatched", y = "Ratio", x = "Group") + ylim(c(0,16))
+    labs(title = "Unmatched (1968-1981)", y = "Ratio", x = "Group") + ylim(c(0,16))
 
-ggarrange(matched_ratio, unmatched_ratio, common.legend = TRUE, ncol = 1) 
+matched_ratio
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_ratio.png", height = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_matched.png", width = 8)
+
+unmatched_ratio
+
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_unmatched.png", width = 8)
 
 ```
 

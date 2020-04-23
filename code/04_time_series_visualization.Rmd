@@ -194,9 +194,9 @@ full_articles %>%
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison.png", height = 7)
 
 full_articles %>%
-  filter(year >= 1976 & year <= 1981) %>%
+  filter(year >= 1983 & year <= 1987 & group == "Asian Americans") %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  group_by(group, linked_fate) %>%
+  group_by(group, source, linked_fate) %>%
   summarize(mean = mean(value))
 
 ```

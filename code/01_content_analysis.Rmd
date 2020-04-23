@@ -267,7 +267,7 @@ write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performance
 ```{r}
 
 # Asian Americans
-train_asian_plot <- training_asian %>%
+train_asian_plot <- bind_rows(mutate(training_asian %>%
   rename(Linked_progress = linked_progress) %>%
   rename(Linked_hurt = linked_hurt) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
@@ -279,44 +279,9 @@ train_asian_plot <- training_asian %>%
   spread(linked_fate, n) %>%
   mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt) %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge", color="black") +
-    coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
-    ylim(c(-30,20))
-
-# African Americans
-train_black_plot <- training_black %>%
-  rename(Linked_progress = linked_progress) %>%
-  rename(Linked_hurt = linked_hurt) %>%
-  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
-  filter(value == 1) %>%
-  filter(Topics_C != "Mismatch") %>%
-  group_by(linked_fate) %>%
-  count(Topics_C) %>%
-  spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
-         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt) %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge", color="black") +
-    coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
-    ylim(c(-30,20))
-
-ggarrange(train_asian_plot, train_black_plot, ncol = 1, nrow = 2, common.legend = TRUE)
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics.png", height = 10)
-
-```
-
-- 50%
-
-```{r}
-
-# Asian Americans
-train_asian_plot_gran <- training_asian %>%
+  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Maximum"),
+                              
+  mutate(training_asian %>%
   rename(Linked_progress = linked_progress_gran) %>%
   rename(Linked_hurt = linked_hurt_gran) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
@@ -328,35 +293,55 @@ train_asian_plot_gran <- training_asian %>%
   spread(linked_fate, n) %>%
   mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt) %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
-    geom_col(position = "dodge", color="black") +
-    coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "Asian Americans") +
-    ylim(c(-30,20))
+  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Minimum"))
 
-# African Americans
-train_black_plot_gran <- training_black %>%
-  rename(Linked_progress = linked_progress_gran) %>%
-  rename(Linked_hurt = linked_hurt_gran) %>%
+# African Americans 
+train_black_plot <- bind_rows(mutate(training_black %>%
+  rename(Linked_progress = linked_progress) %>%
+  rename(Linked_hurt = linked_hurt) %>%
   gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
   filter(value == 1) %>%
   filter(Topics_C != "Mismatch") %>%
+  filter(Topics_C != "Others") %>%
   group_by(linked_fate) %>%
   count(Topics_C) %>%
   spread(linked_fate, n) %>%
   mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
          Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt) %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference)) +
+  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Maximum"),
+                              
+  mutate(training_black %>%
+  rename(Linked_progress = linked_progress_gran) %>%
+  rename(Linked_hurt = linked_hurt_gran) %>%
+  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
+  filter(value == 1) %>%
+  filter(Topics_C != "Mismatch") %>%
+  filter(Topics_C != "Others") %>%
+  group_by(linked_fate) %>%
+  count(Topics_C) %>%
+  spread(linked_fate, n) %>%
+  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
+         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
+  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Minimum"))
+
+# Visualize 
+
+ggarrange(
+train_asian_plot %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
     geom_col(position = "dodge", color="black") +
     coord_flip() +
-    labs(x = "Topics", y = "Difference = N of Linked progress - N of Linked hurt", title = "African Americans")+
-    ylim(c(-30,20))
+    labs(x = "Topics", y = "N of Linked progress - N of Linked hurt", title = "Asian Americans") +
+    scale_fill_manual(name = "Measurement", labels = c("Maximum","Minimum"), values=c("red","blue")),
 
-ggarrange(train_asian_plot_gran, train_black_plot_gran, ncol = 1, nrow = 2, common.legend = TRUE)
+train_black_plot %>%
+  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
+    geom_col(position = "dodge", color="black") +
+    coord_flip() +
+    labs(x = "Topics", y = "N of Linked progress - N of Linked hurt", title = "African Americans") +
+    scale_fill_manual(name = "Measurement", labels = c("Maximum","Minimum"), values=c("red","blue")), common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", width = 13, height = 7)
 
 ```
 
@@ -460,9 +445,11 @@ df$source <- gsub('[[:punct:]]+', '', df$source) %>% trimws()
 
 # Gather, group by and summary, and mutate
 
+df$group <- factor(df$group, levels = c("Asian Americans", "African Americans"))
+
 df_source <- df %>% 
   gather(linked_fate, value, c(lp_exclusive, lh_exclusive, lf_mixed, lp_exclusive_gran, lh_exclusive_gran, lf_mixed_gran)) %>%
-  group_by(linked_fate, group, source) %>%
+  group_by(linked_fate, group) %>%
   summarize_content()
 
 # Create two additional columns for sorting 
@@ -470,47 +457,23 @@ df_source <- df %>%
 df_source$type <- ifelse(str_detect(df_source$linked_fate, "gran"), "Minimum", "Maximum")
 df_source$linked_fate <- str_replace(df_source$linked_fate, "_gran", "")
 
-```
-
-```{r}
-
 # Visualize 
 
-plot_asian <- df_source %>%
- filter(group == "Asian Americans") %>%
- mutate(mean = round(mean , 1)) %>%
+plot_ext_cases <- df_source %>%
+ filter(linked_fate != "lf_mixed") %>%
+ mutate(mean = round(mean, 2)) %>%
  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                   position=position_dodge(.9)) +
-    facet_wrap(~source) +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(subtitle = "Asian Americans", y = "Proportion", x = "Threshold")
-
-plot_black <- df_source %>%
- filter(group != "Asian Americans") %>%
- mutate(mean = round(mean , 1)) %>%
- ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
-    facet_wrap(~source) +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(subtitle = "African Americans", y = "Proportion", x = "Threshold")
-
-ggarrange(plot_asian, plot_black, common.legend = TRUE)
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources.png", width = 17)
-```
-- Compare moderate and extreme cases 
-
-```{r}
+    geom_text(aes(label = paste(mean*100, "%")),
+              position=position_dodge(width=0.9), vjust=-0.25) +
+    labs(title = "The proportion of extreme cases by category",
+         y = "Proportion", x = "Threshold") +
+    facet_wrap(~group)
 
 df_ratio <- df %>%
   mutate(extreme = lp_exclusive + lh_exclusive,
@@ -518,88 +481,28 @@ df_ratio <- df %>%
          moderate = lf_mixed, 
          moderate_gran = lf_mixed_gran) %>%
   gather(linked_fate, value, c(extreme, extreme_gran, moderate, moderate_gran)) %>%
-  group_by(linked_fate, group, source) %>%
+  group_by(linked_fate, group) %>%
   summarize_content()
 
 df_ratio$type <- ifelse(str_detect(df_ratio$linked_fate, "gran"), "Minimum", "Maximum")
 df_ratio$linked_fate <- str_replace(df_ratio$linked_fate, "_gran", "")
   
-ggarrange(
-  df_ratio %>%
-  filter(group == "Asian Americans" & linked_fate == "extreme") %>%
-  mutate(mean = round(mean, 1)) %>%
+df_ratio_plot <- df_ratio %>%
+  filter(linked_fate == "extreme") %>%
+  mutate(mean = round(mean, 2)) %>%
   ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
-    facet_wrap(~source) +
-    ylim(c(0, 0.7)) +    
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                  position=position_dodge(.9)) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "The proportion of extreme cases", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
+    labs(title = "The proportion of extreme cases", y = "Proportion", x = "Threshold") +
+    facet_wrap(~group)
 
-  df_ratio %>%
-  filter(group != "Asian Americans" & linked_fate == "extreme")  %>%
-  mutate(mean = round(mean, 1)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    facet_wrap(~source) +
-    ylim(c(0, 0.7)) +   
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), common.legend = TRUE)
+df_ratio_plot + plot_ext_cases
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_comp.png", width = 12, height = 6)
-```
-
-```{r}
-
-# Summarize and bind them together
-
-df_ratio_sub <- bind_rows(mutate(
-  df %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive) %>%
-  group_by(linked_fate, group, source) %>%
-  summarize_content(), type = "Maximum"),
-          mutate(
-  df %>%
-  gather(linked_fate, value, lp_exclusive_gran, lh_exclusive_gran) %>%
-  group_by(linked_fate, group, source) %>%
-  summarize_content(), type = "Minimum"))
-
-df_ratio_sub$linked_fate <- str_replace(df_ratio_sub$linked_fate, "_gran", "")
-
-ggarrange(
-df_ratio_sub %>%
-  filter(group == "Asian Americans") %>%
-  mutate(mean = round(mean, 1)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    facet_wrap(~source) +
-    ylim(c(0, 0.7)) +    
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linked progress"), values=c("red","blue")) +
-    labs(title = "The proportion of extreme cases in each category", subtitle = "Asian Americans", y = "Proportion", x = "Threshold"),
-
-
-df_ratio_sub %>%
-  filter(group != "Asian Americans")  %>%
-  mutate(mean = round(mean, 1)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    facet_wrap(~source) +
-    ylim(c(0, 0.7)) +   
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linked progress"), values=c("red","blue")) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "", subtitle = "African Americans", y = "Proportion", x = "Threshold"), 
-common.legend = TRUE) +
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png", width = 13, height = 6)
-
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png", width = 10, height = 6)
 
 ```
 
