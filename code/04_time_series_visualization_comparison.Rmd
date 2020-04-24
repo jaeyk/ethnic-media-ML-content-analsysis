@@ -58,9 +58,9 @@ df <- bind_rows(mutate(full_articles, type = "Maximum"),
 
 ```{r}
 
-df %>%
-  filter(year >= 1976 & year <= 1981) %>%
+year_unmatched <- df %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  filter(linked_fate != "lf_mixed") %>%
   group_by(group, linked_fate, type) %>%
   summarize(mean = round(mean(value),2),
             sd  = sd(value),
@@ -68,110 +68,41 @@ df %>%
   mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
          lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
          upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-  ggplot(aes(x = fct_reorder(group, mean), y = mean, fill = linked_fate)) +
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
     geom_bar(stat="identity", color="black", 
              position=position_dodge()) +
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
-    facet_wrap(~type) +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    facet_wrap(~group) +
+    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
+    labs(title = "Unmatched comparison (1968-1989)", y = "Proportion of articles", x = "Group") 
+
+year_matched <- df %>%
+  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
+  filter(year >= 1976 & year <= 1981) %>%
+  filter(linked_fate != "lf_mixed") %>%
+  group_by(group, linked_fate, type) %>%
+  summarize(mean = round(mean(value),2),
+            sd  = sd(value),
+            n = n()) %>%
+  mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
+         lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
+         upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+    geom_bar(stat="identity", color="black", 
+             position=position_dodge()) +
+    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
+                   position=position_dodge(.9)) +
+    facet_wrap(~group) +
+    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png", height = 7)
-```
+ggarrange(year_unmatched, year_matched, common.legend = TRUE)
 
-- Source
-
-```{r}
-
-plot_asian <- df %>%
-  filter(group == "Asian Americans") %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  group_by(linked_fate, type, source) %>%
-  visualize_aggregated() +
-    labs(title = "Aggregated differences", subtitle = "Asian Americans", y = "Proportion of articles", x = "Group") 
-
-plot_black <- df %>%
-  filter(group != "Asian Americans") %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  group_by(linked_fate, type, source) %>%
-  visualize_aggregated() +
-    labs(title = "", subtitle = "African Americans", y = "Proportion of articles", x = "Group") 
-
-ggarrange(plot_asian, plot_black, common.legend = TRUE)
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_source.png", width = 13, height = 7)
-
-```
-- Extreme versus moderate cases 
-
-```{r}
-
-plot_asian <- df %>%
-  filter(group == "Asian Americans") %>%
-  mutate(extreme = lp_exclusive + lh_exclusive) %>%
-  gather(linked_fate, value, extreme, lf_mixed) %>%
-  group_by(linked_fate, type, source) %>%
-  visualize_comp() +
-    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
-    labs(title = "Aggregated differences", subtitle = "Asian Americans", y = "Proportion of articles", x = "Group") 
-
-plot_black <- df %>%
-  filter(group != "Asian Americans") %>%
-  mutate(extreme = lp_exclusive + lh_exclusive) %>%
-  gather(linked_fate, value, extreme, lf_mixed) %>%
-  group_by(linked_fate, type, source) %>%
-  visualize_comp() +
-    scale_fill_manual(name = "Type", labels = c("Extreme","Moderate"), values=c("red","blue")) +
-    labs(title = "", subtitle = "African Americans", y = "Proportion of articles", x = "Group") 
-
-ggarrange(plot_asian, plot_black, common.legend = TRUE)
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_comp.png", width = 16, height = 7)
-
-```
-
-- Ratio 
-
-```{r}
-
-matched_ratio <- df %>%
-  filter(year >= 1976 & year <= 1981) %>%
-  visualize_ratio() +
-    labs(title = "Matched (1976-1981)", y = "Ratio", x = "Group") + ylim(c(0,16))
-            
-unmatched_ratio <- df %>%
- visualize_ratio() +
-    labs(title = "Unmatched (1968-1981)", y = "Ratio", x = "Group") + ylim(c(0,16))
-
-matched_ratio
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_matched.png", width = 8)
-
-unmatched_ratio
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_unmatched.png", width = 8)
-
-```
-
-- Ratio + Source 
-
-```{r}
-
-plot_asian_ratio <- df %>%
-  filter(group == "Asian Americans") %>%
-  visualize_ratio_source() +
-    labs(subtitle = "Asian Americans", y = "Ratio", x = "Measurement") 
-
-plot_black_ratio <- df %>%
-  filter(group != "Asian Americans") %>%
-  visualize_ratio_source() +
-    labs(subtitle = "African Americans", y = "Ratio", x = "Measurement") 
-
-ggarrange(plot_asian_ratio, plot_black_ratio, common.legend = TRUE, ncol = 1)
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_ratio_year.png", height = 10)
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png", height = 7, width = 13)
 
 ```

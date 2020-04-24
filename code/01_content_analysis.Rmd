@@ -262,8 +262,6 @@ write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performance
 
 ### 4.1. Construct validity test
 
-- 100%
-
 ```{r}
 
 # Asian Americans
@@ -342,17 +340,6 @@ train_black_plot %>%
     scale_fill_manual(name = "Measurement", labels = c("Maximum","Minimum"), values=c("red","blue")), common.legend = TRUE)
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", width = 13, height = 7)
-
-```
-
-- Comparison 
-
-```{r}
-  
-(train_asian_plot + labs(subtitle = "Maximum") + train_black_plot + labs(subtitle = "Maximum")) /
-(train_asian_plot_gran + labs(subtitle = "Minimum") + train_black_plot_gran + labs(subtitle = "Minimum"))
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", height = 10, width = 15)
 
 ```
 
@@ -471,36 +458,10 @@ plot_ext_cases <- df_source %>%
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")),
               position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "The proportion of extreme cases by category",
-         y = "Proportion", x = "Threshold") +
+    labs(y = "Proportion", x = "Threshold") +
     facet_wrap(~group)
 
-df_ratio <- df %>%
-  mutate(extreme = lp_exclusive + lh_exclusive,
-         extreme_gran = lp_exclusive_gran + lh_exclusive_gran,
-         moderate = lf_mixed, 
-         moderate_gran = lf_mixed_gran) %>%
-  gather(linked_fate, value, c(extreme, extreme_gran, moderate, moderate_gran)) %>%
-  group_by(linked_fate, group) %>%
-  summarize_content()
-
-df_ratio$type <- ifelse(str_detect(df_ratio$linked_fate, "gran"), "Minimum", "Maximum")
-df_ratio$linked_fate <- str_replace(df_ratio$linked_fate, "_gran", "")
-  
-df_ratio_plot <- df_ratio %>%
-  filter(linked_fate == "extreme") %>%
-  mutate(mean = round(mean, 2)) %>%
-  ggplot(aes(x = fct_reorder(type, mean), y = mean)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(title = "The proportion of extreme cases", y = "Proportion", x = "Threshold") +
-    facet_wrap(~group)
-
-df_ratio_plot + plot_ext_cases
+  plot_ext_cases
 
 ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png", width = 10, height = 6)
 
