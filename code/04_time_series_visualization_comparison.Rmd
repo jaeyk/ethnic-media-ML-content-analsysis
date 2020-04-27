@@ -23,7 +23,10 @@ pacman::p_load(
         irr, # for calculating inter-coder reliability score
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots 
-        ggthemes # for fancy ggplot themes
+        ggthemes, # for fancy ggplot themes
+        pglm, # for panel estimators for generalized linear models
+        glmmML, # for longitudinal logit modeling 
+        survival # for longitudinal logit modeling
 )
 
 source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
@@ -38,11 +41,12 @@ source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text
 ```{r include=FALSE}
 
 full_articles <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+
 full_articles_gran <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv")
 
 ```
 
-### 2. Merge data 
+## 2. Merge data 
 
 ```{r}
 
@@ -52,7 +56,7 @@ df <- bind_rows(mutate(full_articles, type = "Maximum"),
 
 ```
 
-### 3. Visualize data 
+## 3. Visualize data 
 
 - Year 
 

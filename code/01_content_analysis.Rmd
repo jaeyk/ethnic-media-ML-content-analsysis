@@ -148,7 +148,9 @@ df_agree %>%
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
   scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png")
+ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png", height = 7)
+
+
 
 ```
 
