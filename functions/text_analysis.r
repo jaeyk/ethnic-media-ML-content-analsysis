@@ -153,10 +153,8 @@ visualize_performance <- function(data){
   data %>%
     ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
       geom_col(position = "dodge") +
-      ylim(c(0,1)) +
       facet_grid(measure ~ group) +
-      scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-      geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+      coord_flip()
   
 }
 
