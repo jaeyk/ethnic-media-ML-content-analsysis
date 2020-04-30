@@ -16,7 +16,7 @@ This project is part of my dissertation research. I have mostly worked with surv
 
 ## Workflow
 
-![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/outputs/workflow.png)
+![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/misc/workflow.png)
 Figure 1. Workflow
 
 Figure 1 describes the workflow from selecting cases to testing the hypotheses. The case selection strategy reduces alternative explanations. Meta issues among ethnoracial minority groups in the US could be divided into two categories: providing collective gains (**linked progress issue**) and preventing collective losses (**linked hurt issue**). Content analysis assesses data quality by measuring what and how human coders label the training data. Text classification demonstrates that Asian American newspapers issued linked progress articles by 110% more than African American newspapers did. By contrast, African American newspapers produced linked hurt articles by 133% more than Asian American newspapers did. The gap between the two groups widened up to 10 times when the training data were measured by the minimum
