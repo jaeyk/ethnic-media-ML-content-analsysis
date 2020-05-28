@@ -8,6 +8,7 @@
 - However, this statement is often a very strong assumption. Raw data is an oxymoron ([Gitelman 2013](https://mitpress.mit.edu/books/raw-data-oxymoron)). Every data is a social construction. Thus, without examining how the training data was created, "garbage in and garbage out" is inevitable ([Geiger et al. 2019](https://stuartgeiger.com/papers/gigo-fat2020.pdf)).
 - Content analysis helps understand how training data was created, providing reasonable base estimates to evaluate the performances of supervised machine learning algorithms. In this article, I document how I have carried out this project from beginning to end. When possible, I provide all the code and data used for this project (including the training but not the text data due to copyright issues).
 - The key takeaway: **Using less reliable training data leads to not only less accurate predictions but also more extreme interpretations**.
+- The preprint version of this project is accessible at https://osf.io/preprints/socarxiv/pg3aq/
 
 ## Motivation
 
