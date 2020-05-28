@@ -82,7 +82,7 @@ From a practical perspective, taking this approach could make the code lengthy a
 
 For example, below is my custom function for testing multiple models. Making and utilizing these functions made the machine learning much easier, faster, and more interpretable.
 
-```{Python}
+```Python
 def test_models(models, data):
     lasso = test_model(models[0], data[0], data[1], data[2], data[3])
     bayes = test_model(models[1], data[0], data[1], data[2], data[3])
