@@ -1,0 +1,87 @@
+---
+title: "Additional text analysis"
+author: "Jae Yeon Kim"
+html_document:
+  toc: True
+  theme: united
+  number_sections: True
+---
+
+# Setup
+
+```{r}
+
+pacman::p_load(
+        tidyverse, # for the tidyverse framework
+        ggpubr, # for arranging ggplots
+        ggthemes, # for fancy ggplot themes
+        tidytext, # for tidytext
+        furrr, # for multiprocessing
+        patchwork, # for arranging images
+        scales, # for scales 
+        here # reproducibility 
+)
+
+
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
+
+# Import R scripts
+
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+
+# for publication-friendly theme
+theme_set(theme_pubr())
+
+```
+
+# Import files
+
+```{r include=FALSE}
+
+# Maximum threshold 
+full_articles <- read_csv(here("processed_data", "full_articles.csv"))
+
+# Minimum threshold 
+full_articles_gran <- read_csv(here("processed_data", "full_articles_gran.csv"))
+
+```
+
+# Relative most frequent words
+
+```{r}
+
+# Tidy text 
+tidy_articles <- tidy_text(full_articles, linked_progress, linked_hurt)
+
+tidy_articles_gran <- tidy_text(full_articles_gran, linked_progress_gran, linked_hurt_gran)
+
+# Tokenize text 
+tokenized_articles <- tokenize_text(tidy_articles)
+
+# Count word frequency 
+word_frequency <- create_word_frequency(tidy_articles)
+word_frequency_gran <- create_word_frequency(tidy_articles_gran)
+
+```
+
+# Visualize 
+
+```{r}
+wf_plot <- visualize_wf(word_frequency, 0.003, 2, 0.01) + labs(title = "Maximum threshold")
+
+wf_gran_plot <- visualize_wf(word_frequency_gran, 0.003, 2, 0.01) + labs(title = "Minimum threshold")
+
+wf_plot / wf_gran_plot
+
+ggsave(here("outputs", "relative_word_freq.png"), width = 12, height = 10)
+
+```

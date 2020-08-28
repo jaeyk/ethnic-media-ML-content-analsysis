@@ -1,3 +1,74 @@
+visualize_wf <- function(data, alp, siz, wid){
+  
+  data %>%
+  ggplot(aes(x = Collective_gain, y = Collective_loss)) +
+    geom_jitter(alpha = alp, 
+                size = siz, 
+                width = wid, # % occupy the bins  
+                height = 0.25) +
+    geom_text(aes(label = word), check_overlap =  TRUE, vjust = 1.5) +
+    scale_x_log10(labels = scales::percent_format()) +
+    scale_y_log10(labels = scales::percent_format()) +
+    geom_abline(color = "red") +
+    facet_wrap(~group) +
+    labs(x = "Collective gain",
+         y = "Collective loss")
+  
+}
+
+# The following tidy_text function heavily draws on https://www.tidytextmining.com/ngrams.html
+
+tidy_text <- function(data, var1, var2){
+  
+  # Manipulate strings
+  data$source <- gsub('[[:digit:]]', '', data$source) 
+  data$source <- gsub('[[:punct:]]+', '', data$source) %>% trimws()
+  
+  # Filter
+  data <- data %>%
+    filter({{var1}} == 1 | {{var2}} ==1)
+  
+  # Mutate 
+  data <- data %>%
+    mutate(linked_fate = {{var1}} - {{var2}}) %>%
+    mutate(linked_fate = case_when(linked_fate == "1" ~ "Collective_gain",
+                                   linked_fate == "-1" ~ "Collective_loss",
+                                   TRUE ~ as.character(linked_fate)))}
+
+tokenize_text <- function(data){
+
+  data %>%
+    # tokenize
+    unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% # Apply bigrams 
+    # separate 
+    separate(bigram, c("word1", "word2", sep = " ")) %>%
+    # remove stop words
+    filter(!word1 %in% stop_words$word) %>%
+    filter(!word2 %in% stop_words$word) %>%
+    unite(bigram, word1, word2, sep = " ") %>%
+    filter(!word %in% str_remove_all(stop_words$word, "'"),
+           str_detect(word, "[a-z]"))
+  
+}
+
+create_word_frequency <- function(data){
+  
+  data %>%
+    group_by(linked_fate, group) %>%
+    count(word, sort = TRUE) %>%
+    # Subjoin
+    left_join(tidy_articles %>%
+                group_by(linked_fate, group) %>%
+                summarise(total = n())) %>%
+    # Create freq variable
+    mutate(freq = n/total) %>%
+    # Select only interested columns
+    select(linked_fate, group, word, freq) %>%
+    pivot_wider(names_from = c("linked_fate"),
+                values_from = "freq") %>%
+    arrange("Collective_gain", "Collective_loss") 
+  
+}
 
 clean_text <- function(data){
   
@@ -12,150 +83,16 @@ clean_text <- function(data){
   return(data)
 }
 
-visualize_year_trends <- function(data){
-  
-  data %>%
-    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-    ggplot(aes(x = year, y = value, col = linked_fate)) +
-    stat_summary(fun.y = mean, geom = "line") +
-    stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    labs(title = "Yearly trends", 
-         caption = "Source: Ethnic Newswatch",
-         y = "Proportion of articles", x = "Publication year") 
-  
-}
-
-
-visualize_month_trends <- function(data){
-  
-  data %>%
-    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-    ggplot(aes(x = anytime::anydate(year_mon), y = value, col = linked_fate)) +
-    stat_summary(fun.y = mean, geom = "line") +
-    stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
-    scale_x_date(date_labels = "%Y-%m") +
-    scale_y_continuous(labels = scales::percent) +
-    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    labs(title = "Monthly trends", 
-         caption = "Source: Ethnic Newswatch",
-         y = "Proportion of articles", x = "Publication month") 
-  
-}
-
-visualize_matched <- function(data){
-  
-  data %>%
-    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-      mutate(linked_fate == factor(linked_fate, levels = c("lh_exclusive", "lf_mixed", "lp_exclusive"))) %>%
-      ggplot(aes(x = fct_reorder(group, value), y = value, fill = linked_fate)) +
-      stat_summary(fun.y = mean, geom = "bar", stat = "identity", position ="dodge", color = "black") +
-      stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
-      #  ylim(c(0,17)) +
-      labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
-      scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-      scale_y_continuous(labels = scales::percent) 
-  
-}
-
-visualize_ratio <- function(data){
-  data %>%
-    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-    group_by(group, linked_fate, type) %>%
-    summarize(mean = mean(value)) %>%
-    spread(linked_fate, mean) %>%
-    mutate(lp_ratio = lp_exclusive / lh_exclusive,
-           lh_ratio = lh_exclusive / lp_exclusive) %>%
-    select(group, type, lp_ratio, lh_ratio) %>%
-    gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
-    mutate(value = round(value, 2)) %>%
-    ggplot(aes(group, value, fill = ratio)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    facet_wrap(~type) +
-    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) +
-    geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) 
-}
-
-visualize_ratio_source <- function(data){
-  data %>%
-    gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-    group_by(source, linked_fate, type) %>%
-    summarize(mean = mean(value)) %>%
-    spread(linked_fate, mean) %>%
-    mutate(lp_ratio = lp_exclusive / lh_exclusive,
-           lh_ratio = lh_exclusive / lp_exclusive) %>%
-    select(source, type, lp_ratio, lh_ratio) %>%
-    gather(ratio, value, c(lp_ratio, lh_ratio)) %>%
-    mutate(value = round(value, 2)) %>%
-    ggplot(aes(type, value, fill = ratio)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    facet_wrap(~source) +
-    scale_fill_manual(name = "Type", labels = c("Hurt/Progrress ratio","Prgress/Hurt ratio"), values=c("red","blue")) +
-    geom_text(aes(label = value), position=position_dodge(width=0.9), vjust=-0.25) 
-}
-
-summarize_content <- function(data){
-  
-  data %>%
-    summarize(mean = mean(value),
-              sd  = sd(value),
-              n = n()) %>%
-    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
-           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
-           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se)
-  
-}
-
-visualize_aggregated <- function(data){
-
-  data %>%  
-    summarize(mean = round(mean(value), 3),
-              sd  = sd(value),
-              n = n()) %>%
-    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
-           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
-           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-    ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
-    facet_wrap(~source) +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) 
-}
-
-visualize_comp <- function(data){
-  
-  data %>%  
-    summarize(mean = round(mean(value),3),
-              sd  = sd(value),
-              n = n()) %>%
-    mutate(se = sd / sqrt(n), # calculate standard errors and confidence intervals 
-           lower.ci = mean - qt(1 - (0.05 / 2), n - 1) * se,
-           upper.ci = mean + qt(1 - (0.05 / 2), n - 1) * se) %>%
-    ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
-    facet_wrap(~source) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) 
-}
-
-visualize_performance <- function(data){
-  
-  data %>%
-    ggplot(aes(x = fct_reorder(models, rate), y = rate, fill = metrices)) +
-      geom_col(position = "dodge") +
-      facet_grid(measure ~ group) +
-      coord_flip()
-  
+create_sparse_matrix <- function(data){
+  data <- data %>%
+    unnest_tokens(word, text) %>%
+    anti_join(get_stopwords()) %>%
+    filter(!str_detect(word, "[0-9]+")) %>%
+    add_count(word) %>%
+    filter(n > 100) %>%
+    select(-n) %>%
+    count(postID, word) %>%
+    cast_sparse(postID, word, n)
 }
 
 visualize_diagnostics <- function(sparse_matrix, many_models){
@@ -184,50 +121,4 @@ visualize_diagnostics <- function(sparse_matrix, many_models){
     facet_wrap(~Metric, scales = "free_y") +
     labs(x = "K (number of topics)",
          y = NULL,
-         title = "Model diagnostics by number of topics")
-  
-}
-
-# This is Julia Silge's code 
-
-visualize_stm <- function(topic_model, news_sparse){
-  
-td_gamma <- tidy(topic_model, matrix = "gamma",
-                 document_names = rownames(news_sparse))
-
-top_terms <- tidy(topic_model) %>%
-  arrange(beta) %>%
-  group_by(topic) %>%
-  top_n(7, beta) %>%
-  arrange(-beta) %>%
-  select(topic, term) %>%
-  summarise(terms = list(term)) %>%
-  mutate(terms = map(terms, paste, collapse = ", ")) %>% 
-  unnest()
-
-gamma_terms <- td_gamma %>%
-  group_by(topic) %>%
-  summarise(gamma = mean(gamma)) %>%
-  arrange(desc(gamma)) %>%
-  left_join(top_terms, by = "topic") %>%
-  mutate(topic = paste0("Topic ", topic),
-         topic = reorder(topic, gamma))
-
-gamma_terms %>%
-  top_n(5, gamma) %>%
-  ggplot(aes(topic, gamma, label = terms, fill = topic)) +
-  geom_col(show.legend = FALSE) +
-  geom_text(hjust = 0, nudge_y = 0.0005, size = 3,
-            family = "IBMPlexSans") +
-  coord_flip() +
-  scale_y_continuous(expand = c(0,0),
-                     limits = c(0, 0.09),
-                     labels = percent_format()) +
-  theme_tufte(base_family = "IBMPlexSans", ticks = FALSE) +
-  theme(plot.title = element_text(size = 16,
-                                  family="IBMPlexSans-Bold"),
-        plot.subtitle = element_text(size = 13)) +
-  labs(x = NULL, y = expression(gamma),
-       title = "Top 5 topics by prevalence")
-
-}
+         title = "Model diagnostics by number of topics")}

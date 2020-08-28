@@ -2,63 +2,74 @@
 title: "Visualizing time series data"
 author: "Jae Yeon Kim"
 output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
-## 0. Setup 
+# Setup 
 
 ```{r}
 
-# Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
-
-if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         irr, # for calculating inter-coder reliability score
         corrplot, # for visualizing correlation coefficients
         ggpubr, # for arranging ggplots 
         ggthemes, # for fancy ggplot themes
-        patchwork # for arranging ggplots 
+        patchwork, # for arranging ggplots 
+        here # reproducibility 
 )
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
 
-theme_set(theme_Publication(14))
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+# Import R scripts
 
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+
+# for publication-friendly theme
+theme_set(theme_pubr())
 ```
 
-## 1. Import files 
+# Import files 
 
 ```{r include=FALSE}
 
 # Predicted values
-asian_lp_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_data_gran.csv")
-asian_lh_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_data_gran.csv")
+asian_lp_data <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_data_gran.csv"))
 
-black_lp_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_data_gran.csv")
-black_lh_data <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_data_gran.csv")
+asian_lh_data <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_data_gran.csv"))
+
+black_lp_data <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_data_gran.csv"))
+
+black_lh_data <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_data_gran.csv"))
 
 # Labeled articles
-asian_sample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")
-black_sample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")
+asian_sample <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv"))
+
+black_sample <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv"))
 
 # Unlabeled articles
-asian_unlabeled <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv")
-black_unlabeled<- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv")
+asian_unlabeled <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_asian.csv"))
+
+black_unlabeled<- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/unlabeled_black.csv"))
 
 ```
 
-## 2. Wrangle data
+# Wrangle data
 
-### 2.1. Joinning predicted values and unlabeled articles
+## Joinning predicted values and unlabeled articles
 
 ```{r}
 
@@ -70,7 +81,7 @@ black_unlabeled$linked_hurt <- black_lh_data$labeled_linked_hurt
 
 ```
 
-### 2.2. Joining labeled and unlabled articles 
+## Joining labeled and unlabled articles 
 
 ```{r}
 
@@ -88,7 +99,7 @@ black_full_labeled$source <- gsub('[[:punct:]]+', '', black_full_labeled$source)
 
 ```
 
-### 2.3. Joining Asian American and African American data 
+## Joining Asian American and African American data 
 
 ```{r}
 
@@ -97,9 +108,11 @@ full_articles <- bind_rows(
   mutate(asian_full_labeled, group = "Asian Americans"),
   mutate(black_full_labeled, group = "African Americans"))
 
+write_csv(full_articles, here("processed_data", "full_articles_gran.csv"))
+
 ```
 
-### 2.4. Check the data types
+## Check the data types
 
 ```{r}
 
@@ -111,7 +124,7 @@ levels(full_articles$group) <- c("Asian Americans", "African Americans")
 
 ```
 
-### 2.5. Distinguis exclusive from mixed articles 
+## Distinguis exclusive from mixed articles 
 
 ```{r}
 
@@ -124,9 +137,9 @@ names(full_articles)
 
 ```
 
-## 3. Visualize data
+# Visualize data
 
-### 3.1. Time serieds trends 
+## Time serieds trends 
 
 ```{r}
 
@@ -183,7 +196,7 @@ ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_s
 
 ```
 
-### 3.2. Matched comparison
+## Matched comparison
 
 ```{r}
 full_articles %>%
@@ -201,7 +214,7 @@ full_articles %>%
 
 ```
 
-## 4. Export the merged file  
+# Export the merged file  
 
 ```{r}
 

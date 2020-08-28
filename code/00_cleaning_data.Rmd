@@ -1,68 +1,79 @@
 ---
 title: "Cleaning data"
 author: "Jae Yeon Kim"
-output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
+# Setup
 
-## 0. Setup 
-
-```{r}
+```{r include=FALSE}
 
 # Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
           tidyverse, # tidyverse   
-          tidytext, # text analysis in a tidyframe work 
-          quanteda) # for additional text analysis 
+          tidytext, # text analysis in a tidyframe work
+          quanteda, # for additional text analysis 
+          patchwork, # arranging ggplots 
+          ggpubr, # arranging ggplots 
+          ggthemes, # fancy ggplot themes
+          here) # reproducibility 
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
+# Import R scripts
 
-theme_set(theme_Publication(14))
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+# for publication-friendly theme
+theme_set(theme_pubr())
 
 ```
 
+# Import files 
 
-## 1. Import files 
+- The number of obs in the Asian American corpus is 14602.
+- The number of obs in the African American corpus is 63781.
 
-```{r}
+```{r include = FALSE}
 
-setwd("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/")
+asian_unlabeled <- read_csv(here("raw_data", "asian_full.csv"))
 
-asian_unlabeled <- read_csv("asian_full.csv")
-black_unlabeled<- read_csv("black_full.csv")
+black_unlabeled<- read_csv(here("raw_data","black_full.csv"))
 
 asian_unlabeled <- asian_unlabeled[!duplicated(asian_unlabeled$text),]
+
 black_unlabeled <- black_unlabeled[!duplicated(black_unlabeled$text),]
 
+# Keep these numbers to calculate the proportion of deleted data later 
+nasian <- nrow(asian_unlabeled)
+nblack <- nrow(black_unlabeled)
+
+paste("This is the total number of obs in the data:" , nasian + nblack)
 ```
 
+# Descriptive analysis
 
-## 2. Descriptive analysis
-
-```{r}
-# Cross tabulations
+```{r crosstabs}
 
 table(asian_unlabeled$source)
-
 table(black_unlabeled$source)
 
-# Calculating the total number of observations 
-
-length(asian_unlabeled$text) + length(black_unlabeled$text)
-  
 ```
-## 3. Create a set of dictionaries to remove non-political issues 
 
-```{r}
+# Create a set of dictionaries to remove non-political issues 
+
+```{r dic}
 
 # NA dictionary 
 
@@ -102,16 +113,14 @@ black_unlabeled <- black_unlabeled %>%
 
 # Check the counts 
 
-sum(asian_unlabeled$nopolitical)
-sum(black_unlabeled$nopolitical)
+sum(asian_unlabeled$nopolitical)/nasian
+sum(black_unlabeled$nopolitical)/nblack
 
 ```
 
-## 4. Export the data 
+# Export the data 
 
-```{r}
-
-setwd("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/")
+```{r filter}
 
 asian_selected <- asian_unlabeled %>%
   filter(nopolitical == 0) %>%
@@ -121,9 +130,12 @@ black_selected <- black_unlabeled %>%
   filter(nopolitical == 0) %>%
   select(author, date, source, text, year, linked_progress, linked_hurt)
 
-# labeled
-write.csv(asian_selected, "unlabeled_asian.csv")
-write.csv(black_selected, "unlabeled_black.csv")
+```
+
+```{r export}
+
+write.csv(asian_selected, here("processed_data", "unlabeled_asian.csv"))
+write.csv(black_selected, here("processed_data", "unlabeled_black.csv"))
 
 table(asian_selected$source)
 table(black_selected$source)
