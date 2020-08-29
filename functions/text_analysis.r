@@ -64,12 +64,12 @@ create_word_frequency <- function(data, asian_thres, black_thres){
     group_by(linked_fate, group) %>%
     count(bigram, sort = TRUE) %>%
     # Subjoin
-    left_join(df %>%
+    left_join(data %>%
                 group_by(linked_fate, group) %>%
                 summarise(total = n())) %>%
     # Create freq variable
     mutate(freq = n/total) %>%
-    mutate(etc = as.numeric(str_detect(bigram, "oakland|san"))) %>%
+    mutate(etc = as.numeric(str_detect(bigram, "year|years|people|san|francisco|oakland|washington|american|americans|th|street|month|months|week|weeks|western|california|united|los|international|district|hong|west|pacific|first|second|new york|per cent|alameda|county|bay area|mr|dont know|will|sun reporter|east bay|men women|contra costa|make sure|can get|berkeley|early|community|park|junior|student|dont want|university|task force|association|chinese|man"))) %>%
     filter(etc != 1)
   
   message(paste("subjoin and filter done"))

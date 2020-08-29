@@ -92,9 +92,9 @@ wf <- create_word_frequency(tokenized_articles, 20, 20)
 
 wf_gran <- create_word_frequency(tokenized_articles_gran, 20, 20)
 
-write_csv(word_frequency, here("processed_data", "word_frequency.csv"))
+write_csv(wf, here("processed_data", "word_frequency.csv"))
 
-write_csv(tidy_articles_gran, here("processed_data", "word_frequency_gran.csv"))
+write_csv(wf_gran, here("processed_data", "word_frequency_gran.csv"))
 
 ```
 
