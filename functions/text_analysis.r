@@ -1,12 +1,14 @@
-visualize_wf <- function(data, alp, siz, wid){
+visualize_wf <- function(data){
+  
+  set.seed(1234)
   
   data %>%
   ggplot(aes(x = Collective_gain, y = Collective_loss)) +
-    geom_jitter(alpha = alp, 
-                size = siz, 
-                width = wid, # % occupy the bins  
-                height = 0.25) +
-    geom_text(aes(label = word), check_overlap =  TRUE, vjust = 1.5) +
+    geom_jitter(alpha = 0.3) +
+    ggrepel::geom_text_repel(aes(label = bigram), 
+              hjust = 0.5, # for center alignment 
+              size = 3.5,
+              max.iter = 300) +
     scale_x_log10(labels = scales::percent_format()) +
     scale_y_log10(labels = scales::percent_format()) +
     geom_abline(color = "red") +
@@ -20,9 +22,12 @@ visualize_wf <- function(data, alp, siz, wid){
 
 tidy_text <- function(data, var1, var2){
   
-  # Manipulate strings
+  # Clean sources 
   data$source <- gsub('[[:digit:]]', '', data$source) 
   data$source <- gsub('[[:punct:]]+', '', data$source) %>% trimws()
+  
+  # Clean text
+  data <- clean_text(data)
   
   # Filter
   data <- data %>%
@@ -33,41 +38,66 @@ tidy_text <- function(data, var1, var2){
     mutate(linked_fate = {{var1}} - {{var2}}) %>%
     mutate(linked_fate = case_when(linked_fate == "1" ~ "Collective_gain",
                                    linked_fate == "-1" ~ "Collective_loss",
-                                   TRUE ~ as.character(linked_fate)))}
+                                   TRUE ~ as.character(linked_fate)))
+  
+  # Remove stop words; This part of code comes from Mhairi McNeill:https://stackoverflow.com/a/37526926
+  
+  stopwords <- paste(tm::stopwords('en'), collapse = "\\b|\\b")
+
+  stopwords_regex <- paste0("\\b", stopwords, "\\b")
+  
+  data$text <- gsub(stopwords_regex, "", data$text)
+  
+  data
+  
+  }
 
 tokenize_text <- function(data){
 
-  data %>%
+data %>%
     # tokenize
-    unnest_tokens(bigram, text, token = "ngrams", n = 2) %>% # Apply bigrams 
-    # separate 
-    separate(bigram, c("word1", "word2", sep = " ")) %>%
-    # remove stop words
-    filter(!word1 %in% stop_words$word) %>%
-    filter(!word2 %in% stop_words$word) %>%
-    unite(bigram, word1, word2, sep = " ") %>%
-    filter(!word %in% str_remove_all(stop_words$word, "'"),
-           str_detect(word, "[a-z]"))
-  
+    unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
 }
 
-create_word_frequency <- function(data){
+create_word_frequency <- function(data, black_threshold, asian_threshold){
   
-  data %>%
+  asian <- data %>%
     group_by(linked_fate, group) %>%
-    count(word, sort = TRUE) %>%
-    # Subjoin
+    count(bigram, sort = TRUE) %>%
     left_join(tidy_articles %>%
                 group_by(linked_fate, group) %>%
                 summarise(total = n())) %>%
-    # Create freq variable
+    filter(group == "Asian Americans")
+  
+  black <- data %>%
+    group_by(linked_fate, group) %>%
+    count(bigram, sort = TRUE) %>%
+    left_join(tidy_articles %>%
+                group_by(linked_fate, group) %>%
+                summarise(total = n())) %>%
+    filter(group != "Asian Americans")
+  
+  asian <- asian %>%
+    filter(n > asian_threshold) %>%
     mutate(freq = n/total) %>%
     # Select only interested columns
-    select(linked_fate, group, word, freq) %>%
+    select(linked_fate, group, bigram, freq) %>%
     pivot_wider(names_from = c("linked_fate"),
                 values_from = "freq") %>%
     arrange("Collective_gain", "Collective_loss") 
   
+  black <- black %>% 
+    filter(n > black_threshold) %>%
+    mutate(freq = n/total) %>%
+    # Select only interested columns
+    select(linked_fate, group, bigram, freq) %>%
+    pivot_wider(names_from = c("linked_fate"),
+                values_from = "freq") %>%
+    arrange("Collective_gain", "Collective_loss") 
+  
+  bind_rows(asian, black)
+
 }
 
 clean_text <- function(data){

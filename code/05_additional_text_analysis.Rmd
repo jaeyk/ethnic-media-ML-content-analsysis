@@ -1,6 +1,4 @@
 ---
-title: "Additional text analysis"
-author: "Jae Yeon Kim"
 html_document:
   toc: True
   theme: united
@@ -9,19 +7,19 @@ html_document:
 
 # Setup
 
-```{r}
+```{r include=FALSE}
 
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         ggpubr, # for arranging ggplots
         ggthemes, # for fancy ggplot themes
+        ggrepel, # annotating text in ggplot2 
         tidytext, # for tidytext
         furrr, # for multiprocessing
         patchwork, # for arranging images
         scales, # for scales 
-        here # reproducibility 
-)
-
+        here, # reproducibility 
+        drake) # pipeline
 
 # devtools::install_github("jaeyk/makereproducible")
 library(makereproducible)
@@ -33,6 +31,7 @@ script_list <- list.files(paste0(here::here(), "/functions"),
   full.names = TRUE
 )
 
+
 for (i in 1:length(script_list))
 {
   source(script_list[[i]])
@@ -40,48 +39,62 @@ for (i in 1:length(script_list))
 
 # for publication-friendly theme
 theme_set(theme_pubr())
-
 ```
+
 
 # Import files
 
-```{r include=FALSE}
-
+```{r}
 # Maximum threshold 
 full_articles <- read_csv(here("processed_data", "full_articles.csv"))
 
 # Minimum threshold 
 full_articles_gran <- read_csv(here("processed_data", "full_articles_gran.csv"))
 
+full_articles_gran <- full_articles_gran %>%
+  mutate(lp_exclusive = ifelse(linked_progress == 1 & linked_hurt == 0, 1, 0),
+         lh_exclusive = ifelse(linked_progress == 0 & linked_hurt == 1, 1, 0),
+         lf_mixed = ifelse(linked_progress == 1 & linked_hurt == 1, 1, 0))
 ```
 
 # Relative most frequent words
 
-```{r}
-
+```{r tidy}
 # Tidy text 
-tidy_articles <- tidy_text(full_articles, linked_progress, linked_hurt)
+tidy_articles <- tidy_text(full_articles, lp_exclusive, lh_exclusive)
 
-tidy_articles_gran <- tidy_text(full_articles_gran, linked_progress_gran, linked_hurt_gran)
+tidy_articles_gran <- tidy_text(full_articles_gran, lp_exclusive, lh_exclusive)
+
+write_csv(tidy_articles, here("processed_data", "tidy_articles.csv"))
+
+write_csv(tidy_articles_gran, here("processed_data", "tidy_articles_gran.csv"))
+
+```
+
+```{r tokenize}
+tidy_articles <- data.table::fread(here("processed_data", "tidy_articles.csv"))
+
+tidy_articles_gran <- data.table::fread(here("processed_data", "tidy_articles_gran.csv"))
 
 # Tokenize text 
 tokenized_articles <- tokenize_text(tidy_articles)
 
-# Count word frequency 
-word_frequency <- create_word_frequency(tidy_articles)
-word_frequency_gran <- create_word_frequency(tidy_articles_gran)
+tokenized_articles_gran <- tokenize_text(tidy_articles_gran)
 
+# Count word frequency 
+word_frequency <- create_word_frequency(tokenized_articles, 90, 30)
+
+word_frequency_gran <- create_word_frequency(tokenized_articles_gran, 90, 15)
 ```
 
 # Visualize 
 
 ```{r}
-wf_plot <- visualize_wf(word_frequency, 0.003, 2, 0.01) + labs(title = "Maximum threshold")
+wf_plot <- visualize_wf(word_frequency) + labs(title = "Maximum threshold")
 
-wf_gran_plot <- visualize_wf(word_frequency_gran, 0.003, 2, 0.01) + labs(title = "Minimum threshold")
+wf_gran_plot <- visualize_wf(word_frequency_gran) + labs(title = "Minimum threshold")
 
 wf_plot / wf_gran_plot
 
-ggsave(here("outputs", "relative_word_freq.png"), width = 12, height = 10)
-
+ggsave(here("outputs", "relative_word_freq.png"), width = 15, height = 10)
 ```
