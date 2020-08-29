@@ -64,12 +64,16 @@ create_word_frequency <- function(data, asian_thres, black_thres){
     group_by(linked_fate, group) %>%
     count(bigram, sort = TRUE) %>%
     # Subjoin
-    left_join(tidy_articles %>%
+    left_join(df %>%
                 group_by(linked_fate, group) %>%
                 summarise(total = n())) %>%
     # Create freq variable
-    mutate(freq = n/total) 
-    
+    mutate(freq = n/total) %>%
+    mutate(etc = as.numeric(str_detect(bigram, "oakland|san"))) %>%
+    filter(etc != 1)
+  
+  message(paste("subjoin and filter done"))
+  
   asian <- df %>%
     filter(group == "Asian Americans") %>%
     arrange(desc(freq)) %>%
@@ -78,6 +82,8 @@ create_word_frequency <- function(data, asian_thres, black_thres){
     pivot_wider(names_from = c("linked_fate"),
                 values_from = "freq") %>%
     arrange("Collective_gain", "Collective_loss") 
+
+  message(paste("asian part done"))
   
   black <- df %>%
     filter(group != "Asian Americans") %>%
@@ -87,6 +93,8 @@ create_word_frequency <- function(data, asian_thres, black_thres){
     pivot_wider(names_from = c("linked_fate"),
                 values_from = "freq") %>%
     arrange("Collective_gain", "Collective_loss") 
+
+  message(paste("black part done"))
   
   bind_rows(asian, black)
 }

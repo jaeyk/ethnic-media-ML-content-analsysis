@@ -77,6 +77,7 @@ tidy_articles <- data.table::fread(here("processed_data", "tidy_articles.csv"))
 tidy_articles_gran <- data.table::fread(here("processed_data", "tidy_articles_gran.csv"))
 
 # Tokenize text 
+
 tokenized_articles <- tokenize_text(tidy_articles)
 
 tokenized_articles_gran <- tokenize_text(tidy_articles_gran)
@@ -84,10 +85,12 @@ tokenized_articles_gran <- tokenize_text(tidy_articles_gran)
 ```
 
 ```{r}
-# Count word frequency 
-word_frequency <- create_word_frequency(tokenized_articles, 20, 20)
 
-word_frequency_gran <- create_word_frequency(tokenized_articles_gran, 20, 20)
+# Count word frequency 
+
+wf <- create_word_frequency(tokenized_articles, 20, 20)
+
+wf_gran <- create_word_frequency(tokenized_articles_gran, 20, 20)
 
 write_csv(word_frequency, here("processed_data", "word_frequency.csv"))
 
@@ -96,12 +99,6 @@ write_csv(tidy_articles_gran, here("processed_data", "word_frequency_gran.csv"))
 ```
 
 ```{r}
-
-# Remove custom stopwords
-
-wf <- filter_words(word_frequency) 
-
-wfg <- filter_words(word_frequency_gran)
 
 # Visualize 
 
