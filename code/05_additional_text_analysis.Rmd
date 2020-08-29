@@ -81,20 +81,40 @@ tokenized_articles <- tokenize_text(tidy_articles)
 
 tokenized_articles_gran <- tokenize_text(tidy_articles_gran)
 
-# Count word frequency 
-word_frequency <- create_word_frequency(tokenized_articles, 90, 30)
-
-word_frequency_gran <- create_word_frequency(tokenized_articles_gran, 90, 15)
 ```
+
+```{r}
+# Count word frequency 
+word_frequency <- create_word_frequency(tokenized_articles, 20, 20)
+
+word_frequency_gran <- create_word_frequency(tokenized_articles_gran, 20, 20)
+
+write_csv(word_frequency, here("processed_data", "word_frequency.csv"))
+
+write_csv(tidy_articles_gran, here("processed_data", "word_frequency_gran.csv"))
+
+```
+
+```{r}
+
+# Remove custom stopwords
+
+wf <- filter_words(word_frequency) 
+
+wfg <- filter_words(word_frequency_gran)
 
 # Visualize 
 
-```{r}
-wf_plot <- visualize_wf(word_frequency) + labs(title = "Maximum threshold")
+wf_plot <- visualize_wf(wf) + labs(title = "Maximum threshold")
 
-wf_gran_plot <- visualize_wf(word_frequency_gran) + labs(title = "Minimum threshold")
+wf_gran_plot <- visualize_wf(wfg) + labs(title = "Minimum threshold")
 
-wf_plot / wf_gran_plot
+wf_plot 
 
-ggsave(here("outputs", "relative_word_freq.png"), width = 15, height = 10)
+ggsave(here("outputs", "relative_word_freq.png"), width = 12, height = 12)
+
+wf_gran_plot
+
+ggsave(here("outputs", "relative_word_freq_gran.png"), width = 12, height = 12)
+
 ```

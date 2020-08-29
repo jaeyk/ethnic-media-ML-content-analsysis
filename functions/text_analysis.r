@@ -1,14 +1,12 @@
 visualize_wf <- function(data){
   
-  set.seed(1234)
-  
   data %>%
   ggplot(aes(x = Collective_gain, y = Collective_loss)) +
-    geom_jitter(alpha = 0.3) +
-    ggrepel::geom_text_repel(aes(label = bigram), 
+    geom_jitter(alpha = 0.1, size = 2.5, width = 0.25, height = 0.25) +
+    ggrepel::geom_text_repel(
+              aes(label = bigram), 
               hjust = 0.5, # for center alignment 
-              size = 3.5,
-              max.iter = 300) +
+              size = 2) +
     scale_x_log10(labels = scales::percent_format()) +
     scale_y_log10(labels = scales::percent_format()) +
     geom_abline(color = "red") +
@@ -60,44 +58,37 @@ data %>%
 
 }
 
-create_word_frequency <- function(data, black_threshold, asian_threshold){
+create_word_frequency <- function(data, asian_thres, black_thres){
   
-  asian <- data %>%
+  df <- data %>%
     group_by(linked_fate, group) %>%
     count(bigram, sort = TRUE) %>%
+    # Subjoin
     left_join(tidy_articles %>%
                 group_by(linked_fate, group) %>%
                 summarise(total = n())) %>%
-    filter(group == "Asian Americans")
-  
-  black <- data %>%
-    group_by(linked_fate, group) %>%
-    count(bigram, sort = TRUE) %>%
-    left_join(tidy_articles %>%
-                group_by(linked_fate, group) %>%
-                summarise(total = n())) %>%
-    filter(group != "Asian Americans")
-  
-  asian <- asian %>%
-    filter(n > asian_threshold) %>%
-    mutate(freq = n/total) %>%
-    # Select only interested columns
+    # Create freq variable
+    mutate(freq = n/total) 
+    
+  asian <- df %>%
+    filter(group == "Asian Americans") %>%
+    arrange(desc(freq)) %>%
+    top_n(asian_thres) %>%
     select(linked_fate, group, bigram, freq) %>%
     pivot_wider(names_from = c("linked_fate"),
                 values_from = "freq") %>%
     arrange("Collective_gain", "Collective_loss") 
   
-  black <- black %>% 
-    filter(n > black_threshold) %>%
-    mutate(freq = n/total) %>%
-    # Select only interested columns
+  black <- df %>%
+    filter(group != "Asian Americans") %>%
+    arrange(desc(freq)) %>%
+    top_n(asian_thres) %>%
     select(linked_fate, group, bigram, freq) %>%
     pivot_wider(names_from = c("linked_fate"),
                 values_from = "freq") %>%
     arrange("Collective_gain", "Collective_loss") 
   
   bind_rows(asian, black)
-
 }
 
 clean_text <- function(data){
