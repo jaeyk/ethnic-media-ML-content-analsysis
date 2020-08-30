@@ -15,13 +15,14 @@ html_document:
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-          tidyverse, # tidyverse   
-          tidytext, # text analysis in a tidyframe work
-          quanteda, # for additional text analysis 
-          patchwork, # arranging ggplots 
-          ggpubr, # arranging ggplots 
-          ggthemes, # fancy ggplot themes
-          here) # reproducibility 
+  tidyverse, # tidyverse
+  tidytext, # text analysis in a tidyframe work
+  quanteda, # for additional text analysis
+  patchwork, # arranging ggplots
+  ggpubr, # arranging ggplots
+  ggthemes, # fancy ggplot themes
+  here
+) # reproducibility
 
 # devtools::install_github("jaeyk/makereproducible")
 library(makereproducible)
@@ -37,7 +38,6 @@ for (i in 1:length(script_list))
 }
 # for publication-friendly theme
 theme_set(theme_pubr())
-
 ```
 
 # Import files 
@@ -49,17 +49,17 @@ theme_set(theme_pubr())
 
 asian_unlabeled <- read_csv(here("raw_data", "asian_full.csv"))
 
-black_unlabeled<- read_csv(here("raw_data","black_full.csv"))
+black_unlabeled <- read_csv(here("raw_data", "black_full.csv"))
 
-asian_unlabeled <- asian_unlabeled[!duplicated(asian_unlabeled$text),]
+asian_unlabeled <- asian_unlabeled[!duplicated(asian_unlabeled$text), ]
 
-black_unlabeled <- black_unlabeled[!duplicated(black_unlabeled$text),]
+black_unlabeled <- black_unlabeled[!duplicated(black_unlabeled$text), ]
 
-# Keep these numbers to calculate the proportion of deleted data later 
+# Keep these numbers to calculate the proportion of deleted data later
 nasian <- nrow(asian_unlabeled)
 nblack <- nrow(black_unlabeled)
 
-paste("This is the total number of obs in the data:" , nasian + nblack)
+paste("This is the total number of obs in the data:", nasian + nblack)
 ```
 
 # Descriptive analysis
@@ -68,19 +68,20 @@ paste("This is the total number of obs in the data:" , nasian + nblack)
 
 table(asian_unlabeled$source)
 table(black_unlabeled$source)
-
 ```
 
 # Create a set of dictionaries to remove non-political issues 
 
 ```{r dic}
 
-# NA dictionary 
+# NA dictionary
 
-NA_dictionary <- dictionary(list(sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes", "soccer"),
-                                 cars = c("engine", "powersteering", "windshields", "gasoline", "motors", "subcompact", "showrooms", "fuel prices"),
-                                 arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "violin", "lion dance"),
-                                 food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried")))
+NA_dictionary <- dictionary(list(
+  sports = c("football", "basketball", "golf", "tennis", "swimming", "coach", "giants", "warriors", "raiders", "49ers", "track team", "track and field", "athletes", "soccer"),
+  cars = c("engine", "powersteering", "windshields", "gasoline", "motors", "subcompact", "showrooms", "fuel prices"),
+  arts = c("art", "arts", "film", "films", "museum", "galleries", "painting", "paintings", "theater", "television", "circus", "opera", "orchestra", "symphony", "jazz", "disco", "concert", "concerts", "festival", "festivals", "artists", "artist", "singer", "musician", "musicians", "pianist", "pianists", "guitarists", "guitarist", "ticket", "tickets", "violin", "lion dance"),
+  food = c("recipe", "lunch", "lunch special", "dinner", "dinners", "entrees", "breakfast", "cooking", "teaspoon", "teaspoons", "quarts", "tablespoon", "tablespoons", "sugar", "fried")
+))
 
 # DFM
 
@@ -89,33 +90,36 @@ dic_black <- dfm(corpus(black_unlabeled$text), dictionary = NA_dictionary)
 
 # Turn into dataframes
 
-binary_outcome <- function(data, order){
-  ifelse(convert(data, to = "data.frame")[,order] >= 1, 1, 0)  
+binary_outcome <- function(data, order) {
+  ifelse(convert(data, to = "data.frame")[, order] >= 1, 1, 0)
 }
 
-## Asian Americans 
+## Asian Americans
 
 asian_unlabeled <- asian_unlabeled %>%
-  mutate(sports = binary_outcome(dic_asian, 2),
-         cars = binary_outcome(dic_asian, 3),
-         arts = binary_outcome(dic_asian, 4),
-         food = binary_outcome(dic_asian, 5)) %>%
+  mutate(
+    sports = binary_outcome(dic_asian, 2),
+    cars = binary_outcome(dic_asian, 3),
+    arts = binary_outcome(dic_asian, 4),
+    food = binary_outcome(dic_asian, 5)
+  ) %>%
   mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
 
 ## African Americans
 
 black_unlabeled <- black_unlabeled %>%
-  mutate(sports = binary_outcome(dic_black, 2),
-         cars = binary_outcome(dic_black, 3),
-         arts = binary_outcome(dic_black, 4),
-         food = binary_outcome(dic_black, 5)) %>%
+  mutate(
+    sports = binary_outcome(dic_black, 2),
+    cars = binary_outcome(dic_black, 3),
+    arts = binary_outcome(dic_black, 4),
+    food = binary_outcome(dic_black, 5)
+  ) %>%
   mutate(nopolitical = ifelse(sports == 1 | cars == 1 | arts == 1 | food == 1, 1, 0))
 
-# Check the counts 
+# Check the counts
 
-sum(asian_unlabeled$nopolitical)/nasian
-sum(black_unlabeled$nopolitical)/nblack
-
+sum(asian_unlabeled$nopolitical) / nasian
+sum(black_unlabeled$nopolitical) / nblack
 ```
 
 # Export the data 
@@ -129,7 +133,6 @@ asian_selected <- asian_unlabeled %>%
 black_selected <- black_unlabeled %>%
   filter(nopolitical == 0) %>%
   select(author, date, source, text, year, linked_progress, linked_hurt)
-
 ```
 
 ```{r export}
@@ -139,5 +142,4 @@ write.csv(black_selected, here("processed_data", "unlabeled_black.csv"))
 
 table(asian_selected$source)
 table(black_selected$source)
-
 ```

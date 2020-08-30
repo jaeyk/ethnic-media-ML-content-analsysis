@@ -18,8 +18,7 @@ pacman::p_load(
         furrr, # for multiprocessing
         patchwork, # for arranging images
         scales, # for scales 
-        here, # reproducibility 
-        drake) # pipeline
+        here) # reproducibility 
 
 # devtools::install_github("jaeyk/makereproducible")
 library(makereproducible)

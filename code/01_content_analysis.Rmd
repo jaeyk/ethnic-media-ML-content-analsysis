@@ -1,38 +1,46 @@
 ---
 title: "Content analysis"
 author: "Jae Yeon Kim"
-output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
-## 0. Setup 
+#
 
-```{r}
+```{r, include = FALSE}
 
-# Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
-
-if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-        tidyverse, # for the tidyverse framework
-        irr, # for calculating inter-coder reliability scores
-        vcd, # for kappa statistics 
-        corrplot, # for visualizing correlation coefficients
-        ggpubr, # for arranging ggplots   
-        ggthemes, # for fancy ggplot themes
-        gmodels, # quick summaries 
-        patchwork # for arranging ggplots 
+  tidyverse, # for the tidyverse framework
+  irr, # for calculating inter-labeler reliability scores
+  vcd, # for kappa statistics
+  corrplot, # for visualizing correlation coefficients
+  ggpubr, # for arranging ggplots
+  ggthemes, # for fancy ggplot themes
+  gmodels, # quick summaries
+  patchwork # for arranging ggplots
 )
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
-theme_set(theme_Publication(14))
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
+
+# Import R scripts
+
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+
+
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+
+# for publication-friendly theme
+theme_set(theme_pubr())
 ```
 
 ## 1. Importing files 
@@ -40,85 +48,94 @@ source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text
 
 ```{r include=FALSE}
 
-# Training data for classifying articles from Asian American newspapers 
-training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv") %>%
+# Training data for classifying articles from Asian American newspapers
+training_asian <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")) %>%
   dplyr::select(-contains("Notes")) %>%
-  mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
-         linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
-         linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0))
+  mutate(
+    linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
+    linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
+    linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
+    linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0)
+  )
 
 # Training data for classifying articles from African American newspapers
-training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv") %>%
+training_black <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")) %>%
   dplyr::select(-contains("Notes")) %>%
-  mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
-         linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
-         linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
-         linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0))
+  mutate(
+    linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
+    linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
+    linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
+    linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0)
+  )
 
-# Dimensions 
+# Dimensions
 dim(training_asian)
 dim(training_black)
 
 # Rename variables
 names(training_asian) == names(training_black)
-
 ```
 
-## 2. Descriptive statistics 
+# Descriptive statistics 
 
-### 2.1. Merging
+## Merging
 
 ```{r}
 
-# Wrangling 
+# Wrangling
 
 df <- bind_rows(
   mutate(training_asian, group = "Asian Americans"),
-  mutate(training_black, group = "African Americans"))
-
+  mutate(training_black, group = "African Americans")
+)
 ```
 
-#### 2.2. 1. Class balance 
+### Class balance 
 
 ```{r}
 
 ggarrange(
-df %>%              
-  group_by(group, linked_progress) %>%
-  add_count() %>%
-  ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_progress))) +
-    geom_col(position = "dodge", color="black") +
-    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values=c("red","blue")) +
-    geom_text(aes(label = n), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(x = "Group", y = "Frequency",
-         title = "Linked progress",
-         fill = "Group"),
+  df %>%
+    group_by(group, linked_progress) %>%
+    add_count() %>%
+    ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_progress))) +
+    geom_col(position = "dodge", color = "black") +
+    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values = c("red", "blue")) +
+    geom_text(aes(label = n), position = position_dodge(width = 0.9), vjust = -0.25) +
+    labs(
+      x = "Group", y = "Frequency",
+      title = "Collective gain",
+      fill = "Group"
+    ),
 
-df %>%
-  group_by(group, linked_hurt) %>%
-  add_count() %>%
-  ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_hurt))) +
-    geom_col(position = "dodge", color="black") +     
-    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values=c("red","blue")) +
-    geom_text(aes(label = n), position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(x = "Group", y = "Frequency",
-         title = "Linked hurt",
-         fill = "Group"), common.legend = TRUE)
+  df %>%
+    group_by(group, linked_hurt) %>%
+    add_count() %>%
+    ggplot(aes(x = as.factor(group), y = n, fill = as.factor(linked_hurt))) +
+    geom_col(position = "dodge", color = "black") +
+    scale_fill_manual(name = "Label", labels = c("No", "Yes"), values = c("red", "blue")) +
+    geom_text(aes(label = n), position = position_dodge(width = 0.9), vjust = -0.25) +
+    labs(
+      x = "Group", y = "Frequency",
+      title = "Collective loss",
+      fill = "Group"
+    ),
+  common.legend = TRUE
+)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png", height = 7, width = 10)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_n_count.png"), height = 7, width = 10)
 ```
 
-## 3. Analyzing Inter-coder agreement (percentage) and reliability scores
+# Analyzing Inter-labeler agreement (percentage) and reliability scores
 
-### 3.1. Percent agreement 
+## Percent agreement 
 
 ```{r}
 
-# Extract percent agreement 
+# Extract percent agreement
 
-extract_percent_agreement <- function(data){
-  # Calculatign the percent agreement 
+extract_percent_agreement <- function(data) {
+  # Calculatign the percent agreement
   test <- agree(data, tolerance = 0) %>% as.numeric()
   # Extracting the number
   percent_agreement <- test[5]
@@ -126,128 +143,115 @@ extract_percent_agreement <- function(data){
   percent_agreement
 }
 
-# Calculate the percent agreements and then put them with the other information into a dataframe 
-df_agree <- data.frame("percent_agreement" = c(
-extract_percent_agreement(subset(df, group = "Asian Americans")[,c(3,6)]),
-extract_percent_agreement(subset(df, group = "Asian Americans")[,c(4,7)]),
-extract_percent_agreement(subset(df, group != "Asian Americans")[,c(3,6)]),
-extract_percent_agreement(subset(df, group != "Asian Americans")[,c(4,7)])),
-           "type" = c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt"),
-           "group" = c(rep("Asian Americans", 2), rep("African Americans", 2)))
-           
-# Visualize 
+# Calculate the percent agreements and then put them with the other information into a dataframe
+df_agree <- data.frame(
+  "percent_agreement" = c(
+    extract_percent_agreement(subset(df, group = "Asian Americans")[, c(3, 6)]),
+    extract_percent_agreement(subset(df, group = "Asian Americans")[, c(4, 7)]),
+    extract_percent_agreement(subset(df, group != "Asian Americans")[, c(3, 6)]),
+    extract_percent_agreement(subset(df, group != "Asian Americans")[, c(4, 7)])
+  ),
+  "type" = c("Collective gain", "Collective loss", "Collective gain", "Collective loss"),
+  "group" = c(rep("Asian Americans", 2), rep("African Americans", 2))
+)
+
+# Visualize
 df_agree %>%
   mutate(percent_agreement = round(percent_agreement, 0)) %>%
-  ggplot(aes(x = group, y = percent_agreement/100, fill = type)) +
-  geom_col(position = "dodge", color="black") +
-  geom_text(aes(label = paste(percent_agreement, "%")), position=position_dodge(width=0.9), vjust=-0.25) +
-  labs(title = "Percentage agreement",
-       y = "Agreement rate",
-       x = "Group",
-       fill = "Type") +
+  mutate(type = recode(type,
+    "Linked progress" = "Collective gain",
+    "Linked hurt" = "Collective loss"
+  )) %>%
+  ggplot(aes(x = group, y = percent_agreement / 100, fill = type)) +
+  geom_col(position = "dodge", color = "black") +
+  geom_text(aes(label = paste(percent_agreement, "%")), position = position_dodge(width = 0.9), vjust = -0.25) +
+  labs(
+    title = "Percentage agreement",
+    y = "Agreement rate",
+    x = "Group",
+    fill = "Type"
+  ) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-  scale_fill_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) 
+  scale_fill_manual(name = "Type", labels = c("Collective loss", "Collective gain"), values = c("red", "blue"))
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png", height = 7)
-
-
-
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_agreement.png"), height = 7)
 ```
 
-### 3.2. Kappa statistics 
+## Kappa statistics 
 
-### 3.2.1. Original
+### Original
  
-```{r}
+```{r extract}
 
-# Extract kappa statistics 
+# Extract kappa statistics
 
-extract_kappa <- function(data){
-  # Calculatign the kappa statistic 
-  test <- Kappa(table(data))
-  
-  # Extracting the kappa statistic
-  kappa <- test$Unweighted[1] %>% as.numeric()
-  
-  # Extracting confidence intervals
-  lwr <- confint(test)[1,1]
-  upr <- confint(test)[1,2]
+df_kappa <- rbind(
+  extract_kappa(subset(df, group = "Asian Americans")[, c(3, 6)]),
+  extract_kappa(subset(df, group = "Asian Americans")[, c(4, 7)]),
+  extract_kappa(subset(df, group != "Asian Americans")[, c(3, 6)]),
+  extract_kappa(subset(df, group != "Asian Americans")[, c(4, 7)])
+)
 
-  # Return the number
-  data.frame("kappa" = kappa, 
-                "lwr" = lwr, 
-                "upr" = upr)}
-
-df_kappa <- rbind(extract_kappa(subset(df, group = "Asian Americans")[,c(3,6)]),
-      extract_kappa(subset(df, group = "Asian Americans")[,c(4,7)]),
-      extract_kappa(subset(df, group != "Asian Americans")[,c(3,6)]),
-      extract_kappa(subset(df, group != "Asian Americans")[,c(4,7)]))
-
-df_kappa$type <- c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt")
+df_kappa$type <- c("Collective gain", "Collective loss", "Collective gain", "Collective loss")
 
 df_kappa$group <- c(rep("Asian Americans", 2), rep("African Americans", 2))
-           
-# Visualize 
+
+# Visualize
 
 df_kappa_plot <- df_kappa %>%
   mutate(kappa = round(kappa, 2)) %>%
   ggplot(aes(x = group, y = kappa, color = type)) +
   geom_pointrange(aes(ymax = upr, ymin = lwr)) +
-  geom_text(aes(label = kappa), position=position_dodge(width=0.9), vjust=-0.25) +
-  labs(title = "Inter-coder reliability test",
-       subtitle = "Including all topics",
-       y = "Kappa coefficient",
-       x = "Group",
-       fill = "Type") +
-  scale_color_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) +
+  geom_text(aes(label = kappa), position = position_dodge(width = 0.9), vjust = -0.25) +
+  labs(
+    title = "Inter-coder reliability test",
+    subtitle = "Including all topics",
+    y = "Kappa coefficient",
+    x = "Group",
+    fill = "Type"
+  ) +
+  scale_color_manual(name = "Type", labels = c("Collective loss", "Collective gain"), values = c("red", "blue")) +
   coord_flip() +
-  ylim(c(0,1))
-
-```
-
-### 3.2.2. Original
-
-The `Negate` trick comes from [this stackoverflow post](https://stackoverflow.com/questions/5831794/opposite-of-in).
-
-```{r}
-
-'%ni%' <- Negate('%in%')
+  ylim(c(0, 1))
 
 dfn <- df %>%
-  filter(Topics_C %ni% c("Mismatch", "Others", "Arts", "Recipes", "OTHERS", "Articles in Spanish", "Christian advice"))
+  filter(!Topics_C %in% c("Mismatch", "Others", "Arts", "Recipes", "OTHERS", "Articles in Spanish", "Christian advice"))
 
-dfn_kappa <- rbind(extract_kappa(subset(dfn, group = "Asian Americans")[,c(3,6)]),
-      extract_kappa(subset(dfn, group = "Asian Americans")[,c(4,7)]),
-      extract_kappa(subset(dfn, group != "Asian Americans")[,c(3,6)]),
-      extract_kappa(subset(dfn, group != "Asian Americans")[,c(4,7)]))
+dfn_kappa <- rbind(
+  extract_kappa(subset(dfn, group = "Asian Americans")[, c(3, 6)]),
+  extract_kappa(subset(dfn, group = "Asian Americans")[, c(4, 7)]),
+  extract_kappa(subset(dfn, group != "Asian Americans")[, c(3, 6)]),
+  extract_kappa(subset(dfn, group != "Asian Americans")[, c(4, 7)])
+)
 
-dfn_kappa$type <- c("Linked progress", "Linked hurt", "Linked progress", "Linked hurt")
+dfn_kappa$type <- c("Collective gain", "Collective loss", "Collective gain", "Collective loss")
 
 dfn_kappa$group <- c(rep("Asian Americans", 2), rep("African Americans", 2))
-           
-# Visualize 
+
+# Visualize
 
 dfn_kappa_plot <- dfn_kappa %>%
   mutate(kappa = round(kappa, 2)) %>%
   ggplot(aes(x = group, y = kappa, color = type)) +
   geom_pointrange(aes(ymax = upr, ymin = lwr)) +
-  geom_text(aes(label = kappa), position=position_dodge(width=0.9), vjust=-0.25) +
-  labs(title = "",
-       subtitle = "Excluding non-political topics",
-       y = "Kappa coefficient",
-       x = "Group",
-       fill = "Type") +
-  scale_color_manual(name = "Type", labels = c("Linked hurt", "Linekd progress"), values=c("red","blue")) +
+  geom_text(aes(label = kappa), position = position_dodge(width = 0.9), vjust = -0.25) +
+  labs(
+    title = "",
+    subtitle = "Excluding non-political topics",
+    y = "Kappa coefficient",
+    x = "Group",
+    fill = "Type"
+  ) +
+  scale_color_manual(name = "Type", labels = c("Collective loss", "Collective gain"), values = c("red", "blue")) +
   coord_flip() +
-  ylim(c(0,1))
+  ylim(c(0, 1))
 
 df_kappa_plot + dfn_kappa_plot
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa_comp.png", width = 10, height = 7)
-
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_kappa_comp.png"), width = 10, height = 7)
 ```
 
-### 3.3. Exporting the summaries   
+## Exporting the summaries   
 
 ```{r}
 
@@ -256,176 +260,161 @@ irr_summary <- merge(df_agree, df_kappa)
 irr_summary <- irr_summary %>%
   mutate(percent_agreement = percent_agreement / 100)
 
-write.csv(irr_summary, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv") 
-
+write.csv(irr_summary, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv"))
 ```
 
-## 4. Additional exploratory data analyses 
+# Additional exploratory data analyses 
 
-### 4.1. Construct validity test
+## Construct validity test
 
 ```{r}
 
 # Asian Americans
-train_asian_plot <- bind_rows(mutate(training_asian %>%
-  rename(Linked_progress = linked_progress) %>%
-  rename(Linked_hurt = linked_hurt) %>%
-  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
-  filter(value == 1) %>%
-  filter(Topics_C != "Mismatch") %>%
-  filter(Topics_C != "Others") %>%
-  group_by(linked_fate) %>%
-  count(Topics_C) %>%
-  spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
-         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Maximum"),
-                              
+train_asian_plot <- bind_rows(
   mutate(training_asian %>%
-  rename(Linked_progress = linked_progress_gran) %>%
-  rename(Linked_hurt = linked_hurt_gran) %>%
-  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
-  filter(value == 1) %>%
-  filter(Topics_C != "Mismatch") %>%
-  filter(Topics_C != "Others") %>%
-  group_by(linked_fate) %>%
-  count(Topics_C) %>%
-  spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
-         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Minimum"))
+    rename(Collective_gain = linked_progress) %>%
+    rename(Collective_loss = linked_hurt) %>%
+    gather("linked_fate", "value", Collective_gain, Collective_loss) %>%
+    filter(value == 1) %>%
+    filter(Topics_C != "Mismatch") %>%
+    filter(Topics_C != "Others") %>%
+    group_by(linked_fate) %>%
+    count(Topics_C) %>%
+    spread(linked_fate, n) %>%
+    mutate(
+      Collective_gain = ifelse(is.na(Collective_gain), 0, Collective_gain),
+      Collective_loss = ifelse(is.na(Collective_loss), 0, Collective_loss)
+    ) %>%
+    mutate(difference = Collective_gain - Collective_loss), Measurement = "Maximum"),
 
-# African Americans 
-train_black_plot <- bind_rows(mutate(training_black %>%
-  rename(Linked_progress = linked_progress) %>%
-  rename(Linked_hurt = linked_hurt) %>%
-  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
-  filter(value == 1) %>%
-  filter(Topics_C != "Mismatch") %>%
-  filter(Topics_C != "Others") %>%
-  group_by(linked_fate) %>%
-  count(Topics_C) %>%
-  spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
-         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Maximum"),
-                              
+  mutate(training_asian %>%
+    rename(Collective_gain = linked_progress_gran) %>%
+    rename(Collective_loss = linked_hurt_gran) %>%
+    gather("linked_fate", "value", Collective_gain, Collective_loss) %>%
+    filter(value == 1) %>%
+    filter(Topics_C != "Mismatch") %>%
+    filter(Topics_C != "Others") %>%
+    group_by(linked_fate) %>%
+    count(Topics_C) %>%
+    spread(linked_fate, n) %>%
+    mutate(
+      Collective_gain = ifelse(is.na(Collective_gain), 0, Collective_gain),
+      Collective_loss = ifelse(is.na(Collective_loss), 0, Collective_loss)
+    ) %>%
+    mutate(difference = Collective_gain - Collective_loss), Measurement = "Minimum")
+)
+
+# African Americans
+train_black_plot <- bind_rows(
   mutate(training_black %>%
-  rename(Linked_progress = linked_progress_gran) %>%
-  rename(Linked_hurt = linked_hurt_gran) %>%
-  gather("linked_fate", "value", Linked_progress, Linked_hurt) %>%
-  filter(value == 1) %>%
-  filter(Topics_C != "Mismatch") %>%
-  filter(Topics_C != "Others") %>%
-  group_by(linked_fate) %>%
-  count(Topics_C) %>%
-  spread(linked_fate, n) %>%
-  mutate(Linked_progress = ifelse(is.na(Linked_progress), 0, Linked_progress),
-         Linked_hurt = ifelse(is.na(Linked_hurt), 0, Linked_hurt)) %>%
-  mutate(difference = Linked_progress - Linked_hurt), Measurement = "Minimum"))
+    rename(Collective_gain = linked_progress) %>%
+    rename(Collective_loss = linked_hurt) %>%
+    gather("linked_fate", "value", Collective_gain, Collective_loss) %>%
+    filter(value == 1) %>%
+    filter(Topics_C != "Mismatch") %>%
+    filter(Topics_C != "Others") %>%
+    group_by(linked_fate) %>%
+    count(Topics_C) %>%
+    spread(linked_fate, n) %>%
+    mutate(
+      Collective_gain = ifelse(is.na(Collective_gain), 0, Collective_gain),
+      Collective_loss = ifelse(is.na(Collective_loss), 0, Collective_loss)
+    ) %>%
+    mutate(difference = Collective_gain - Collective_loss), Measurement = "Maximum"),
 
-# Visualize 
+  mutate(training_black %>%
+    rename(Collective_gain = linked_progress_gran) %>%
+    rename(Collective_loss = linked_hurt_gran) %>%
+    gather("linked_fate", "value", Collective_gain, Collective_loss) %>%
+    filter(value == 1) %>%
+    filter(Topics_C != "Mismatch") %>%
+    filter(Topics_C != "Others") %>%
+    group_by(linked_fate) %>%
+    count(Topics_C) %>%
+    spread(linked_fate, n) %>%
+    mutate(
+      Collective_gain = ifelse(is.na(Collective_gain), 0, Collective_gain),
+      Collective_loss = ifelse(is.na(Collective_loss), 0, Collective_loss)
+    ) %>%
+    mutate(difference = Collective_gain - Collective_loss), Measurement = "Minimum")
+)
+
+# Visualize
 
 ggarrange(
-train_asian_plot %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
-    geom_col(position = "dodge", color="black") +
+  train_asian_plot %>%
+    ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
+    geom_col(position = "dodge", color = "black") +
     coord_flip() +
-    labs(x = "Topics", y = "N of Linked progress - N of Linked hurt", title = "Asian Americans") +
-    scale_fill_manual(name = "Measurement", labels = c("Maximum","Minimum"), values=c("red","blue")),
+    labs(x = "Topics", y = "# of Collective gain - # of Collective loss", title = "Asian Americans") +
+    scale_fill_manual(name = "Measurement", labels = c("Maximum", "Minimum"), values = c("red", "blue")),
 
-train_black_plot %>%
-  ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
-    geom_col(position = "dodge", color="black") +
+  train_black_plot %>%
+    ggplot(aes(x = fct_reorder(Topics_C, difference), y = difference, fill = Measurement)) +
+    geom_col(position = "dodge", color = "black") +
     coord_flip() +
-    labs(x = "Topics", y = "N of Linked progress - N of Linked hurt", title = "African Americans") +
-    scale_fill_manual(name = "Measurement", labels = c("Maximum","Minimum"), values=c("red","blue")), common.legend = TRUE)
+    labs(x = "Topics", y = "# of Collective gain - # of Collective loss", title = "African Americans") +
+    scale_fill_manual(name = "Measurement", labels = c("Maximum", "Minimum"), values = c("red", "blue")),
+  common.legend = TRUE
+)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png", width = 13, height = 7)
-
-```
-
-### 4.2. Visualizing correlation coefficients between the two concepts
-
-```{r}
-
-df %>%
-  select(linked_progress, linked_hurt, group) %>%
-  group_by(group) %>%
-  summarize(corr = cor(linked_progress, linked_hurt), method = "Pearson") %>%
-  mutate(corr = round(corr, 2)) %>%
-  ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
-    geom_col() +
-    labs(title = "Correlation Coefficients",
-         subtitle = "Maximum",
-         y = "Pearson Correlation coefficient",
-         x = "Group",
-         caption = "Ethnic NewsWatch") +
-    geom_text(aes(label = corr)) 
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis.png")
-
-df %>%
-  select(linked_progress_gran, linked_hurt_gran, group) %>%
-  group_by(group) %>%
-  summarize(corr = cor(linked_progress_gran, linked_hurt_gran), method = "Pearson") %>%
-  mutate(corr = round(corr, 2)) %>%
-  ggplot(aes(x = fct_reorder(group, corr), y = corr)) +
-    geom_col() +
-    labs(title = "Correlation coefficients",
-         subtitle = "Minimum",
-         y = "Pearson correlation coefficient",
-         x = "Group",
-         caption = "Ethnic NewsWatch") +
-    geom_text(aes(label = corr)) 
-
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/corr_analysis_gran.png")
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_analysis_topics_gran.png"), width = 13, height = 7)
 ```
 
 
-## 5. Reading texts 
+# Reading texts 
 
 - Merging the text files with the content analysis 
 
 ```{r}
 
-sample_asian <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.rds")
-sample_black <- read_rds("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.rds")
+sample_asian <- readRDS(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_asian.rds")) %>%
+  as.data.frame()
+
+sample_black <- readRDS(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/sample_black.rds")) %>%
+  as.data.frame()
 
 sample_asian <- bind_cols(sample_asian, training_asian %>% select(linked_progress, linked_hurt, linked_progress_gran, linked_hurt_gran, Topics_C))
-sample_black <- bind_cols(sample_black, training_black %>% select(linked_progress, linked_hurt, linked_progress_gran, linked_hurt_gran, Topics_C))
 
+sample_black <- bind_cols(sample_black, training_black %>% select(linked_progress, linked_hurt, linked_progress_gran, linked_hurt_gran, Topics_C))
 ```
 
 - Comparing 100% and 50% data 
 
 ```{r}
 
-# Merge 
+# Merge
 
-df <- bind_rows(mutate(sample_asian, group = "Asian Americans"),
-          mutate(sample_black, group = "African Americans"))
+df <- bind_rows(
+  mutate(sample_asian, group = "Asian Americans"),
+  mutate(sample_black, group = "African Americans")
+)
 
-# Select 
+# Select
 
-df <- df %>% select(source, year, group, linked_progress, linked_progress_gran, 
-              linked_hurt, linked_hurt_gran)
+df <- df %>% select(
+  source, year, group, linked_progress, linked_progress_gran,
+  linked_hurt, linked_hurt_gran
+)
 
-# Mutate 
+# Mutate
 
-df <- df %>% 
-  mutate(lp_exclusive = ifelse(linked_progress == 1 & linked_hurt == 0, 1, 0),
-         lh_exclusive = ifelse(linked_progress == 0 & linked_hurt == 1, 1, 0),
-         lf_mixed = ifelse(linked_progress == 1 & linked_hurt == 1, 1, 0)) %>%
-  mutate(lp_exclusive_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 0, 1, 0),
-         lh_exclusive_gran= ifelse(linked_progress_gran == 0 & linked_hurt_gran == 1, 1, 0),
-         lf_mixed_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 1, 1, 0))
+df <- df %>%
+  mutate(
+    lp_exclusive = ifelse(linked_progress == 1 & linked_hurt == 0, 1, 0),
+    lh_exclusive = ifelse(linked_progress == 0 & linked_hurt == 1, 1, 0),
+    lf_mixed = ifelse(linked_progress == 1 & linked_hurt == 1, 1, 0)
+  ) %>%
+  mutate(
+    lp_exclusive_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 0, 1, 0),
+    lh_exclusive_gran = ifelse(linked_progress_gran == 0 & linked_hurt_gran == 1, 1, 0),
+    lf_mixed_gran = ifelse(linked_progress_gran == 1 & linked_hurt_gran == 1, 1, 0)
+  )
 
-# Remove numbers and special characters in the source titles 
+# Remove numbers and special characters in the source titles
 
-df$source <- gsub('[[:digit:]]', '', df$source) 
-df$source <- gsub('[[:punct:]]+', '', df$source) %>% trimws()
-
+df$source <- gsub("[[:digit:]]", "", df$source)
+df$source <- gsub("[[:punct:]]+", "", df$source) %>% trimws()
 ```
 
 - Non-excluded 
@@ -436,54 +425,57 @@ df$source <- gsub('[[:punct:]]+', '', df$source) %>% trimws()
 
 df$group <- factor(df$group, levels = c("Asian Americans", "African Americans"))
 
-df_source <- df %>% 
+df_source <- df %>%
   gather(linked_fate, value, c(lp_exclusive, lh_exclusive, lf_mixed, lp_exclusive_gran, lh_exclusive_gran, lf_mixed_gran)) %>%
   group_by(linked_fate, group) %>%
   summarize_content()
 
-# Create two additional columns for sorting 
+# Create two additional columns for sorting
 
 df_source$type <- ifelse(str_detect(df_source$linked_fate, "gran"), "Minimum", "Maximum")
 df_source$linked_fate <- str_replace(df_source$linked_fate, "_gran", "")
 
-# Visualize 
+# Visualize
 
 plot_ext_cases <- df_source %>%
- filter(linked_fate != "lf_mixed") %>%
- mutate(mean = round(mean, 2)) %>%
- ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
-    geom_bar(stat="identity", color="black", 
-             position=position_dodge()) +
-    geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
-                  position=position_dodge(.9)) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(mean*100, "%")),
-              position=position_dodge(width=0.9), vjust=-0.25) +
-    labs(y = "Proportion", x = "Threshold") +
-    facet_wrap(~group)
+  filter(linked_fate != "lf_mixed") %>%
+  mutate(mean = round(mean, 2)) %>%
+  ggplot(aes(x = fct_reorder(type, mean), y = mean, fill = linked_fate)) +
+  geom_bar(
+    stat = "identity", color = "black",
+    position = position_dodge()
+  ) +
+  geom_errorbar(aes(ymin = lower.ci, ymax = upper.ci),
+    width = .2,
+    position = position_dodge(.9)
+  ) +
+  scale_fill_manual(name = "Type", labels = c("Collective loss", "Collective gain"), values = c("red", "blue")) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  geom_text(aes(label = paste(mean * 100, "%")),
+    position = position_dodge(width = 0.9), vjust = -0.25
+  ) +
+  labs(y = "Proportion", x = "Threshold") +
+  facet_wrap(~group)
 
-  plot_ext_cases
+plot_ext_cases
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png", width = 10, height = 6)
-
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_data_sources_sub.png"), width = 10, height = 6)
 ```
 
-## 6. Exporting non-duplicated files 
+# Exporting non-duplicated files 
 
 ```{r}
 
-# Non-duplicated 
-sample_asian <- sample_asian[!duplicated(sample_asian$text),]
-sample_black <- sample_black[!duplicated(sample_black$text),]
+# Non-duplicated
+sample_asian <- sample_asian[!duplicated(sample_asian$text), ]
+sample_black <- sample_black[!duplicated(sample_black$text), ]
 
-# Check 
+# Check
 1008 - nrow(sample_asian)
 1008 - nrow(sample_black)
 
-# Export 
-write.csv(sample_asian, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv")
-write.csv(sample_black, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv")
+# Export
+write.csv(sample_asian, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_asian.csv"))
 
+write.csv(sample_black, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/sample_black.csv"))
 ```
-
