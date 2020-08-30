@@ -84,39 +84,42 @@ tokenized_articles_gran <- tokenize_text(tidy_articles_gran)
 
 ```
 
-```{r}
+```{r count frequency}
 
 # Count word frequency 
 
-wf <- create_word_frequency(tokenized_articles, 95, 20)
+wf <- create_word_frequency(tokenized_articles)
 
-wf_gran <- create_word_frequency(tokenized_articles_gran, 95, 10)
+wf_gran <- create_word_frequency(tokenized_articles_gran)
 
 write_csv(wf, here("processed_data", "word_frequency.csv"))
 
 write_csv(wf_gran, here("processed_data", "word_frequency_gran.csv"))
 
-wf <- read_csv(here("processed_data", "word_frequency.csv"))
+wf <- data.table::fread(here("processed_data", "word_frequency.csv"))
 
-wf_gran <- read_csv(here("processed_data", "word_frequency_gran.csv"))
+wf_gran <- data.table::fread(here("processed_data", "word_frequency_gran.csv"))
 
 ```
 
-```{r}
+```{r filter}
 
-# Filter 
-wf <- filter_words(wf)
-wf_gran <- filter_words(wf_gran)
+filter_wf <- filter_words(wf) %>% filter_n() 
 
-# Visualize 
+filter_wf_gran <- filter_words(wf_gran) %>% filter_n()
 
-wf_plot <- visualize_wf(wf)
-wf_gran_plot <- visualize_wf(wf_gran)
+```
 
-wf_plot 
-ggsave(here("outputs", "relative_word_freq.png"), width = 12, height = 12)
 
-wf_gran_plot
-ggsave(here("outputs", "relative_word_freq_gran.png"), width = 12, height = 12)
+```{r visuazlie}
+
+visualize_wf(filter_wf, "Maximum threshold") +
+
+ggsave(here("outputs", "relative_word_freq.png"))
+
+visualize_wf(filter_wf_gran, "Minimum threshold")
+
+ggsave(here("outputs", "relative_word_freq_gran.png"),
+       height = 7)
 
 ```
