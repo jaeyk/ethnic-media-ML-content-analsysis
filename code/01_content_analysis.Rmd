@@ -43,7 +43,7 @@ for (i in 1:length(script_list))
 theme_set(theme_pubr())
 ```
 
-## 1. Importing files 
+# Importing files 
 
 
 ```{r include=FALSE}
@@ -132,17 +132,6 @@ ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outp
 
 ```{r}
 
-# Extract percent agreement
-
-extract_percent_agreement <- function(data) {
-  # Calculatign the percent agreement
-  test <- agree(data, tolerance = 0) %>% as.numeric()
-  # Extracting the number
-  percent_agreement <- test[5]
-  # Return the number
-  percent_agreement
-}
-
 # Calculate the percent agreements and then put them with the other information into a dataframe
 df_agree <- data.frame(
   "percent_agreement" = c(
@@ -158,10 +147,6 @@ df_agree <- data.frame(
 # Visualize
 df_agree %>%
   mutate(percent_agreement = round(percent_agreement, 0)) %>%
-  mutate(type = recode(type,
-    "Linked progress" = "Collective gain",
-    "Linked hurt" = "Collective loss"
-  )) %>%
   ggplot(aes(x = group, y = percent_agreement / 100, fill = type)) +
   geom_col(position = "dodge", color = "black") +
   geom_text(aes(label = paste(percent_agreement, "%")), position = position_dodge(width = 0.9), vjust = -0.25) +

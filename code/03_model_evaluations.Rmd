@@ -1,40 +1,44 @@
 ---
 title: "Model evaluations"
 author: "Jae Yeon Kim"
-output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
 ## 0. Setup 
 
-```{r}
+```{r include=FALSE}
 
-# Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
-
-if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         ggpubr, # for arranging ggplot2 
         ggthemes, # for fancy ggplot themes
         broom, # for visualizing coefficients
-        ggfittext # for adding text to plots 
+        ggfittext) # for adding text to plots 
+        
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
+
+# Import R scripts
+
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
 )
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
 
-theme_set(theme_Publication(14))
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
-
+# for publication-friendly theme
+theme_set(theme_pubr())
 ```
 
-## 1. Importing files 
+# Importing files 
 
 ```{r include=FALSE}
 
@@ -42,41 +46,43 @@ source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text
 
 # None 
 
-asian_lp_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models.csv")[,-1]
-asian_lh_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models.csv")[,-1]
+asian_lp_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models.csv"))[,-1]
 
-black_lp_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models.csv")[,-1]
-black_lh_models <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models.csv")[,-1]
+asian_lh_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models.csv"))[,-1]
+
+black_lp_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models.csv"))[,-1]
+
+black_lh_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models.csv"))[,-1]
 
 # Resampled 
 
 asian_lp_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models_resample.csv")[,-1]
 asian_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models_resample.csv")[,-1]
 
-black_lp_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models_resample.csv")[,-1]
-black_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models_resample.csv")[,-1]
+black_lp_models_resample <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lp_models_resample.csv"))[,-1]
+
+black_lh_models_resample <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models_resample.csv"))[,-1]
 
 # From content analysis: Correlation coefficients and Kappa statistics 
 
-irr_summary <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv")[,-1]
+irr_summary <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv"))[,-1]
 
 ```
 
-## 2. Wrangling data
+# Wrangling data
 
-### 2.1. Putting all ML evals together
+## Putting all ML evals together
 
 ```{r}
   
-# Put all 
-all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measure = "Linked progress", resampling = "None"),
-          mutate(asian_lh_models, group = "Asian Americans", measure = "Linked hurt", resampling = "None"),
-          mutate(black_lp_models, group = "African Americans", measure = "Linked progress", resampling = "None"),
-          mutate(black_lh_models, group = "African Americans", measure = "Linked hurt", resampling = "None"),
-          mutate(asian_lp_models_resample, group = "Asian Americans", measure = "Linked progress", resampling = "Upsampling"),
-          mutate(asian_lh_models_resample, group = "Asian Americans", measure = "Linked hurt", resampling = "Upsampling"),
-          mutate(black_lp_models_resample, group = "African Americans", measure = "Linked progress", resampling = "Upsampling"),
-          mutate(black_lh_models_resample, group = "African Americans", measure = "Linked hurt", resampling = "Upsampling")
+all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measure = "Collective gain", resampling = "None"),
+          mutate(asian_lh_models, group = "Asian Americans", measure = "Collective loss", resampling = "None"),
+          mutate(black_lp_models, group = "African Americans", measure = "Collective gain", resampling = "None"),
+          mutate(black_lh_models, group = "African Americans", measure = "Collective loss", resampling = "None"),
+          mutate(asian_lp_models_resample, group = "Asian Americans", measure = "Collective gain", resampling = "Upsampling"),
+          mutate(asian_lh_models_resample, group = "Asian Americans", measure = "Collective loss", resampling = "Upsampling"),
+          mutate(black_lp_models_resample, group = "African Americans", measure = "Collective gain", resampling = "Upsampling"),
+          mutate(black_lh_models_resample, group = "African Americans", measure = "Collective loss", resampling = "Upsampling")
           )
 
 # Gather all the models 
@@ -85,7 +91,7 @@ all_evals <- all_evals %>%
 
 ```
 
-### 2.2. Renaming the columns in the content analysis 
+## Renaming the columns in the content analysis 
 
 ```{r}
 
@@ -96,7 +102,7 @@ irr_resummary <- irr_summary %>%
 
 ```
 
-### 2.3. Merging them together 
+## Merging them together 
 
 ```{r}
 
@@ -106,12 +112,13 @@ merged_model <- all_evals %>% right_join(irr_resummary)
 # Upper casing col names 
 names(merged_model) <- tolower(names(merged_model))
 
-write.csv(merged_model, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv")
+write.csv(merged_model, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv"))
+
 ```
 
-## 3. Visualizing data 
+# Visualizing data 
 
-### 3.1. Resampling effect  
+## Resampling effect  
 
 ```{r}
 
@@ -143,7 +150,7 @@ resampling_plot <- merged_model %>%
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances.png", height = 17, width = 10)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances.png"), height = 17, width = 10)
 
 ```
 
@@ -178,6 +185,6 @@ resampling_plot <- merged_model %>%
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png", height = 17, width = 10)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png"), height = 17, width = 10)
 ```
 
