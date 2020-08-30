@@ -7,17 +7,17 @@ html_document:
   number_sections: True
 ---
 
-## 0. Setup 
+# Setup
 
 ```{r include=FALSE}
 
 pacman::p_load(
         tidyverse, # for the tidyverse framework
-        ggpubr, # for arranging ggplot2 
+        ggpubr, # for arranging ggplot2
         ggthemes, # for fancy ggplot themes
         broom, # for visualizing coefficients
-        ggfittext) # for adding text to plots 
-        
+        ggfittext) # for adding text to plots
+
 # devtools::install_github("jaeyk/makereproducible")
 library(makereproducible)
 
@@ -38,13 +38,13 @@ for (i in 1:length(script_list))
 theme_set(theme_pubr())
 ```
 
-# Importing files 
+# Importing files
 
 ```{r include=FALSE}
 
-# From ML models 
+# From ML models
 
-# None 
+# None
 
 asian_lp_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models.csv"))[,-1]
 
@@ -54,7 +54,7 @@ black_lp_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating
 
 black_lh_models <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models.csv"))[,-1]
 
-# Resampled 
+# Resampled
 
 asian_lp_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lp_models_resample.csv")[,-1]
 asian_lh_models_resample <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/asian_lh_models_resample.csv")[,-1]
@@ -63,7 +63,7 @@ black_lp_models_resample <- read_csv(make_here("/home/jae/content-analysis-for-e
 
 black_lh_models_resample <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/black_lh_models_resample.csv"))[,-1]
 
-# From content analysis: Correlation coefficients and Kappa statistics 
+# From content analysis: Correlation coefficients and Kappa statistics
 
 irr_summary <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/irr_summary.csv"))[,-1]
 
@@ -74,7 +74,7 @@ irr_summary <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-
 ## Putting all ML evals together
 
 ```{r}
-  
+
 all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measure = "Collective gain", resampling = "None"),
           mutate(asian_lh_models, group = "Asian Americans", measure = "Collective loss", resampling = "None"),
           mutate(black_lp_models, group = "African Americans", measure = "Collective gain", resampling = "None"),
@@ -85,40 +85,39 @@ all_evals <- bind_rows(mutate(asian_lp_models, group = "Asian Americans", measur
           mutate(black_lh_models_resample, group = "African Americans", measure = "Collective loss", resampling = "Upsampling")
           )
 
-# Gather all the models 
+# Gather all the models
 all_evals <- all_evals %>%
   gather(metrices, rate, c("Accuracy", "Balanced Accuracy"))
 
 ```
 
-## Renaming the columns in the content analysis 
+## Renaming the columns in the content analysis
 
 ```{r}
 
 irr_resummary <- irr_summary %>%
-  rename(measure = type, 
-         content_agreement = percent_agreement, 
+  rename(measure = type,
+         content_agreement = percent_agreement,
          content_kappa = kappa)
 
 ```
 
-## Merging them together 
+## Merging them together
 
 ```{r}
 
-# Merging 
-merged_model <- all_evals %>% right_join(irr_resummary) 
+# Merging
+merged_model <- all_evals %>% right_join(irr_resummary)
 
-# Upper casing col names 
+# Upper casing col names
 names(merged_model) <- tolower(names(merged_model))
 
 write.csv(merged_model, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv"))
-
 ```
 
-# Visualizing data 
+# Visualizing data
 
-## Resampling effect  
+## Resampling effect
 
 ```{r}
 
@@ -133,7 +132,7 @@ no_resampling_plot <- merged_model %>%
     labs(title = "ML performances (without upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25)
 
 resampling_plot <- merged_model %>%
   filter(resampling != "None") %>%
@@ -146,7 +145,7 @@ resampling_plot <- merged_model %>%
     labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25)
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
@@ -168,7 +167,9 @@ no_resampling_plot <- merged_model %>%
     labs(title = "ML performances (without upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25)
+
+
 resampling_plot <- merged_model %>%
   filter(resampling != "None")  %>%
   mutate(rate = round(rate, 3)) %>%
@@ -181,10 +182,9 @@ resampling_plot <- merged_model %>%
     labs(title = "ML performances (with upsampling)", x = "Models", y = "Rate",
          fill = "Metrics") +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
-    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25) 
+    geom_text(aes(label = paste(rate*100, "%")), position=position_dodge(width=0.9), vjust=-0.25)
 
 ggarrange(no_resampling_plot, resampling_plot, ncol = 1, nrow = 2)
 
 ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content.png"), height = 17, width = 10)
 ```
-

@@ -1,23 +1,16 @@
 ---
 title: "Model evaluations"
 author: "Jae Yeon Kim"
-output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
 ## 0. Setup 
 
 ```{r}
 
-# Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
-
-if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         ggpubr, # for arranging ggplot2 
@@ -26,27 +19,38 @@ pacman::p_load(
         kableExtra # for nice tables in R markdown
 )
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
 
-theme_set(theme_Publication(14))
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+# Import R scripts
 
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+
+
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+
+# for publication-friendly theme
+theme_set(theme_pubr())
 ```
 
-## 1. Importing files 
+# Importing files 
 
 ```{r include=FALSE}
 
-setwd("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/")
+merged_model50 <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model50.csv"))
 
-merged_model50 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model50.csv")
-
-merged_model100 <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv")
+merged_model100 <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/merged_model100.csv"))
 
 ```
 
-## 2. Merging them together 
+# Merging them together 
 
 ```{r}
 
@@ -70,11 +74,16 @@ merged_model %>%
             max = max(rate),
             mean = mean(rate))
 
+merged_model <- merged_model %>%
+  mutate(measure = recode(measure, 
+                          "Linked hurt" = "Collective loss",
+                          "Linked progress" = "Collective gain"))
+
 ```
 
-## 3. Visualizing data 
+# Visualizing data 
 
-### 3.1. Resampling effect  
+## Resampling effect  
 
 ```{r}
 
@@ -121,7 +130,7 @@ resampling_plot50 <- merged_model %>%
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png", width = 14, height = 8)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_performances_comp.png"), width = 14, height = 8)
 
 ```
 
@@ -178,6 +187,6 @@ resampling_plot50 <- merged_model %>%
 ggarrange(no_resampling_plot100, resampling_plot100, 
           no_resampling_plot50, resampling_plot50, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png", height = 8, width = 14)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/ml_content_comp.png"), height = 8, width = 14)
 
 ```
