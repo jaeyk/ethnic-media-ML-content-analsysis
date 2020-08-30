@@ -2,22 +2,16 @@
 title: "Comparing the results"
 author: "Jae Yeon Kim"
 output:
-html_document: 
-  toc: true
+html_document:
+  toc: True
   theme: united
+  number_sections: True
 ---
 
-## 0. Setup 
+# Setup 
 
-```{r}
+```{r include=FALSE}
 
-# Clean up the environment
-
-rm(list = ls())
-
-# Import libraries (adapted from this link: https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them)
-
-if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
         tidyverse, # for the tidyverse framework
         irr, # for calculating inter-coder reliability score
@@ -36,30 +30,43 @@ pacman::p_load(
         rsample # for tidy bootstrapping
 )
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/theme_publications.r")
-theme_set(theme_Publication(14))
+# devtools::install_github("jaeyk/makereproducible")
+library(makereproducible)
 
-source("/home/jae/content-analysis-for-evaluating-ML-performances/functions/text_analysis.r")
+# Import R scripts
 
+script_list <- list.files(paste0(here::here(), "/functions"),
+  pattern = "*.r|*.R",
+  full.names = TRUE
+)
+
+
+for (i in 1:length(script_list))
+{
+  source(script_list[[i]])
+}
+
+# for publication-friendly theme
+theme_set(theme_pubr())
 ```
 
-## 1. Import files 
+# Import files 
 
 ```{r include=FALSE}
 
-full_articles <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv")
+full_articles <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles.csv"))
 
-full_articles_gran <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv")
+full_articles_gran <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv"))
 
 # Training data for classifying articles from African American newspapers
-training_black <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv") %>%
+training_black <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_black.csv")) %>%
   dplyr::select(-contains("Notes")) %>%
   mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
          linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
          linked_progress = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B == 2, 1, 0),
          linked_hurt = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B == 2, 1, 0))
 
-training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv") %>%
+training_asian <- read_csv(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/raw_data/training_asian.csv")) %>%
   dplyr::select(-contains("Notes")) %>%
   mutate(linked_progress_gran = ifelse(Promoting_collective_gains_A + Promoting_collective_gains_B >= 1, 1, 0),
          linked_hurt_gran = ifelse(Preventing_collective_losses_A + Preventing_collective_losses_B >= 1, 1, 0),
@@ -68,7 +75,7 @@ training_asian <- read_csv("/home/jae/content-analysis-for-evaluating-ML-perform
 
 ```
 
-## 2. Merge data 
+# Merge data 
 
 ```{r}
 
@@ -91,9 +98,9 @@ df_sample %>%
 
 ```
 
-## 3. Visualize data 
+# Visualize data 
 
-### 3.1. Content vs. Classification 
+## Content vs. Classification 
 
 ```{r}
 
@@ -115,7 +122,7 @@ content <- df_sample %>%
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
     facet_wrap(~group) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Content analysis", y = "Proportion of articles", x = "Group") 
@@ -136,18 +143,18 @@ classification <- df %>%
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
     facet_wrap(~group) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Automated text classification", y = "Proportion of articles", x = "Group")
 
 ggarrange(content, classification, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_classification.png", height = 7, width = 13)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/content_classification.png"), height = 7, width = 13)
 
 ```
 
-### 3.2. Experimentation 
+## Experimentation 
 
 ```{r}
 
@@ -169,14 +176,14 @@ df %>%
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
     facet_wrap(~group) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Automated text classification", y = "Proportion of articles", x = "Group")
 
 ```
 
-### 3.3. Year matched vs. unmatched 
+## Year matched vs. unmatched 
 
 ```{r}
 
@@ -196,7 +203,7 @@ year_unmatched <- df %>%
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
     facet_wrap(~group) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Unmatched comparison (1968-1989)", y = "Proportion of articles", x = "Group") 
@@ -218,14 +225,14 @@ year_matched <- df %>%
     geom_errorbar(aes(ymin= lower.ci, ymax = upper.ci), width=.2,
                    position=position_dodge(.9)) +
     facet_wrap(~group) +
-    scale_fill_manual(name = "Type", labels = c("Linked hurt","Linked progress"), values=c("red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group")
 
 ggarrange(year_unmatched, year_matched, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png", height = 7, width = 13)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_year.png"), height = 7, width = 13)
 
 df %>%
   filter(year >= 1983 & year <= 1987) %>%

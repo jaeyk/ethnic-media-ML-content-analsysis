@@ -1,7 +1,6 @@
 ---
 title: "Visualizing time series data"
 author: "Jae Yeon Kim"
-output:
 html_document:
   toc: True
   theme: united
@@ -22,7 +21,6 @@ pacman::p_load(
         here # reproducibility 
 )
 
-
 # devtools::install_github("jaeyk/makereproducible")
 library(makereproducible)
 
@@ -32,6 +30,7 @@ script_list <- list.files(paste0(here::here(), "/functions"),
   pattern = "*.r|*.R",
   full.names = TRUE
 )
+
 
 for (i in 1:length(script_list))
 {
@@ -180,7 +179,7 @@ month_trends_black <- full_articles %>%
 ggarrange(year_trends_asian, year_trends_black,
           month_trends_asian, month_trends_black, common.legend = TRUE)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot_gran.png", height = 10, width = 13)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_plot_gran.png"), height = 10, width = 13)
 
 ```
 
@@ -192,7 +191,7 @@ time_series_black <- full_articles %>% filter(group == "African Americans") %>% 
 
 ggarrange(time_series_asian, time_series_black, common.legend = TRUE, ncol = 2)
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_source_gran.png", height = 13, width = 15)
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/time_series_source_gran.png"), height = 13, width = 15)
 
 ```
 
@@ -204,13 +203,7 @@ full_articles %>%
   group_by(group) %>%
   visualize_matched()
 
-ggsave("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_gran.png", height = 7)
-
-full_articles %>%
-  filter(year >= 1976 & year <= 1981) %>%
-  gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  group_by(group, linked_fate) %>%
-  summarize(mean = mean(value))
+ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outputs/matched_comparison_gran.png"), height = 7)
 
 ```
 
@@ -218,6 +211,6 @@ full_articles %>%
 
 ```{r}
 
-write.csv(full_articles, "/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv")
+write.csv(full_articles, make_here("/home/jae/content-analysis-for-evaluating-ML-performances/processed_data/full_articles_gran.csv"))
 
 ```

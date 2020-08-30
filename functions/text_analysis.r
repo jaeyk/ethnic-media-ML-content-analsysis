@@ -173,7 +173,7 @@ visualize_year_trends <- function(data){
     stat_summary(fun.y = mean, geom = "line") +
     stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
     scale_y_continuous(labels = scales::percent) +
-    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_color_manual(name = "Type", labels = c("Mixed","Collective loss","Collective gain"), values=c("purple","red","blue")) +
     labs(title = "Yearly trends", 
          caption = "Source: Ethnic Newswatch",
          y = "Proportion of articles", x = "Publication year") 
@@ -190,7 +190,7 @@ visualize_month_trends <- function(data){
     stat_summary(fun.data = mean_se, geom = "ribbon", fun.args = list(mult= 1.96), alpha = 0.1) +
     scale_x_date(date_labels = "%Y-%m") +
     scale_y_continuous(labels = scales::percent) +
-    scale_color_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_color_manual(name = "Type", labels = c("Mixed","Collective loss","Collective gain"), values=c("purple","red","blue")) +
     labs(title = "Monthly trends", 
          caption = "Source: Ethnic Newswatch",
          y = "Proportion of articles", x = "Publication month") 
@@ -207,7 +207,7 @@ visualize_matched <- function(data){
     stat_summary(fun.data = mean_se, geom = "errorbar", position = "dodge", fun.args = list(mult= 1.96)) +
     #  ylim(c(0,17)) +
     labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group") +
-    scale_fill_manual(name = "Type", labels = c("Mixed","Linked hurt","Linked progress"), values=c("purple","red","blue")) +
+    scale_fill_manual(name = "Type", labels = c("Mixed","Collective loss","Collective gain"), values=c("purple","red","blue")) +
     scale_y_continuous(labels = scales::percent)
   
 }
@@ -306,79 +306,5 @@ visualize_performance <- function(data){
     ylim(c(0, 1)) +
     coord_flip() +
     scale_y_continuous(labels = scales::percent) 
-  
-}
-
-visualize_diagnostics <- function(sparse_matrix, many_models){
-  
-  heldout <- make.heldout(sparse_matrix)
-  
-  k_result <- many_models %>%
-    mutate(exclusivity = map(topic_model, exclusivity),
-           semantic_coherence = map(topic_model, semanticCoherence, sparse_matrix),
-           eval_heldout = map(topic_model, eval.heldout, heldout$missing),
-           residual = map(topic_model, checkResiduals, sparse_matrix),
-           bound =  map_dbl(topic_model, function(x) max(x$convergence$bound)),
-           lfact = map_dbl(topic_model, function(x) lfactorial(x$settings$dim$K)),
-           lbound = bound + lfact,
-           iterations = map_dbl(topic_model, function(x) length(x$convergence$bound)))
-  
-  k_result %>%
-    transmute(K,
-              `Lower bound` = lbound,
-              Residuals = map_dbl(residual, "dispersion"),
-              `Semantic coherence` = map_dbl(semantic_coherence, mean),
-              `Held-out likelihood` = map_dbl(eval_heldout, "expected.heldout")) %>%
-    gather(Metric, Value, -K) %>%
-    ggplot(aes(K, Value, color = Metric)) +
-    geom_line(size = 1.5, alpha = 0.7, show.legend = FALSE) +
-    facet_wrap(~Metric, scales = "free_y") +
-    labs(x = "K (number of topics)",
-         y = NULL,
-         title = "Model diagnostics by number of topics")
-  
-}
-
-# This is Julia Silge's code 
-
-visualize_stm <- function(topic_model, news_sparse){
-  
-  td_gamma <- tidy(topic_model, matrix = "gamma",
-                   document_names = rownames(news_sparse))
-  
-  top_terms <- tidy(topic_model) %>%
-    arrange(beta) %>%
-    group_by(topic) %>%
-    top_n(7, beta) %>%
-    arrange(-beta) %>%
-    select(topic, term) %>%
-    summarise(terms = list(term)) %>%
-    mutate(terms = map(terms, paste, collapse = ", ")) %>% 
-    unnest()
-  
-  gamma_terms <- td_gamma %>%
-    group_by(topic) %>%
-    summarise(gamma = mean(gamma)) %>%
-    arrange(desc(gamma)) %>%
-    left_join(top_terms, by = "topic") %>%
-    mutate(topic = paste0("Topic ", topic),
-           topic = reorder(topic, gamma))
-  
-  gamma_terms %>%
-    top_n(5, gamma) %>%
-    ggplot(aes(topic, gamma, label = terms, fill = topic)) +
-    geom_col(show.legend = FALSE) +
-    geom_text(hjust = 0, nudge_y = 0.0005, size = 3,
-              family = "IBMPlexSans") +
-    coord_flip() +
-    scale_y_continuous(expand = c(0,0),
-                       limits = c(0, 0.09),
-                       labels = percent_format()) +
-    theme_tufte(base_family = "IBMPlexSans", ticks = FALSE) +
-    theme(plot.title = element_text(size = 16,
-                                    family="IBMPlexSans-Bold"),
-          plot.subtitle = element_text(size = 13)) +
-    labs(x = NULL, y = expression(gamma),
-         title = "Top 5 topics by prevalence")
   
 }
