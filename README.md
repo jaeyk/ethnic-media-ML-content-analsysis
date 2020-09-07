@@ -1,5 +1,7 @@
 # content-analysis-for-evaluating-ML-performances
 
+- The preprint version of this project is accessible at https://osf.io/preprints/socarxiv/pg3aq/ and was conditionally accepted at the *Journal of Computational Social Science*.
+- The project received [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/) from the Western Political Science Association in 2020.
 
 **How Content Analysis Helps Evaluating Supervised Machine Learning Performances**
 
@@ -8,7 +10,6 @@
 - However, this statement is often a very strong assumption. Raw data is an oxymoron ([Gitelman 2013](https://mitpress.mit.edu/books/raw-data-oxymoron)). Every data is a social construction. Thus, without examining how the training data was created, "garbage in and garbage out" is inevitable ([Geiger et al. 2019](https://stuartgeiger.com/papers/gigo-fat2020.pdf)).
 - Content analysis helps understand how training data was created, providing reasonable base estimates to evaluate the performances of supervised machine learning algorithms. In this article, I document how I have carried out this project from beginning to end. When possible, I provide all the code and data used for this project (including the training but not the text data due to copyright issues).
 - The key takeaway: **Using less reliable training data leads to not only less accurate predictions but also more extreme interpretations**.
-- The preprint version of this project is accessible at https://osf.io/preprints/socarxiv/pg3aq/
 
 ## Motivation
 
@@ -25,7 +26,7 @@ rather than the maximum threshold.
 
 ## Data collection
 
-I needed one semester (Fall 2018) to train my four undergraduate research assistants (RAs) to collect approximately 80,000 newspaper articles and to systematically label them according to the two major issue areas: linked progress (collective gain issue) and linked hurt (collective loss issue). For the sake of time, I have skipped further discussions on the case selection strategy and data collection process. These details will be provided in [the preprint](https://osf.io/preprints/socarxiv/pg3aq/). The earlier draft was presented at the 2019​ Western Political Science Association annual meeting and was selected to receive [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/).
+I needed one semester (Fall 2018) to train my four undergraduate research assistants (RAs) to collect approximately 80,000 newspaper articles and to systematically label them according to the two major issue areas: linked progress (collective gain issue) and linked hurt (collective loss issue). For the sake of time, I have skipped further discussions on the case selection strategy and data collection process. These details will be provided in [the preprint](https://osf.io/preprints/socarxiv/pg3aq/). 
 
 The original data came from the [Ethnic NewsWatch](https://www.proquest.com/products-services/ethnicnewswatch_hist.html) database, which has compiled more than 2.5 million articles published in U.S. ethnic newspapers and magazines. ProQuest created this database and does not allow web scraping. However, one can still download their articles and save them as HTML files. I have developed a [simple HTML parser](https://github.com/jaeyk/proquest_parser) to turn the database search results into CSV files.
 
