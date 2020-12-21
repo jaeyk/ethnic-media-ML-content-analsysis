@@ -1,0 +1,202 @@
+%%%%%%%%%%%%%%%%%%%%%%% file template.tex %%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This is a general template file for the LaTeX package SVJour3
+% for Springer journals.          Springer Heidelberg 2010/09/16
+%
+% Copy it to a new file with a new name and use it as the basis
+% for your article. Delete % signs as needed.
+%
+% This template includes a few options for different layouts and
+% content for various journals. Please consult a previous issue of
+% your journal as needed.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% First comes an example EPS file -- just ignore it and
+% proceed on the \documentclass line
+% your LaTeX will extract the file if required
+\begin{filecontents*}{example.eps}
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 19 19 221 221
+%%CreationDate: Mon Sep 29 1997
+%%Creator: programmed by hand (JK)
+%%EndComments
+gsave
+newpath
+  20 20 moveto
+  20 220 lineto
+  220 220 lineto
+  220 20 lineto
+closepath
+2 setlinewidth
+gsave
+  .4 setgray fill
+grestore
+stroke
+grestore
+\end{filecontents*}
+%
+\RequirePackage{fix-cm}
+%
+%\documentclass{svjour3}                     % onecolumn (standard format)
+%\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
+\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+%\documentclass[twocolumn]{svjour3}          % twocolumn
+%
+\smartqed  % flush right qed marks, e.g. at end of proof
+%
+\usepackage{graphicx}
+%
+% \usepackage{mathptmx}      % use Times fonts if available on your TeX system
+%
+% insert here the call for the packages your document requires
+%\usepackage{latexsym}
+% etc.
+%
+% please place your own definitions here and don't use \def but
+% \newcommand{}{}
+%
+% Insert the name of "your journal" with
+% \journalname{myjournal}
+%
+\begin{document}
+
+\title{Text as Issue%\thanks{Grants or other notes
+%about the article that should go on the front page should be
+%placed here. General acknowledgments should be placed at the end of the article.}
+}
+\subtitle{Measuring Issues Preferences among Minority Groups through Ethnic Newspapers}
+
+%\titlerunning{Short form of title}        % if too long for running head
+
+\author{Jae Yeon Kim%\and
+       % Second Author %etc.
+}
+
+%\authorrunning{Short form of author list} % if too long for running head
+
+\institute{Jae Yeon Kim\at
+              210 Barrows Hall 1950, Berkeley, CA 94720 \\
+              Tel.: +1-510-646-5183\\
+             % Fax: +123-45-678910\\
+              \email{jaeyeonkim@berkeley.edu}           %  \\
+%             \emph{Present address:} of F. Author  %  if needed
+%           \and
+ %          S. Author \at
+  %            second address
+}
+
+\date{Received: date / Accepted: date}
+% The correct dates will be entered by the editor
+
+
+\maketitle
+
+\begin{abstract}
+Survey research has been central to studying racial and ethnic politics in the US. However, most of these surveys were developed in the 1990s and 2000s, so they are not useful if researchers are interested in historical questions. The text-as-data approach provides a solution to this problem by turning ethnic newspaper articles into data. In this study, I present a mixed-method framework that combines a case selection strategy, content analysis, and text classification to utilize a large collection of ethnic newspaper articles for descriptive inference. As a demonstration of this framework, I apply machine learning techniques to 78,383 articles from Asian American and African American newspapers from the 1960s through the 1980s. Content analysis assesses data quality by measuring what and how human coders label the training data. Text classification demonstrates that Asian American newspapers issued linked progress articles by 110\% more than African American newspapers did. By contrast, African American newspapers produced linked hurt articles by 133\% more than Asian American newspapers did. The gap between the two groups widened up to 10 times when the training data were measured by the minimum rather than the maximum threshold.
+\keywords{Computatioanl text analysis \and Content analysis \and Machine learning \and Racial and ethnic politics \and Political communication}
+% \PACS{PACS code1 \and PACS code2 \and more}
+% \subclass{MSC code1 \and MSC code2 \and more}
+\end{abstract}
+
+\section{Introduction}
+Racial and ethnic politics in American politics has evolved based on the development of new surveys. The American National Election Studies (ANES) consists of high-quality panel data that go back to 1948 and have been central in investigating public opinion in American politics \citep{campbell1980american, zaller1992nature, bartels1999panel}. However, when it comes to studying the politics of ethnoracial minority groups, the data have clear limitations because these groups take up only a very small portion of ANES data \citep{conway2004politics}. Other prominent panel data on public opinion, such as the General Social Survey (GSS), are no exception. Racial and ethnic politics researchers have tried to overcome this data limitation by creating new surveys. To name a few, the National Black Election Study\footnote{For more information, see \url{https://www.icpsr.umich.edu/icpsrweb/ICPSR/series/163.}} was developed in 1984, the Latino National Political Survey\footnote{For more information, see \url{https://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/6841.}} in 1989, the National Surveys of Latinos\footnote{For more information, see \url{https://www.pewresearch.org/topics/national-survey-of-latinos/.}} in 2002, the Pilot National Asian American Political Survey\footnote{For more information, see \url{https://www.icpsr.umich.edu/icpsrweb/ICPSR/studies/3832.}} in 2000 and its official version\footnote{For more information, see \url{https://naasurvey.com/data/.}} in 2008, and the Comparative Post-Election Survey\footnote{For more information, see \url{https://cmpsurvey.org/.}} in 2008. This new stream of data has enabled a large number of research to be conducted in African American, Latino, and Asian American politics \citep{gurin1990hope, tate1993protest, dawson1994behind, fraga2011latinos, wong2011asian, mcclain2018can}. Nevertheless, most of these surveys are short lived and thus not comparable to the ANES or GSS in terms of longevity. More importantly, these surveys were mostly developed in the 1990s and 2000s, so they are not useful if researchers are interested in historical questions, such as the political origins and development of minority political movements. For instance, the 1960s and 1970s were the pinnacles of minority political activism in the US. Yet, because of data limitation, the investigation of this critical period has been left to anecdotal examples \citep{munoz1989youth, wei_asian_1993, joseph2006black, maeda2012rethinking, ishizuka2016serve, linder2018text}. 
+
+The text-as-data approach provides a solution to this long-standing problem in the study of racial and ethnic politics in the US. This approach expands the data infrastructure in racial and ethnic politics by turning ethnic newspaper articles into data. Ethnic newspapers have been an essential part of mobilization networks for ethnoracial minority groups. Because mainstream media did not cover minority issues, minority activists founded ethnic newspapers to develop their own political agendas and discuss their unique political issues \citep{le1992asian, dawson1994black, rodriguez1999making, dawson2001black, kannegaard2008press, harris2010barbershops}. Therefore, ethnic newspapers are invaluable historical resources to fill gaps in the quantitative analysis of US racial and ethnic politics---they trace prevalent issues and how these tendencies varied between ethnoracial minority groups over time. Traditionally, content analysis was the main means to analyze newspaper articles; researchers manually collected, read, and interpreted these documents. Large-scale text analysis was impossible until modern computational techniques, such as web scraping, natural language processing, and machine learning, automated the labor-intensive data collection and analysis process \cite{grimmer2013text, wilkerson2017large}.
+
+Nevertheless, more is not always better. The advantage of large-scale computational text analysis over traditional content analysis is scale. A large sample has some nice features for hypothesis testing because it reduces the size of standard errors and establishes the law of large numbers (or the central limit theorem). However, because newspaper articles are collected through non-probability sampling, the large size of the data may also increase the degree of bias in them \citep[685-688]{meng2018statistical}. For instance, not all ethnic newspapers made their records public, not to mention digitized. Because these decisions would have been influenced by the financial status of such newspapers, among other factors, the collection of these newspaper articles would have non-random missing data and would likely not be representative. 
+
+Furthermore, measuring issues that appear in ethnic newspaper articles is difficult. These issues could be conceptualized and measured at a high (meta issues) or low level (specific issues). Meta issues or broad issue frames are useful in text classification, a supervised machine learning technique. Reducing the number of classes that need to be classified increases the number of observations for each class, which is the volume of training data. Furthermore, a small number of classes simplify the coding scheme for human coders and lower their cognitive loads, thus enhancing the reliability of the training data \citep{mikhaylov2012coder}. Nevertheless, these meta issues are conceptually valid only if they are closely associated with specific issues they are supposed to represent. More importantly, different thresholds could be applied to label training data. The minimum threshold indicates that at least one human coder must agree with the coding decision. The maximum threshold indicates that all human coders must agree with the coding decision. These different thresholds may influence machine learning outcomes by providing different qualities of training data. The maximum threshold produces more reliable training data because it is based on strictly consistent coding decisions among human coders. 
+
+In response to these methodological and conceptual challenges, I present a mixed-method framework that combines a case selection strategy, content analysis, and text classification. This framework helps utilize a large collection of ethnic newspaper articles for descriptive inference. The key idea is that computational text analysis techniques build upon and never replace human decisions \citep[268]{grimmer2013text}. Technical guidelines exist for the automated part of the text analysis process, such as preprocessing documents, training algorithms, and evaluating their performance. Yet scholars have rarely engaged with how data collection and measurement decisions---humans in the machine learning loop---affect machine learning outcomes \citep{mikhaylov2012coder, gitelman2013raw, geiger2020garbage}. The framework addresses this problem by structuring data collection and demonstrating the sensitivity of machine learning outcomes to measurement decisions. 
+
+As a demonstration of this framework, I apply machine learning techniques to 78,383 articles from Asian American and African American newspapers from the 1960s through the 1980s. I intentionally selected Asian American and African American newspapers based on the West Coast because Asian Americans and African Americans in the region shared strong social and political networks during the period under investigation. The case selection strategy reduces alternative explanations. Meta issues among ethnoracial minority groups in the US could be divided into two categories: providing collective gains (linked progress issue) and preventing collective losses (linked hurt issue). Content analysis assesses data quality by measuring what and how human coders label the training data. Text classification demonstrates that Asian American newspapers issued linked progress articles by 110\% more than African American newspapers did. By contrast, African American newspapers produced linked hurt articles by 133\% more than Asian American newspapers did. The gap between the two groups widened up to 10 times when the training data were measured by the minimum rather than the maximum threshold. 
+
+This study makes several contributions. Substantially, the findings deepen the understanding of why building interracial coalitions has been difficult in the US \cite{kaufmann2003cracks, rogers2006afro}. Historians of US race relations have pointed out preference misalignment as a hurdle to the formation of interracial coalitions \citep{brilliant2010color, kurashige2010shifting}. The study presents the first systematic evidence of the magnitude of this problem by using a large-scale computational text analysis. Although the evidence is purely descriptive, it provides new theoretical insights into the dynamics of interracial coalition building in the US. Methodologically, the study demonstrates why content analysis, ensuring the quality of training data, is vital in machine learning applications. Using less reliable data leads to not only less accurate predictions but also more extreme interpretations. Machine learning has a strong potential to expand data infrastructure in political science by making the collection and analysis of large-scale data efficient. This feature is especially attractive for a data-hungry field, such as racial and ethnic politics. However, in using this method for knowledge accumulation, acknowledging its limitation is equally crucial. This powerful method reaches its potential only if the quality of training data is not compromised. Examining data quality is essential in using the text-as-data approach for political science research to reassure the credibility of prediction results and interpretations.
+
+\section{Section title}
+\label{sec:1}
+Text with citations \cite{RefB} and \cite{RefJ}.
+\subsection{Subsection title}
+\label{sec:2}
+as required. Don't forget to give each section
+and subsection a unique label (see Sect.~\ref{sec:1}).
+\paragraph{Paragraph headings} Use paragraph headings as needed.
+\begin{equation}
+a^2+b^2=c^2
+\end{equation}
+
+% For one-column wide figures use
+\begin{figure}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics{example.eps}
+% figure caption is below the figure
+\caption{Please write your figure caption here}
+\label{fig:1}       % Give a unique label
+\end{figure}
+%
+% For two-column wide figures use
+\begin{figure*}
+% Use the relevant command to insert your figure file.
+% For example, with the graphicx package use
+  \includegraphics[width=0.75\textwidth]{example.eps}
+% figure caption is below the figure
+\caption{Please write your figure caption here}
+\label{fig:2}       % Give a unique label
+\end{figure*}
+%
+% For tables use
+\begin{table}
+% table caption is above the table
+\caption{Please write your table caption here}
+\label{tab:1}       % Give a unique label
+% For LaTeX tables use
+\begin{tabular}{lll}
+\hline\noalign{\smallskip}
+first & second & third  \\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+number & number & number \\
+number & number & number \\
+\noalign{\smallskip}\hline
+\end{tabular}
+\end{table}
+
+
+\begin{acknowledgements}
+I thank Taeku Lee, Eric Schickler, Paul Pierson, Irene Bloemraad, Hakeem Jefferson, Jonathan Simon, Laura Stoker, Ruth Collier, Joel Middleton, Andrew McCall, Max Goplerud, and Christopher Stout for their comments. I am also grateful to Angela Yip, Brenna Uyeda, Gregory Eng, and Jenny Feng for their research assistance. This paper received the Don T. Nakanishi Award for Distinguished Scholarship and Service in Asian Pacific American Politics from the Western Political Science Association (2020).
+\end{acknowledgements}
+
+
+% Authors must disclose all relationships or interests that
+% could have direct or potential influence or impart bias on
+% the work:
+%
+% \section*{Conflict of interest}
+%
+% The authors declare that they have no conflict of interest.
+
+
+% BibTeX users please use one of
+\bibliographystyle{spbasic}      % basic style, author-year citations
+%\bibliographystyle{spmpsci}      % mathematics and physical sciences
+%\bibliographystyle{spphys}       % APS-like style for physics
+\bibliography{new_bibfile.bib}   % name your BibTeX data base
+
+% Non-BibTeX users please use
+%\begin{thebibliography}{}
+%
+% and use \bibitem to create references. Consult the Instructions
+% for authors for reference list style.
+%
+%\bibitem{RefJ}
+% Format for Journal Reference
+%Author, Article title, Journal, Volume, page numbers (year)
+% Format for books
+%\bibitem{RefB}
+%Author, Book title, page numbers. Publisher, %place (year)
+% etc
+%\end{thebibliography}
+
+\end{document}
+% end of file template.tex

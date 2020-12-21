@@ -198,7 +198,7 @@ ggsave(make_here("/home/jae/content-analysis-for-evaluating-ML-performances/outp
 
 ```{r}
 full_articles %>%
-  filter(year >= 1976 & year <= 1981 ) %>%
+  filter(year >= 1976 & year <= 1979) %>%
   group_by(group) %>%
   visualize_matched() 
 

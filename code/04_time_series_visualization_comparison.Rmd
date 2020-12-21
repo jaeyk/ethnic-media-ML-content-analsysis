@@ -210,7 +210,7 @@ year_unmatched <- df %>%
 
 year_matched <- df %>%
   gather(linked_fate, value, lp_exclusive, lh_exclusive, lf_mixed) %>%
-  filter(year >= 1976 & year <= 1981) %>%
+  filter(year >= 1976 & year <= 1979) %>%
   filter(linked_fate != "lf_mixed") %>%
   group_by(group, linked_fate, type) %>%
   summarize(mean = round(mean(value),2),
@@ -228,7 +228,7 @@ year_matched <- df %>%
     scale_fill_manual(name = "Type", labels = c("Collective loss","Collective gain"), values=c("red","blue")) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
     geom_text(aes(label = paste(mean*100, "%")), position=position_dodge(width=0.9), vjust=-1.5) +
-    labs(title = "Matched comparison (1976-1981)", y = "Proportion of articles", x = "Group")
+    labs(title = "Matched comparison (1976-1979)", y = "Proportion of articles", x = "Group")
 
 ggarrange(year_unmatched, year_matched, common.legend = TRUE)
 
