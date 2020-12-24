@@ -2,7 +2,7 @@
 
 **How Content Analysis Helps Evaluating Supervised Machine Learning Performances**
 
-- The preprint version of this project is accessible at https://osf.io/preprints/socarxiv/pg3aq/ and is forthcoming in the *Journal of Computational Social Science*.
+- The preprint version of this project is accessible at https://osf.io/preprints/socarxiv/pg3aq/ and is forthcoming at the *Journal of Computational Social Science*.
 - The project received [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/) from the Western Political Science Association in 2020.
 
 ## Motivation
