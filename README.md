@@ -5,10 +5,6 @@
 - The preprint version of this project is published in the *Journal of Computational Social Science*: https://jaeyk.github.io/publication/text_as_issue/
 - The project received [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/) from the Western Political Science Association in 2020.
 
-## Motivation
-
-This project is part of my dissertation research. I have mostly worked with survey and experimental data to study political opinion among racial minority groups in the United States. However, as I started working on my dissertation prospectus, I realized that survey data is not a panacea. The major surveys on racial minority groups started in the 1990s and 2000s. It does not provide a good data source for studying what political issues were prevalent among racial minority communities during the civil rights movement. These data missed the defining period in American racial politics. As an alternative strategy to collect data, I developed a project that uses machine learning to classify newspaper articles circulated among racial minority groups from the 1960s through the 1980s. These articles were intentionally collected from the West Coast newspapers as my research focus was multiracial coalition-building.
-
 ## Workflow
 
 ![](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/blob/master/misc/workflow.png)
@@ -22,8 +18,8 @@ I needed one semester (Fall 2018) to train my four undergraduate research assist
 
 The original data came from the [Ethnic NewsWatch](https://www.proquest.com/products-services/ethnicnewswatch_hist.html) database, which has compiled more than 2.5 million articles published in U.S. ethnic newspapers and magazines. ProQuest created this database and does not allow web scraping. However, one can still download their articles and save them as HTML files. I have developed a [simple HTML parser](https://github.com/jaeyk/proquest_parser) to turn the database search results into CSV files.
 
-
 ### Training data [[Data](https://github.com/jaeyk/content-analysis-for-evaluating-ML-performances/tree/master/raw_data)]
+
 I hired four undergraduate research assistants and labeled the training data based on the following procedures. The human coders labeled two meta issues and a list of topics because these topics are useful for testing construct validity. Throughout these procedures, none of the human coders were informed about the research hypotheses.
 
 1. Detecting topics and distributing articles: I employed topic modeling to inductively discover topics from each newspaper. I randomly divided these topics (N = 48) into two parts and assigned 100 articles from each topic in the first part to one team of two human coders and 100 articles from each topic in the second part to another team. I asked the human coders to label each topic based on these articles without consulting the other team member.
@@ -108,8 +104,3 @@ Figure 7 displays how the proportion of collective gain and hurt articles varies
 Figure 8. How text classification is sensitive to measurement decisions
 
 The contrast between the groups can be more closely examined using bar plots. I also dropped the mixed category to make the comparison simple. In Figure 8, the X-axis is the group, and the Y-axis is the proportion of collective gain and hurt articles. The publication years in the Asian American and African American corpora do not precisely match. The Asian American corpus was collected from 1976 to 1989 and the African American corpus from 1968 to 1979. To show whether this difference matters for comparison, I matched the two data on their publication years in the right panel and did not do the same in the left panel. In both panels, Asian American newspapers clearly preferred collective gain, whereas African American newspapers preferred collective loss. The errors bars represent 95% confidence intervals. As the height differences between the bar plots are much greater than these intervals, it is easy to see that these differences are statistically significant. To be precise, I calculated the differences in the proportions of collective gain and hurt articles between the Asian American and African American corpora. Matching the two corpora decreases the gap between the two groups. In the following measures, the lower range comes from the matched data and the upper range comes from the unmatched data. The data show that Asian American newspapers issued collective gain articles by 110%-240% more than African American newspapers did. By contrast, African American newspapers produced collective loss articles by 133%-180% more than their Asian American counterparts did. Measuring the training data by the minimum threshold widens the gap between the two groups. When the threshold shifted to the minimum, Asian American newspapers reported on collective gain up to three times more than African American newspapers did. By contrast, African American newspapers covered collective loss up to 10 times more than their Asian American counterparts.
-
-
-## Conclusion
-
-Garbage in and garbage out is true, and machine learning is no exception. Knowing exactly how garbage the training data is enables estimating how well machine learning will perform. Furthermore, this knowledge also helps investigators have a deeper understanding of the credibility of the machine-predicted data. In [my other project](https://github.com/jaeyk/ITS-Text-Classification), I discussed how we can use machine learning to create data for causal inference. When using machine-predicted data for statistical and causal inferential problems, we should take this data quality problem seriously. Systematic efforts to document the data collection process are key to achieving this goal.
