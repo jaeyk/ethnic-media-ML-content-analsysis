@@ -2,7 +2,7 @@
 
 **How Content Analysis Helps Evaluating Supervised Machine Learning Performances**
 
-- The preprint version of this project is published in the *Journal of Computational Social Science*: https://jaeyk.github.io/publication/text_as_issue/
+- The preprint version of this project is published in the *Journal of Computational Social Science*: https://link.springer.com/article/10.1007/s42001-020-00097-2
 - The project received [the Don T. Nakanishi Award for Distinguished Scholarship in Asian Pacific American politics](https://www.wpsanet.org/award/) from the Western Political Science Association in 2020.
 
 ## Workflow
